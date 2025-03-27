@@ -51,6 +51,7 @@ const POS = () => {
       return;
     }
     
+    // Fixed: Make sure to capture the return value and handle it correctly
     const success = addTransaction(transaction);
     
     if (success) {
