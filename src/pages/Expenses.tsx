@@ -26,7 +26,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, FileText, Filter, Plus, Trash, Filter as FilterIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, FileText, Filter, Plus, Trash, Filter as FilterIcon, Search } from 'lucide-react';
 import { toast } from "sonner";
 
 // Define expense categories

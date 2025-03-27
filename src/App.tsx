@@ -9,13 +9,13 @@ import { MainLayout } from "./components/layout/MainLayout";
 import POS from "./pages/POS";
 import Capital from "./pages/Capital";
 import Inventory from "./pages/Inventory";
+import Purchases from "./pages/Purchases";
+import Expenses from "./pages/Expenses";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
 // Placeholder pages (to be implemented)
-const Purchases = () => <div className="animate-slide-up"><h2 className="text-3xl font-bold tracking-tight mb-6">Purchases</h2><p>Coming soon: Purchase management for restocking inventory</p></div>;
-const Expenses = () => <div className="animate-slide-up"><h2 className="text-3xl font-bold tracking-tight mb-6">Expenses</h2><p>Coming soon: Expense tracking and categorization</p></div>;
 const Sales = () => <div className="animate-slide-up"><h2 className="text-3xl font-bold tracking-tight mb-6">Sales</h2><p>Coming soon: Detailed sales history and transaction management</p></div>;
-const Reports = () => <div className="animate-slide-up"><h2 className="text-3xl font-bold tracking-tight mb-6">Reports</h2><p>Coming soon: Revenue reports and business analytics</p></div>;
 const Settings = () => <div className="animate-slide-up"><h2 className="text-3xl font-bold tracking-tight mb-6">Settings</h2><p>Coming soon: Application settings and preferences</p></div>;
 
 const queryClient = new QueryClient();

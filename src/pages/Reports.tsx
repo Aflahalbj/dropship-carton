@@ -58,7 +58,7 @@ const Reports = () => {
     
   const totalProfit = filteredTransactions
     .filter(t => t.type === 'sale')
-    .reduce((sum, t) => sum + t.profit, 0);
+    .reduce((sum, t) => sum + (t.profit || 0), 0);
     
   const totalExpenses = filteredExpenses
     .reduce((sum, e) => sum + e.amount, 0);
@@ -68,17 +68,17 @@ const Reports = () => {
   // Prepare data for charts
   const prepareChartData = () => {
     // Map sales transactions by date
-    const salesByDate = {};
-    const purchasesByDate = {};
-    const profitByDate = {};
-    const expensesByDate = {};
+    const salesByDate: Record<string, number> = {};
+    const purchasesByDate: Record<string, number> = {};
+    const profitByDate: Record<string, number> = {};
+    const expensesByDate: Record<string, number> = {};
     
     filteredTransactions.forEach(t => {
       const dateStr = format(new Date(t.date), 'yyyy-MM-dd');
       
       if (t.type === 'sale') {
         salesByDate[dateStr] = (salesByDate[dateStr] || 0) + t.total;
-        profitByDate[dateStr] = (profitByDate[dateStr] || 0) + t.profit;
+        profitByDate[dateStr] = (profitByDate[dateStr] || 0) + (t.profit || 0);
       } else if (t.type === 'purchase') {
         purchasesByDate[dateStr] = (purchasesByDate[dateStr] || 0) + t.total;
       }
@@ -105,7 +105,7 @@ const Reports = () => {
     })).sort((a, b) => a.date.localeCompare(b.date));
     
     // Prepare expense categories data
-    const expenseCategories = {};
+    const expenseCategories: Record<string, number> = {};
     filteredExpenses.forEach(e => {
       expenseCategories[e.category] = (expenseCategories[e.category] || 0) + e.amount;
     });
@@ -116,7 +116,12 @@ const Reports = () => {
     }));
     
     // Prepare product performance data
-    const productSales = {};
+    const productSales: Record<string, {
+      name: string;
+      quantity: number;
+      revenue: number;
+      profit: number;
+    }> = {};
     
     filteredTransactions
       .filter(t => t.type === 'sale')
@@ -157,6 +162,14 @@ const Reports = () => {
   const downloadReport = () => {
     // In a real application, this would generate a CSV or PDF report
     alert('This would download a report in a real application');
+  };
+  
+  // Custom formatter for tooltips to ensure values are numbers before using toFixed
+  const formatTooltipValue = (value: any): string => {
+    if (typeof value === 'number') {
+      return `$${value.toFixed(2)}`;
+    }
+    return `$${value}`;
   };
   
   return (
@@ -291,8 +304,8 @@ const Reports = () => {
                   />
                   <YAxis />
                   <Tooltip 
-                    formatter={(value) => [`$${value.toFixed(2)}`, '']}
-                    labelFormatter={(label) => format(parseISO(label), 'MMMM d, yyyy')}
+                    formatter={(value) => [formatTooltipValue(value), '']}
+                    labelFormatter={(label) => format(parseISO(label as string), 'MMMM d, yyyy')}
                   />
                   <Legend />
                   <Line 
@@ -340,7 +353,7 @@ const Reports = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, 'Amount']} />
+                    <Tooltip formatter={(value) => [formatTooltipValue(value), 'Amount']} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -354,7 +367,7 @@ const Reports = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, '']} />
+                    <Tooltip formatter={(value) => [formatTooltipValue(value), '']} />
                     <Legend />
                     <Bar dataKey="profit" fill="#22c55e" name="Profit" />
                     <Bar dataKey="revenue" fill="#6366f1" name="Revenue" />
