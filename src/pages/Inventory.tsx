@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Plus, Package, Search, Edit, Trash, X, Check } from 'lucide-react';
+import { Plus, Package, Search, Edit, Trash, X, Check, PackageOpen } from 'lucide-react';
 import { toast } from "sonner";
 
 const Inventory = () => {
@@ -131,6 +130,22 @@ const Inventory = () => {
     }
   };
   
+  const addDummyProduct = () => {
+    // Generate a unique SKU based on timestamp
+    const sku = `DUM-${Date.now().toString().slice(-6)}`;
+    
+    const dummyProduct = {
+      name: "Sample Product",
+      sku,
+      price: 19.99,
+      supplierPrice: 9.99,
+      stock: 50,
+    };
+    
+    addProduct(dummyProduct);
+    toast.success("Dummy product added successfully!");
+  };
+  
   return (
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
@@ -139,13 +154,23 @@ const Inventory = () => {
           <p className="text-muted-foreground">Manage your product catalog and stock levels</p>
         </div>
         
-        <Button 
-          className="bg-primary text-white flex items-center gap-2"
-          onClick={() => handleOpenForm()}
-        >
-          <Plus size={18} />
-          Add Product
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            className="bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-2"
+            onClick={addDummyProduct}
+          >
+            <PackageOpen size={18} />
+            Add Dummy Product
+          </Button>
+          
+          <Button 
+            className="bg-primary text-white flex items-center gap-2"
+            onClick={() => handleOpenForm()}
+          >
+            <Plus size={18} />
+            Add Product
+          </Button>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
