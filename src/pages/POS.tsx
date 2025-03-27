@@ -1,11 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
-import { Search, Plus, Minus, ShoppingCart, X, Check } from 'lucide-react';
+import { Search, Plus, Minus, ShoppingCart, X, Check, Printer } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import Receipt from '../components/Receipt';
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { useReactToPrint } from 'react-to-print';
 
 const POS = () => {
   const { 
@@ -22,12 +25,28 @@ const POS = () => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
+  const [lastTransaction, setLastTransaction] = useState<{
+    id: string;
+    date: Date;
+    items: typeof cart;
+    total: number;
+  } | null>(null);
+  
+  const receiptRef = useRef<HTMLDivElement>(null);
   
   // Filter products based on search term
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const handlePrint = useReactToPrint({
+    content: () => receiptRef.current,
+    documentTitle: 'Sales Receipt',
+    onAfterPrint: () => {
+      toast.success('Receipt printed successfully!');
+    }
+  });
   
   const handleCheckout = () => {
     if (cart.length === 0) {
@@ -51,10 +70,18 @@ const POS = () => {
       return;
     }
     
-    // Fixed: Make sure to capture the return value and handle it correctly
+    // Make sure to capture the return value and handle it correctly
     const success = addTransaction(transaction);
     
     if (success) {
+      // Store the transaction info for receipt
+      setLastTransaction({
+        id: Date.now().toString(),
+        date: new Date(),
+        items: [...cart],
+        total: cartTotal()
+      });
+      
       toast.success("Sale completed successfully!");
       clearCart();
       setShowCheckout(false);
@@ -120,8 +147,25 @@ const POS = () => {
           )}
         </>
       ) : (
-        <CartView onCheckout={handleCheckout} />
+        <CartView 
+          onCheckout={handleCheckout} 
+          lastTransaction={lastTransaction}
+          onPrintReceipt={handlePrint}
+        />
       )}
+      
+      {/* Hidden receipt component for printing */}
+      <div className="hidden">
+        {lastTransaction && (
+          <Receipt
+            ref={receiptRef}
+            items={lastTransaction.items}
+            total={lastTransaction.total}
+            date={lastTransaction.date}
+            transactionId={lastTransaction.id}
+          />
+        )}
+      </div>
     </div>
   );
   
@@ -158,13 +202,57 @@ const POS = () => {
     );
   }
   
-  function CartView({ onCheckout }: { onCheckout: () => void }) {
+  function CartView({ 
+    onCheckout, 
+    lastTransaction, 
+    onPrintReceipt 
+  }: { 
+    onCheckout: () => void; 
+    lastTransaction: {
+      id: string;
+      date: Date;
+      items: typeof cart;
+      total: number;
+    } | null;
+    onPrintReceipt: () => void;
+  }) {
     if (cart.length === 0) {
       return (
         <div className="text-center py-10">
           <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">Your cart is empty</h3>
           <p className="text-muted-foreground mb-4">Add products to your cart to checkout</p>
+          
+          {lastTransaction && (
+            <div className="mb-4">
+              <p className="text-green-600 font-medium mb-2">Your last sale was completed successfully!</p>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="mx-2">
+                    View Receipt
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[90vh] overflow-auto">
+                  <Receipt
+                    items={lastTransaction.items}
+                    total={lastTransaction.total}
+                    date={lastTransaction.date}
+                    transactionId={lastTransaction.id}
+                  />
+                </DialogContent>
+              </Dialog>
+              
+              <Button 
+                variant="secondary" 
+                className="mx-2 bg-blue-100 text-blue-700 hover:bg-blue-200"
+                onClick={onPrintReceipt}
+              >
+                <Printer size={16} className="mr-2" />
+                Print Receipt
+              </Button>
+            </div>
+          )}
+          
           <Button onClick={() => setShowCheckout(false)}>
             Browse Products
           </Button>
