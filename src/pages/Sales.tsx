@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
-import { TrendingUp, Search, Calendar as CalendarIcon, ChevronRight, FileText, Package, ShoppingCart } from 'lucide-react';
+import { TrendingUp, Search, Calendar as CalendarIcon, ChevronRight, FileText, Package, ShoppingCart, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -16,33 +15,27 @@ const Sales = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [date, setDate] = useState<Date>();
   
-  // Filter for sales transactions only
   const salesTransactions = transactions
     .filter(t => t.type === 'sale')
-    .sort((a, b) => b.date.getTime() - a.date.getTime()); // newest first
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
   
-  // Filter transactions based on search term and date
   const filteredTransactions = salesTransactions.filter(transaction => {
-    // Filter by search
     const productsMatch = transaction.products.some(item => 
       item.product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.product.sku.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
-    // Filter by date if selected
     const dateMatch = !date || format(new Date(transaction.date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
     
     return (productsMatch || !searchTerm) && dateMatch;
   });
   
-  // Calculate total sales and profit
   const totalSales = salesTransactions.reduce((sum, t) => sum + t.total, 0);
   const totalProfit = salesTransactions.reduce((sum, t) => sum + t.profit, 0);
   const averageOrderValue = salesTransactions.length > 0 
     ? totalSales / salesTransactions.length 
     : 0;
   
-  // Group transactions by date for summary
   const salesByDate = salesTransactions.reduce((acc, transaction) => {
     const dateStr = format(new Date(transaction.date), 'yyyy-MM-dd');
     if (!acc[dateStr]) {
@@ -63,7 +56,7 @@ const Sales = () => {
   
   const salesSummary = Object.values(salesByDate)
     .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 7); // Last 7 days with sales
+    .slice(0, 7);
   
   return (
     <div className="animate-slide-up">
@@ -319,7 +312,6 @@ const TransactionsList = ({ transactions }: { transactions: Transaction[] }) => 
   );
 };
 
-// Helper functions
 function getBestSellingProduct(transactions: Transaction[]) {
   const productQuantities: Record<string, { name: string; quantity: number }> = {};
   
@@ -401,7 +393,7 @@ function filterTransactionsByToday(transactions: Transaction[]) {
 function filterTransactionsByThisWeek(transactions: Transaction[]) {
   const today = new Date();
   const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+  startOfWeek.setDate(today.getDate() - today.getDay());
   startOfWeek.setHours(0, 0, 0, 0);
   
   return transactions.filter(transaction => {
@@ -411,6 +403,5 @@ function filterTransactionsByThisWeek(transactions: Transaction[]) {
 }
 
 import { Transaction } from '../context/AppContext';
-import { X } from 'lucide-react';
 
 export default Sales;

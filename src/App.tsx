@@ -13,10 +13,8 @@ import Purchases from "./pages/Purchases";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
-
-// Placeholder pages (to be implemented)
-const Sales = () => <div className="animate-slide-up"><h2 className="text-3xl font-bold tracking-tight mb-6">Sales</h2><p>Coming soon: Detailed sales history and transaction management</p></div>;
-const Settings = () => <div className="animate-slide-up"><h2 className="text-3xl font-bold tracking-tight mb-6">Settings</h2><p>Coming soon: Application settings and preferences</p></div>;
+import Sales from "./pages/Sales";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
