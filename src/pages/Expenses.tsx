@@ -26,7 +26,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, FileText, Filter, Plus, Trash, Filter as FilterIcon, Search } from 'lucide-react';
+import { Calendar as CalendarIcon, FileText, Filter, Plus, Trash, Search } from 'lucide-react';
 import { toast } from "sonner";
 
 // Define expense categories
@@ -282,13 +282,13 @@ const Expenses = () => {
           
           <div className="flex items-center gap-2">
             <div className="relative">
-              <FilterIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[180px] pl-9">
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   {EXPENSE_CATEGORIES.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
@@ -360,3 +360,4 @@ const Expenses = () => {
 };
 
 export default Expenses;
+
