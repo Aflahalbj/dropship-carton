@@ -148,7 +148,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const product = products.find(p => p.id === productId);
     if (!product) return;
     
-    if (quantity > product.stock) {
+    // Check stock only for sales (not for purchases)
+    const isInPOS = window.location.pathname.includes("pos");
+    
+    if (isInPOS && quantity > product.stock) {
       toast.error("Stok tidak mencukupi");
       return;
     }

@@ -22,8 +22,8 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { format, subDays, isAfter, isBefore, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { Calendar as CalendarIcon, Filter, Download, TrendingUp, ArrowDown, ArrowUp, DollarSign, FileText } from 'lucide-react';
-import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 const Reports = () => {
@@ -161,23 +161,23 @@ const Reports = () => {
   
   const downloadReport = () => {
     // In a real application, this would generate a CSV or PDF report
-    alert('This would download a report in a real application');
+    alert('Ini akan mengunduh laporan di aplikasi nyata');
   };
   
   // Custom formatter for tooltips to ensure values are numbers before using toFixed
   const formatTooltipValue = (value: any): string => {
     if (typeof value === 'number') {
-      return `$${value.toFixed(2)}`;
+      return `Rp${value.toLocaleString('id-ID')}`;
     }
-    return `$${value}`;
+    return `Rp${value}`;
   };
   
   return (
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Business Reports</h2>
-          <p className="text-muted-foreground">Analyze your business performance</p>
+          <h2 className="text-3xl font-bold tracking-tight">Laporan Bisnis</h2>
+          <p className="text-muted-foreground">Analisis performa bisnis Anda</p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -186,7 +186,7 @@ const Reports = () => {
               <Button variant="outline" className="flex items-center gap-2">
                 <CalendarIcon size={16} />
                 <span>
-                  {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
+                  {format(dateRange.from, "d MMM yyyy")} - {format(dateRange.to, "d MMM yyyy")}
                 </span>
               </Button>
             </PopoverTrigger>
@@ -214,7 +214,7 @@ const Reports = () => {
           
           <Button onClick={downloadReport} variant="outline" className="flex items-center gap-2">
             <Download size={16} />
-            Export
+            Ekspor
           </Button>
         </div>
       </div>
@@ -222,55 +222,55 @@ const Reports = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card className="p-4 flex flex-col">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-muted-foreground">Total Sales</span>
+            <span className="text-sm text-muted-foreground">Total Penjualan</span>
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
               <TrendingUp size={16} className="text-primary" />
             </div>
           </div>
-          <span className="text-2xl font-bold">${totalSales.toFixed(2)}</span>
+          <span className="text-2xl font-bold">Rp{totalSales.toLocaleString('id-ID')}</span>
           <div className="text-xs text-green-600 mt-1 flex items-center">
             <ArrowUp size={12} className="mr-1" />
-            <span>vs. previous period</span>
+            <span>dibanding periode sebelumnya</span>
           </div>
         </Card>
         
         <Card className="p-4 flex flex-col">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-muted-foreground">Total Purchases</span>
+            <span className="text-sm text-muted-foreground">Total Pembelian</span>
             <div className="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center">
               <ArrowDown size={16} className="text-pink-500" />
             </div>
           </div>
-          <span className="text-2xl font-bold">${totalPurchases.toFixed(2)}</span>
+          <span className="text-2xl font-bold">Rp{totalPurchases.toLocaleString('id-ID')}</span>
           <div className="text-xs text-red-600 mt-1 flex items-center">
             <ArrowUp size={12} className="mr-1" />
-            <span>vs. previous period</span>
+            <span>dibanding periode sebelumnya</span>
           </div>
         </Card>
         
         <Card className="p-4 flex flex-col">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-muted-foreground">Gross Profit</span>
+            <span className="text-sm text-muted-foreground">Laba Kotor</span>
             <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center">
               <DollarSign size={16} className="text-green-500" />
             </div>
           </div>
-          <span className="text-2xl font-bold">${totalProfit.toFixed(2)}</span>
+          <span className="text-2xl font-bold">Rp{totalProfit.toLocaleString('id-ID')}</span>
           <div className="text-xs text-green-600 mt-1 flex items-center">
             <ArrowUp size={12} className="mr-1" />
-            <span>vs. previous period</span>
+            <span>dibanding periode sebelumnya</span>
           </div>
         </Card>
         
         <Card className="p-4 flex flex-col">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-muted-foreground">Net Income</span>
+            <span className="text-sm text-muted-foreground">Pendapatan Bersih</span>
             <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
               <FileText size={16} className="text-blue-500" />
             </div>
           </div>
           <span className={cn("text-2xl font-bold", netIncome < 0 ? "text-red-500" : "")}>
-            ${netIncome.toFixed(2)}
+            Rp{netIncome.toLocaleString('id-ID')}
           </span>
           <div className={cn("text-xs mt-1 flex items-center", netIncome < 0 ? "text-red-600" : "text-green-600")}>
             {netIncome < 0 ? (
@@ -278,34 +278,34 @@ const Reports = () => {
             ) : (
               <ArrowUp size={12} className="mr-1" />
             )}
-            <span>vs. previous period</span>
+            <span>dibanding periode sebelumnya</span>
           </div>
         </Card>
       </div>
       
       <Tabs defaultValue="overview" className="space-y-4" onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="sales">Sales</TabsTrigger>
-          <TabsTrigger value="expenses">Expenses</TabsTrigger>
-          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="overview">Ikhtisar</TabsTrigger>
+          <TabsTrigger value="sales">Penjualan</TabsTrigger>
+          <TabsTrigger value="expenses">Pengeluaran</TabsTrigger>
+          <TabsTrigger value="products">Produk</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-4">
           <Card className="p-4">
-            <h3 className="text-lg font-medium mb-4">Performance Timeline</h3>
+            <h3 className="text-lg font-medium mb-4">Grafik Performa</h3>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData.timelineData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="date" 
-                    tickFormatter={(date) => format(parseISO(date), 'MMM d')}
+                    tickFormatter={(date) => format(parseISO(date), 'd MMM')}
                   />
                   <YAxis />
                   <Tooltip 
                     formatter={(value) => [formatTooltipValue(value), '']}
-                    labelFormatter={(label) => format(parseISO(label as string), 'MMMM d, yyyy')}
+                    labelFormatter={(label) => format(parseISO(label as string), 'd MMMM yyyy')}
                   />
                   <Legend />
                   <Line 
@@ -313,19 +313,19 @@ const Reports = () => {
                     dataKey="sales" 
                     stroke="#6366f1" 
                     activeDot={{ r: 8 }} 
-                    name="Sales"
+                    name="Penjualan"
                   />
                   <Line 
                     type="monotone" 
                     dataKey="profit" 
                     stroke="#22c55e" 
-                    name="Profit"
+                    name="Laba"
                   />
                   <Line 
                     type="monotone" 
                     dataKey="expenses" 
                     stroke="#ec4899" 
-                    name="Expenses"
+                    name="Pengeluaran"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -334,7 +334,7 @@ const Reports = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="p-4">
-              <h3 className="text-lg font-medium mb-4">Expense Categories</h3>
+              <h3 className="text-lg font-medium mb-4">Kategori Pengeluaran</h3>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -353,14 +353,14 @@ const Reports = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => [formatTooltipValue(value), 'Amount']} />
+                    <Tooltip formatter={(value) => [formatTooltipValue(value), 'Jumlah']} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </Card>
             
             <Card className="p-4">
-              <h3 className="text-lg font-medium mb-4">Top Performing Products</h3>
+              <h3 className="text-lg font-medium mb-4">Produk Teratas</h3>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData.topProducts}>
@@ -369,8 +369,8 @@ const Reports = () => {
                     <YAxis />
                     <Tooltip formatter={(value) => [formatTooltipValue(value), '']} />
                     <Legend />
-                    <Bar dataKey="profit" fill="#22c55e" name="Profit" />
-                    <Bar dataKey="revenue" fill="#6366f1" name="Revenue" />
+                    <Bar dataKey="profit" fill="#22c55e" name="Laba" />
+                    <Bar dataKey="revenue" fill="#6366f1" name="Pendapatan" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -380,22 +380,22 @@ const Reports = () => {
         
         <TabsContent value="sales" className="space-y-4">
           <Card className="p-4">
-            <h3 className="text-lg font-medium mb-4">Sales Analysis</h3>
-            <p className="text-muted-foreground">Detailed sales analysis content will be shown here.</p>
+            <h3 className="text-lg font-medium mb-4">Analisis Penjualan</h3>
+            <p className="text-muted-foreground">Detail analisis penjualan akan ditampilkan di sini.</p>
           </Card>
         </TabsContent>
         
         <TabsContent value="expenses" className="space-y-4">
           <Card className="p-4">
-            <h3 className="text-lg font-medium mb-4">Expense Analysis</h3>
-            <p className="text-muted-foreground">Detailed expense analysis content will be shown here.</p>
+            <h3 className="text-lg font-medium mb-4">Analisis Pengeluaran</h3>
+            <p className="text-muted-foreground">Detail analisis pengeluaran akan ditampilkan di sini.</p>
           </Card>
         </TabsContent>
         
         <TabsContent value="products" className="space-y-4">
           <Card className="p-4">
-            <h3 className="text-lg font-medium mb-4">Product Performance</h3>
-            <p className="text-muted-foreground">Detailed product performance analysis will be shown here.</p>
+            <h3 className="text-lg font-medium mb-4">Performa Produk</h3>
+            <p className="text-muted-foreground">Detail analisis performa produk akan ditampilkan di sini.</p>
           </Card>
         </TabsContent>
       </Tabs>
