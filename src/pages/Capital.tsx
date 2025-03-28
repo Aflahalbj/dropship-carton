@@ -1,209 +1,127 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { DollarSign, ArrowUp, ArrowDown, Clock } from 'lucide-react';
 import { toast } from "sonner";
+import { DollarSign, TrendingDown, TrendingUp } from 'lucide-react';
+
+const formSchema = z.object({
+  amount: z.string().min(1, {
+    message: "Jumlah wajib diisi.",
+  }),
+});
 
 const Capital = () => {
-  const { 
-    capital, 
-    setCapital, 
-    addToCapital, 
-    subtractFromCapital,
-    transactions,
-    expenses
-  } = useAppContext();
+  const { capital, addToCapital, subtractFromCapital } = useAppContext();
+  const [operation, setOperation] = useState<'add' | 'subtract'>('add');
   
-  const [amount, setAmount] = useState<string>('');
-  const [isInitialSetup, setIsInitialSetup] = useState(capital === 0);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      amount: "",
+    },
+  });
   
-  const handleSetInitialCapital = () => {
-    const parsedAmount = parseFloat(amount);
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const amount = parseFloat(values.amount);
     
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      toast.error("Please enter a valid amount");
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Masukkan jumlah yang valid");
       return;
     }
     
-    setCapital(parsedAmount);
-    setAmount('');
-    setIsInitialSetup(false);
-    toast.success(`Initial capital set to $${parsedAmount.toFixed(2)}`);
-  };
-  
-  const handleAddCapital = () => {
-    const parsedAmount = parseFloat(amount);
-    
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
+    if (operation === 'add') {
+      addToCapital(amount);
+      toast.success(`Rp${amount.toLocaleString('id-ID')} ditambahkan ke modal`);
+    } else {
+      const success = subtractFromCapital(amount);
+      if (success) {
+        toast.success(`Rp${amount.toLocaleString('id-ID')} dikurangi dari modal`);
+      }
     }
     
-    addToCapital(parsedAmount);
-    setAmount('');
+    form.reset();
   };
-  
-  const handleSubtractCapital = () => {
-    const parsedAmount = parseFloat(amount);
-    
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
-    
-    if (parsedAmount > capital) {
-      toast.error("Amount exceeds available capital");
-      return;
-    }
-    
-    subtractFromCapital(parsedAmount);
-    setAmount('');
-  };
-  
-  // Get capital history from transactions and expenses, sorted by date
-  const getCapitalHistory = () => {
-    // Convert sales to capital entries
-    const salesEntries = transactions
-      .filter(t => t.type === 'sale')
-      .map(t => ({
-        date: t.date,
-        amount: t.total,
-        type: 'sale',
-        description: `Sale: ${t.products.length} products`
-      }));
-    
-    // Convert purchases to capital entries
-    const purchaseEntries = transactions
-      .filter(t => t.type === 'purchase')
-      .map(t => ({
-        date: t.date,
-        amount: -t.total,
-        type: 'purchase',
-        description: `Purchase: ${t.products.length} products`
-      }));
-    
-    // Convert expenses to capital entries
-    const expenseEntries = expenses.map(e => ({
-      date: e.date,
-      amount: -e.amount,
-      type: 'expense',
-      description: `Expense: ${e.category} - ${e.description}`
-    }));
-    
-    // Combine and sort by date (newest first)
-    return [...salesEntries, ...purchaseEntries, ...expenseEntries]
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
-      .slice(0, 10); // Limit to last 10 entries
-  };
-  
-  const capitalHistory = getCapitalHistory();
   
   return (
     <div className="animate-slide-up">
-      <h2 className="text-3xl font-bold tracking-tight mb-6">Capital Management</h2>
+      <h2 className="text-3xl font-bold tracking-tight mb-6">Modal Bisnis</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="p-6 col-span-1 md:col-span-2 relative overflow-hidden">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-lg font-medium mb-1">Available Capital</h3>
-              <p className="text-3xl font-bold">${capital.toFixed(2)}</p>
-            </div>
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <DollarSign size={32} className="text-primary" />
-            </div>
-          </div>
-          
-          {/* Decorative background element */}
-          <div className="absolute -right-10 -bottom-10 w-40 h-40 rounded-full bg-primary/5"></div>
-        </Card>
-        
-        <Card className="p-6">
-          <h3 className="text-lg font-medium mb-4">
-            {isInitialSetup ? 'Set Initial Capital' : 'Adjust Capital'}
-          </h3>
-          
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-muted-foreground mb-1">
-                Amount
-              </label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="Enter amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-            
-            {isInitialSetup ? (
-              <Button 
-                className="w-full bg-primary text-white"
-                onClick={handleSetInitialCapital}
-              >
-                Set Initial Capital
-              </Button>
-            ) : (
-              <div className="grid grid-cols-2 gap-3">
-                <Button 
-                  className="bg-primary/90 text-white flex items-center gap-2"
-                  onClick={handleAddCapital}
-                >
-                  <ArrowUp size={16} />
-                  Add
-                </Button>
-                <Button 
-                  variant="outline"
-                  className="border-primary text-primary flex items-center gap-2"
-                  onClick={handleSubtractCapital}
-                >
-                  <ArrowDown size={16} />
-                  Subtract
-                </Button>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <Card className="bg-card shadow-sm">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Total Modal</p>
+                <h3 className="text-2xl font-bold">Rp{capital.toLocaleString('id-ID')}</h3>
               </div>
-            )}
-          </div>
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+          </CardContent>
         </Card>
       </div>
       
-      <div className="bg-card border rounded-lg overflow-hidden">
-        <div className="p-4 bg-accent border-b">
-          <h3 className="font-medium">Recent Capital Changes</h3>
+      <div className="bg-card border rounded-lg p-6 w-full max-w-md mx-auto">
+        <h3 className="text-lg font-medium mb-6">Kelola Modal</h3>
+        
+        <div className="flex gap-4 mb-6">
+          <Button
+            type="button"
+            variant={operation === 'add' ? "default" : "outline"}
+            className="flex-1 gap-2"
+            onClick={() => setOperation('add')}
+          >
+            <TrendingUp size={16} />
+            Tambah
+          </Button>
+          <Button
+            type="button"
+            variant={operation === 'subtract' ? "default" : "outline"}
+            className="flex-1 gap-2"
+            onClick={() => setOperation('subtract')}
+          >
+            <TrendingDown size={16} />
+            Kurangi
+          </Button>
         </div>
         
-        {capitalHistory.length > 0 ? (
-          <div className="divide-y">
-            {capitalHistory.map((entry, index) => (
-              <div key={index} className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    entry.amount > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-                  }`}>
-                    {entry.amount > 0 ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
-                  </div>
-                  <div>
-                    <p className="font-medium">{entry.description}</p>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Clock size={14} />
-                      {entry.date.toLocaleDateString()} at {entry.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
-                <p className={`font-medium ${entry.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {entry.amount > 0 ? '+' : ''}{entry.amount.toFixed(2)}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="p-6 text-center">
-            <p className="text-muted-foreground">No capital changes recorded yet.</p>
-          </div>
-        )}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Jumlah (Rp)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Contoh: 500000" 
+                      {...field} 
+                      type="number"
+                      min="0"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button 
+              type="submit" 
+              className="w-full"
+            >
+              {operation === 'add' ? 'Tambah ke Modal' : 'Kurangi dari Modal'}
+            </Button>
+          </form>
+        </Form>
       </div>
     </div>
   );

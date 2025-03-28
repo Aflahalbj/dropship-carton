@@ -63,6 +63,8 @@ const Purchases = () => {
       toast.success("Pembelian berhasil dilakukan!");
       clearCart();
       setShowCheckout(false);
+    } else {
+      toast.error("Modal tidak mencukupi untuk pembelian ini!");
     }
   };
   

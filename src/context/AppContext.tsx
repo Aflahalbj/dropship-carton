@@ -84,12 +84,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Capital functions
   const addToCapital = (amount: number): void => {
     setCapital(prev => prev + amount);
-    toast.success(`Added $${amount.toFixed(2)} to capital`);
+    toast.success(`Rp${amount.toLocaleString('id-ID')} ditambahkan ke modal`);
   };
   
   const subtractFromCapital = (amount: number): boolean => {
     if (amount > capital) {
-      toast.error("Insufficient capital");
+      toast.error("Modal tidak mencukupi");
       return false;
     }
     
@@ -105,19 +105,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     
     setProducts(prev => [...prev, newProduct]);
-    toast.success(`Product added: ${product.name}`);
+    toast.success(`Produk ditambahkan: ${product.name}`);
   };
   
   const updateProduct = (product: Product): void => {
     setProducts(prev => 
       prev.map(p => p.id === product.id ? product : p)
     );
-    toast.success(`Product updated: ${product.name}`);
+    toast.success(`Produk diperbarui: ${product.name}`);
   };
   
   const deleteProduct = (id: string): void => {
     setProducts(prev => prev.filter(p => p.id !== id));
-    toast.success("Product deleted");
+    toast.success("Produk dihapus");
   };
   
   // Cart functions
@@ -149,7 +149,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!product) return;
     
     if (quantity > product.stock) {
-      toast.error("Not enough stock available");
+      toast.error("Stok tidak mencukupi");
       return;
     }
     
@@ -201,7 +201,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
       
       if (hasInsufficientStock) {
-        toast.error("Insufficient stock for some items");
+        toast.error("Stok tidak mencukupi untuk beberapa barang");
         return false;
       }
       
@@ -265,7 +265,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     
     setExpenses(prev => [...prev, newExpense]);
-    toast.success(`Expense recorded: $${expense.amount.toFixed(2)}`);
+    toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`);
     return true;
   };
   
