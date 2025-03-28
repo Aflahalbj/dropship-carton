@@ -59,7 +59,7 @@ const formSchema = z.object({
 const Expenses = () => {
   const { expenses, addExpense } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all'); // Changed from empty string to 'all'
   
   // Set up form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -78,8 +78,8 @@ const Expenses = () => {
     const matchesSearch = !searchTerm || 
       expense.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filter by category
-    const matchesCategory = !categoryFilter || expense.category === categoryFilter;
+    // Filter by category (changed to check for 'all' value)
+    const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
     
     return matchesSearch && matchesCategory;
   }).sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date descending
@@ -288,7 +288,7 @@ const Expenses = () => {
                   <SelectValue placeholder="Semua Kategori" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Semua Kategori</SelectItem>
+                  <SelectItem value="all">Semua Kategori</SelectItem>
                   {EXPENSE_CATEGORIES.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
@@ -340,13 +340,13 @@ const Expenses = () => {
               <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">Tidak ada pengeluaran ditemukan</h3>
               <p className="text-muted-foreground mb-4">
-                {categoryFilter ? `Tidak ada pengeluaran dalam kategori '${categoryFilter}'.` : 'Tidak ada pengeluaran yang cocok dengan pencarian Anda.'}
+                {categoryFilter !== 'all' ? `Tidak ada pengeluaran dalam kategori '${categoryFilter}'.` : 'Tidak ada pengeluaran yang cocok dengan pencarian Anda.'}
               </p>
               <Button
                 variant="outline"
                 onClick={() => {
                   setSearchTerm('');
-                  setCategoryFilter('');
+                  setCategoryFilter('all');
                 }}
               >
                 Hapus Filter
