@@ -42,7 +42,7 @@ const POS = () => {
   
   const handlePrint = useReactToPrint({
     documentTitle: 'Sales Receipt',
-    content: receiptRef.current ? () => receiptRef.current! : undefined,
+    contentRef: receiptRef,
     onAfterPrint: () => {
       toast.success('Receipt printed successfully!');
     }
