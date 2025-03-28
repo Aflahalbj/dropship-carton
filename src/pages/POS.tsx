@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer } from 'lucide-react';
@@ -41,7 +42,7 @@ const POS = () => {
   
   const handlePrint = useReactToPrint({
     documentTitle: 'Sales Receipt',
-    contentRef: () => receiptRef.current,
+    content: receiptRef.current ? () => receiptRef.current! : undefined,
     onAfterPrint: () => {
       toast.success('Receipt printed successfully!');
     }
