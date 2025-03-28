@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Plus, Package, Search, Edit, Trash, X, Check, PackageOpen } from 'lucide-react';
+import { Plus, Package, Search, Edit, Trash, X, Check } from 'lucide-react';
 import { toast } from "sonner";
 
 const Inventory = () => {
@@ -69,7 +70,7 @@ const Inventory = () => {
     
     // Validate form
     if (!formData.name || !formData.sku) {
-      toast.error("Name and SKU are required");
+      toast.error("Nama dan SKU harus diisi");
       return;
     }
     
@@ -78,28 +79,28 @@ const Inventory = () => {
     const stock = parseInt(formData.stock);
     
     if (isNaN(price) || price <= 0) {
-      toast.error("Please enter a valid price");
+      toast.error("Masukkan harga jual yang valid");
       return;
     }
     
     if (isNaN(supplierPrice) || supplierPrice <= 0) {
-      toast.error("Please enter a valid supplier price");
+      toast.error("Masukkan harga supplier yang valid");
       return;
     }
     
     if (isNaN(stock) || stock < 0) {
-      toast.error("Please enter a valid stock quantity");
+      toast.error("Masukkan jumlah stok yang valid");
       return;
     }
     
     if (supplierPrice >= price) {
-      toast.error("Supplier price must be less than selling price");
+      toast.error("Harga supplier harus lebih rendah dari harga jual");
       return;
     }
     
     // Check if SKU already exists (for new products)
     if (!editingProduct && products.some(p => p.sku === formData.sku)) {
-      toast.error("SKU already exists");
+      toast.error("SKU sudah ada");
       return;
     }
     
@@ -125,50 +126,26 @@ const Inventory = () => {
   };
   
   const handleDeleteProduct = (id: string) => {
-    if (confirm("Are you sure you want to delete this product?")) {
+    if (confirm("Apakah Anda yakin ingin menghapus produk ini?")) {
       deleteProduct(id);
     }
-  };
-  
-  const addDummyProduct = () => {
-    // Generate a unique SKU based on timestamp
-    const sku = `DUM-${Date.now().toString().slice(-6)}`;
-    
-    const dummyProduct = {
-      name: "Sample Product",
-      sku,
-      price: 19.99,
-      supplierPrice: 9.99,
-      stock: 50,
-    };
-    
-    addProduct(dummyProduct);
-    toast.success("Dummy product added successfully!");
   };
   
   return (
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Inventory Management</h2>
-          <p className="text-muted-foreground">Manage your product catalog and stock levels</p>
+          <h2 className="text-3xl font-bold tracking-tight">Manajemen Inventaris</h2>
+          <p className="text-muted-foreground">Kelola katalog produk dan tingkat stok Anda</p>
         </div>
         
         <div className="flex gap-2">
-          <Button 
-            className="bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-2"
-            onClick={addDummyProduct}
-          >
-            <PackageOpen size={18} />
-            Add Dummy Product
-          </Button>
-          
           <Button 
             className="bg-primary text-white flex items-center gap-2"
             onClick={() => handleOpenForm()}
           >
             <Plus size={18} />
-            Add Product
+            Tambah Produk
           </Button>
         </div>
       </div>
@@ -176,7 +153,7 @@ const Inventory = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <Card className="p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Total Products</p>
+            <p className="text-sm text-muted-foreground">Total Produk</p>
             <p className="text-2xl font-bold">{products.length}</p>
           </div>
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -186,7 +163,7 @@ const Inventory = () => {
         
         <Card className="p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Out of Stock</p>
+            <p className="text-sm text-muted-foreground">Stok Habis</p>
             <p className="text-2xl font-bold">
               {products.filter(p => p.stock === 0).length}
             </p>
@@ -198,7 +175,7 @@ const Inventory = () => {
         
         <Card className="p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Low Stock</p>
+            <p className="text-sm text-muted-foreground">Stok Rendah</p>
             <p className="text-2xl font-bold">
               {products.filter(p => p.stock > 0 && p.stock <= 5).length}
             </p>
@@ -210,7 +187,7 @@ const Inventory = () => {
         
         <Card className="p-4 flex items-center justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">In Stock</p>
+            <p className="text-sm text-muted-foreground">Stok Tersedia</p>
             <p className="text-2xl font-bold">
               {products.filter(p => p.stock > 5).length}
             </p>
@@ -225,7 +202,7 @@ const Inventory = () => {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
         <Input
           type="text"
-          placeholder="Search products by name or SKU..."
+          placeholder="Cari produk berdasarkan nama atau SKU..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -237,13 +214,13 @@ const Inventory = () => {
           <table className="w-full">
             <thead>
               <tr className="bg-accent">
-                <th className="text-left py-3 px-4 font-medium">Product</th>
+                <th className="text-left py-3 px-4 font-medium">Produk</th>
                 <th className="text-left py-3 px-4 font-medium">SKU</th>
-                <th className="text-right py-3 px-4 font-medium">Price</th>
-                <th className="text-right py-3 px-4 font-medium">Supplier Price</th>
-                <th className="text-right py-3 px-4 font-medium">Profit</th>
-                <th className="text-right py-3 px-4 font-medium">Stock</th>
-                <th className="text-right py-3 px-4 font-medium">Actions</th>
+                <th className="text-right py-3 px-4 font-medium">Harga Jual</th>
+                <th className="text-right py-3 px-4 font-medium">Harga Supplier</th>
+                <th className="text-right py-3 px-4 font-medium">Keuntungan</th>
+                <th className="text-right py-3 px-4 font-medium">Stok</th>
+                <th className="text-right py-3 px-4 font-medium">Tindakan</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -251,10 +228,10 @@ const Inventory = () => {
                 <tr key={product.id} className="hover:bg-accent/30 transition-colors">
                   <td className="py-3 px-4">{product.name}</td>
                   <td className="py-3 px-4 text-muted-foreground">{product.sku}</td>
-                  <td className="py-3 px-4 text-right">${product.price.toFixed(2)}</td>
-                  <td className="py-3 px-4 text-right">${product.supplierPrice.toFixed(2)}</td>
+                  <td className="py-3 px-4 text-right">Rp{product.price.toLocaleString('id-ID')}</td>
+                  <td className="py-3 px-4 text-right">Rp{product.supplierPrice.toLocaleString('id-ID')}</td>
                   <td className="py-3 px-4 text-right text-primary">
-                    ${(product.price - product.supplierPrice).toFixed(2)}
+                    Rp{(product.price - product.supplierPrice).toLocaleString('id-ID')}
                   </td>
                   <td className="py-3 px-4 text-right">
                     <span className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
@@ -293,7 +270,7 @@ const Inventory = () => {
               {filteredProducts.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-6 text-center text-muted-foreground">
-                    No products found
+                    Tidak ada produk ditemukan
                   </td>
                 </tr>
               )}
@@ -317,18 +294,18 @@ const Inventory = () => {
             
             <div className="p-6">
               <h3 className="text-xl font-semibold mb-4">
-                {editingProduct ? 'Edit Product' : 'Add New Product'}
+                {editingProduct ? 'Edit Produk' : 'Tambah Produk Baru'}
               </h3>
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">
-                    Product Name
+                    Nama Produk
                   </label>
                   <Input
                     id="name"
                     name="name"
-                    placeholder="Enter product name"
+                    placeholder="Masukkan nama produk"
                     value={formData.name}
                     onChange={handleInputChange}
                     required
@@ -342,7 +319,7 @@ const Inventory = () => {
                   <Input
                     id="sku"
                     name="sku"
-                    placeholder="Enter product SKU"
+                    placeholder="Masukkan SKU produk"
                     value={formData.sku}
                     onChange={handleInputChange}
                     readOnly={!!editingProduct}
@@ -353,14 +330,14 @@ const Inventory = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="price" className="block text-sm font-medium text-muted-foreground mb-1">
-                      Selling Price
+                      Harga Jual
                     </label>
                     <Input
                       id="price"
                       name="price"
                       type="number"
                       step="0.01"
-                      placeholder="0.00"
+                      placeholder="0"
                       value={formData.price}
                       onChange={handleInputChange}
                       required
@@ -369,14 +346,14 @@ const Inventory = () => {
                   
                   <div>
                     <label htmlFor="supplierPrice" className="block text-sm font-medium text-muted-foreground mb-1">
-                      Supplier Price
+                      Harga Supplier
                     </label>
                     <Input
                       id="supplierPrice"
                       name="supplierPrice"
                       type="number"
                       step="0.01"
-                      placeholder="0.00"
+                      placeholder="0"
                       value={formData.supplierPrice}
                       onChange={handleInputChange}
                       required
@@ -386,7 +363,7 @@ const Inventory = () => {
                 
                 <div>
                   <label htmlFor="stock" className="block text-sm font-medium text-muted-foreground mb-1">
-                    Initial Stock
+                    Stok Awal
                   </label>
                   <Input
                     id="stock"
@@ -405,14 +382,14 @@ const Inventory = () => {
                     variant="outline"
                     onClick={handleCloseForm}
                   >
-                    Cancel
+                    Batal
                   </Button>
                   <Button
                     type="submit"
                     className="bg-primary text-white flex items-center gap-2"
                   >
                     <Check size={18} />
-                    {editingProduct ? 'Update Product' : 'Add Product'}
+                    {editingProduct ? 'Perbarui Produk' : 'Tambah Produk'}
                   </Button>
                 </div>
               </form>

@@ -16,7 +16,8 @@ const Purchases = () => {
     updateCartItemQuantity, 
     clearCart, 
     cartTotal,
-    addTransaction
+    addTransaction,
+    capital
   } = useAppContext();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,6 +49,12 @@ const Purchases = () => {
       (total, item) => total + (item.product.price * item.quantity), 
       0
     );
+    
+    // Check if we have enough capital for the purchase
+    if (purchaseTotal > capital) {
+      toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${capital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`);
+      return;
+    }
     
     const transaction = {
       date: new Date(),
@@ -242,6 +249,15 @@ const Purchases = () => {
               <span>Total Pembelian:</span>
               <span>Rp{purchaseTotal.toLocaleString('id-ID')}</span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Modal Saat Ini:</span>
+              <span className="font-medium">Rp{capital.toLocaleString('id-ID')}</span>
+            </div>
+            {purchaseTotal > capital && (
+              <div className="text-destructive text-sm mt-2">
+                Modal tidak mencukupi untuk pembelian ini!
+              </div>
+            )}
           </div>
           
           <div className="flex gap-4">
@@ -255,6 +271,7 @@ const Purchases = () => {
             <Button 
               className="flex-1 bg-primary text-white flex items-center justify-center gap-2"
               onClick={onCheckout}
+              disabled={purchaseTotal > capital}
             >
               <Check size={18} />
               Selesaikan Pembelian

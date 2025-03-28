@@ -31,28 +31,28 @@ import { toast } from "sonner";
 
 // Define expense categories
 const EXPENSE_CATEGORIES = [
-  'Rent',
-  'Utilities',
-  'Payroll',
-  'Marketing',
-  'Supplies',
-  'Shipping',
-  'Insurance',
-  'Taxes',
-  'Software',
-  'Miscellaneous',
+  'Sewa',
+  'Utilitas',
+  'Gaji',
+  'Pemasaran',
+  'Perlengkapan',
+  'Pengiriman',
+  'Asuransi',
+  'Pajak',
+  'Perangkat Lunak',
+  'Lain-lain',
 ];
 
 // Create form schema
 const formSchema = z.object({
-  amount: z.string().min(1, "Amount is required").refine(
+  amount: z.string().min(1, "Jumlah wajib diisi").refine(
     (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
-    { message: "Amount must be a positive number" }
+    { message: "Jumlah harus angka positif" }
   ),
-  category: z.string().min(1, "Category is required"),
-  description: z.string().min(1, "Description is required"),
+  category: z.string().min(1, "Kategori wajib diisi"),
+  description: z.string().min(1, "Deskripsi wajib diisi"),
   date: z.date({
-    required_error: "Date is required",
+    required_error: "Tanggal wajib diisi",
   }),
 });
 
@@ -118,8 +118,8 @@ const Expenses = () => {
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Expense Tracking</h2>
-          <p className="text-muted-foreground">Monitor and manage your business expenses</p>
+          <h2 className="text-3xl font-bold tracking-tight">Pencatatan Pengeluaran</h2>
+          <p className="text-muted-foreground">Pantau dan kelola pengeluaran bisnis Anda</p>
         </div>
         
         <Button 
@@ -127,7 +127,7 @@ const Expenses = () => {
           className="bg-primary text-white flex items-center gap-2"
         >
           <Plus size={18} />
-          Add Expense
+          Tambah Pengeluaran
         </Button>
       </div>
       
@@ -142,12 +142,12 @@ const Expenses = () => {
                     name="amount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Amount</FormLabel>
+                        <FormLabel>Jumlah</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">Rp</span>
                             <Input 
-                              placeholder="0.00" 
+                              placeholder="0" 
                               className="pl-8" 
                               {...field} 
                             />
@@ -163,14 +163,14 @@ const Expenses = () => {
                     name="category"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Category</FormLabel>
+                        <FormLabel>Kategori</FormLabel>
                         <Select 
                           onValueChange={field.onChange} 
                           defaultValue={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
+                              <SelectValue placeholder="Pilih kategori" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -192,10 +192,10 @@ const Expenses = () => {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>Deskripsi</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Enter expense description" 
+                          placeholder="Masukkan deskripsi pengeluaran" 
                           {...field} 
                         />
                       </FormControl>
@@ -209,7 +209,7 @@ const Expenses = () => {
                   name="date"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Date</FormLabel>
+                      <FormLabel>Tanggal</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -223,7 +223,7 @@ const Expenses = () => {
                               {field.value ? (
                                 format(field.value, "PPP")
                               ) : (
-                                <span>Pick a date</span>
+                                <span>Pilih tanggal</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -247,7 +247,7 @@ const Expenses = () => {
                   type="submit" 
                   className="w-full bg-primary text-white"
                 >
-                  Record Expense
+                  Catat Pengeluaran
                 </Button>
               </form>
             </Form>
@@ -255,19 +255,19 @@ const Expenses = () => {
         </div>
         
         <Card className="p-6">
-          <h3 className="text-lg font-medium mb-4">Expense Summary</h3>
+          <h3 className="text-lg font-medium mb-4">Ringkasan Pengeluaran</h3>
           <div className="space-y-4">
             <div className="flex justify-between border-b pb-4">
-              <span className="text-muted-foreground">Total Expenses</span>
-              <span className="font-bold">${totalExpenses.toFixed(2)}</span>
+              <span className="text-muted-foreground">Total Pengeluaran</span>
+              <span className="font-bold">Rp{totalExpenses.toLocaleString('id-ID')}</span>
             </div>
             
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-muted-foreground">Top Categories</h4>
+              <h4 className="text-sm font-medium text-muted-foreground">Kategori Teratas</h4>
               {expensesByCategory.slice(0, 5).map((item, i) => (
                 <div key={item.category} className="flex justify-between text-sm">
                   <span>{item.category}</span>
-                  <span>${item.total.toFixed(2)}</span>
+                  <span>Rp{item.total.toLocaleString('id-ID')}</span>
                 </div>
               ))}
             </div>
@@ -278,17 +278,17 @@ const Expenses = () => {
       {/* Expenses List */}
       <div className="bg-card border rounded-lg overflow-hidden">
         <div className="p-4 bg-accent border-b flex justify-between items-center">
-          <h3 className="font-medium">Expense History</h3>
+          <h3 className="font-medium">Riwayat Pengeluaran</h3>
           
           <div className="flex items-center gap-2">
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-[180px] pl-9">
-                  <SelectValue placeholder="All Categories" />
+                  <SelectValue placeholder="Semua Kategori" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="">Semua Kategori</SelectItem>
                   {EXPENSE_CATEGORIES.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
@@ -300,7 +300,7 @@ const Expenses = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
               <Input
                 type="text"
-                placeholder="Search expenses..."
+                placeholder="Cari pengeluaran..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-[180px] pl-9"
@@ -320,7 +320,7 @@ const Expenses = () => {
                   <div>
                     <p className="font-medium">{expense.description}</p>
                     <div className="flex items-center text-xs text-muted-foreground gap-2">
-                      <span>{format(new Date(expense.date), "MMMM d, yyyy")}</span>
+                      <span>{format(new Date(expense.date), "d MMMM yyyy")}</span>
                       <span className="bg-accent rounded-full px-2 py-0.5">
                         {expense.category}
                       </span>
@@ -328,7 +328,7 @@ const Expenses = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="font-medium text-red-600">-${expense.amount.toFixed(2)}</span>
+                  <span className="font-medium text-red-600">-Rp{expense.amount.toLocaleString('id-ID')}</span>
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
                     <Trash size={16} />
                   </Button>
@@ -338,9 +338,9 @@ const Expenses = () => {
           ) : (
             <div className="p-8 text-center">
               <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No expenses found</h3>
+              <h3 className="text-lg font-medium mb-2">Tidak ada pengeluaran ditemukan</h3>
               <p className="text-muted-foreground mb-4">
-                {categoryFilter ? `No expenses in the '${categoryFilter}' category.` : 'No expenses match your search.'}
+                {categoryFilter ? `Tidak ada pengeluaran dalam kategori '${categoryFilter}'.` : 'Tidak ada pengeluaran yang cocok dengan pencarian Anda.'}
               </p>
               <Button
                 variant="outline"
@@ -349,7 +349,7 @@ const Expenses = () => {
                   setCategoryFilter('');
                 }}
               >
-                Clear Filters
+                Hapus Filter
               </Button>
             </div>
           )}
@@ -360,4 +360,3 @@ const Expenses = () => {
 };
 
 export default Expenses;
-
