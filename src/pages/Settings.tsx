@@ -41,18 +41,18 @@ const Settings = () => {
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
-          <p className="text-muted-foreground">Configure your application preferences</p>
+          <h2 className="text-3xl font-bold tracking-tight">Pengaturan</h2>
+          <p className="text-muted-foreground">Konfigurasi preferensi aplikasi Anda</p>
         </div>
       </div>
       
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList className="grid grid-cols-5 md:w-[600px]">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="business">Business</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="receipts">Receipts</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="profile">Profil</TabsTrigger>
+          <TabsTrigger value="business">Bisnis</TabsTrigger>
+          <TabsTrigger value="payments">Pembayaran</TabsTrigger>
+          <TabsTrigger value="receipts">Struk</TabsTrigger>
+          <TabsTrigger value="security">Keamanan</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile">
@@ -92,10 +92,10 @@ const Settings = () => {
 // Profile Settings Component
 const profileFormSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    message: "Nama harus minimal 2 karakter.",
   }),
   email: z.string().email({
-    message: "Please enter a valid email address.",
+    message: "Silakan masukkan alamat email yang valid.",
   }),
   phone: z.string().optional(),
 });
@@ -104,14 +104,14 @@ function ProfileSettings() {
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name: "Store Admin",
+      name: "Admin Toko",
       email: "admin@example.com",
       phone: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof profileFormSchema>) {
-    toast.success("Profile updated successfully!");
+    toast.success("Profil berhasil diperbarui!");
   }
 
   return (
@@ -119,10 +119,10 @@ function ProfileSettings() {
       <div>
         <h3 className="text-lg font-medium flex items-center gap-2">
           <User size={18} className="text-primary" />
-          User Profile
+          Profil Pengguna
         </h3>
         <p className="text-sm text-muted-foreground">
-          Update your personal information and contact details.
+          Perbarui informasi pribadi dan detail kontak Anda.
         </p>
       </div>
       
@@ -133,12 +133,12 @@ function ProfileSettings() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel>Nama Lengkap</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your name" {...field} />
+                  <Input placeholder="Nama Anda" {...field} />
                 </FormControl>
                 <FormDescription>
-                  This is your display name in the system.
+                  Ini adalah nama tampilan Anda di sistem.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -152,10 +152,10 @@ function ProfileSettings() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="your.email@example.com" {...field} />
+                  <Input placeholder="email.anda@example.com" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Used for notifications and password recovery.
+                  Digunakan untuk notifikasi dan pemulihan kata sandi.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -167,12 +167,12 @@ function ProfileSettings() {
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number</FormLabel>
+                <FormLabel>Nomor Telepon</FormLabel>
                 <FormControl>
                   <Input placeholder="(555) 555-5555" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Optional: For urgent communications.
+                  Opsional: Untuk komunikasi darurat.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -181,7 +181,7 @@ function ProfileSettings() {
           
           <Button type="submit" className="mt-4 bg-primary text-white flex items-center gap-2">
             <Save size={16} />
-            Save Changes
+            Simpan Perubahan
           </Button>
         </form>
       </Form>
@@ -192,10 +192,10 @@ function ProfileSettings() {
 // Business Settings Component
 const businessFormSchema = z.object({
   businessName: z.string().min(2, {
-    message: "Business name must be at least 2 characters.",
+    message: "Nama bisnis harus minimal 2 karakter.",
   }),
   address: z.string().min(5, {
-    message: "Address must be at least 5 characters.",
+    message: "Alamat harus minimal 5 karakter.",
   }),
   taxId: z.string().optional(),
   currency: z.string(),
@@ -205,15 +205,15 @@ function BusinessSettings() {
   const form = useForm<z.infer<typeof businessFormSchema>>({
     resolver: zodResolver(businessFormSchema),
     defaultValues: {
-      businessName: "Dropship Store",
-      address: "123 Main St, Anytown, USA",
+      businessName: "Toko Dropship",
+      address: "Jl. Utama No. 123, Jakarta, Indonesia",
       taxId: "",
-      currency: "USD",
+      currency: "IDR",
     },
   });
 
   function onSubmit(values: z.infer<typeof businessFormSchema>) {
-    toast.success("Business information updated successfully!");
+    toast.success("Informasi bisnis berhasil diperbarui!");
   }
 
   return (
@@ -221,10 +221,10 @@ function BusinessSettings() {
       <div>
         <h3 className="text-lg font-medium flex items-center gap-2">
           <Store size={18} className="text-primary" />
-          Business Information
+          Informasi Bisnis
         </h3>
         <p className="text-sm text-muted-foreground">
-          Configure your business details used on receipts and reports.
+          Konfigurasi detail bisnis Anda yang digunakan pada struk dan laporan.
         </p>
       </div>
       
@@ -235,9 +235,9 @@ function BusinessSettings() {
             name="businessName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Name</FormLabel>
+                <FormLabel>Nama Bisnis</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your Business Name" {...field} />
+                  <Input placeholder="Nama Bisnis Anda" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -249,9 +249,9 @@ function BusinessSettings() {
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Address</FormLabel>
+                <FormLabel>Alamat Bisnis</FormLabel>
                 <FormControl>
-                  <Input placeholder="123 Main St, City, Country" {...field} />
+                  <Input placeholder="Jl. Utama No. 123, Kota, Negara" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -263,12 +263,12 @@ function BusinessSettings() {
             name="taxId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tax ID / Business Number</FormLabel>
+                <FormLabel>NPWP / Nomor Bisnis</FormLabel>
                 <FormControl>
-                  <Input placeholder="Optional Tax ID" {...field} />
+                  <Input placeholder="NPWP Opsional" {...field} />
                 </FormControl>
                 <FormDescription>
-                  Used for tax reporting purposes.
+                  Digunakan untuk tujuan pelaporan pajak.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -280,23 +280,23 @@ function BusinessSettings() {
             name="currency"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Currency</FormLabel>
+                <FormLabel>Mata Uang</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a currency" />
+                      <SelectValue placeholder="Pilih mata uang" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="USD">USD - US Dollar</SelectItem>
+                    <SelectItem value="IDR">IDR - Rupiah Indonesia</SelectItem>
+                    <SelectItem value="USD">USD - Dolar AS</SelectItem>
                     <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="GBP">GBP - British Pound</SelectItem>
-                    <SelectItem value="CAD">CAD - Canadian Dollar</SelectItem>
-                    <SelectItem value="AUD">AUD - Australian Dollar</SelectItem>
+                    <SelectItem value="SGD">SGD - Dolar Singapura</SelectItem>
+                    <SelectItem value="MYR">MYR - Ringgit Malaysia</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  The currency used for all transactions.
+                  Mata uang yang digunakan untuk semua transaksi.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -305,7 +305,7 @@ function BusinessSettings() {
           
           <Button type="submit" className="mt-4 bg-primary text-white flex items-center gap-2">
             <Save size={16} />
-            Save Changes
+            Simpan Perubahan
           </Button>
         </form>
       </Form>
@@ -324,19 +324,19 @@ function PaymentSettings() {
       <div>
         <h3 className="text-lg font-medium flex items-center gap-2">
           <CreditCard size={18} className="text-primary" />
-          Payment Methods
+          Metode Pembayaran
         </h3>
         <p className="text-sm text-muted-foreground">
-          Configure which payment methods are available for sales.
+          Konfigurasi metode pembayaran yang tersedia untuk penjualan.
         </p>
       </div>
       
       <div className="space-y-4">
         <div className="flex items-center justify-between space-x-2">
           <div className="flex-1 space-y-1">
-            <p className="font-medium">Cash Payments</p>
+            <p className="font-medium">Pembayaran Tunai</p>
             <p className="text-sm text-muted-foreground">
-              Accept cash payments for in-person sales.
+              Terima pembayaran tunai untuk penjualan langsung.
             </p>
           </div>
           <Switch
@@ -347,9 +347,9 @@ function PaymentSettings() {
         
         <div className="flex items-center justify-between space-x-2">
           <div className="flex-1 space-y-1">
-            <p className="font-medium">Card Payments</p>
+            <p className="font-medium">Pembayaran Kartu</p>
             <p className="text-sm text-muted-foreground">
-              Accept credit and debit card payments.
+              Terima pembayaran kartu kredit dan debit.
             </p>
           </div>
           <Switch
@@ -360,9 +360,9 @@ function PaymentSettings() {
         
         <div className="flex items-center justify-between space-x-2">
           <div className="flex-1 space-y-1">
-            <p className="font-medium">Digital Payments</p>
+            <p className="font-medium">Pembayaran Digital</p>
             <p className="text-sm text-muted-foreground">
-              Accept digital wallets and mobile payments.
+              Terima dompet digital dan pembayaran mobile.
             </p>
           </div>
           <Switch
@@ -372,9 +372,9 @@ function PaymentSettings() {
         </div>
       </div>
       
-      <Button className="mt-4 bg-primary text-white flex items-center gap-2" onClick={() => toast.success("Payment settings saved!")}>
+      <Button className="mt-4 bg-primary text-white flex items-center gap-2" onClick={() => toast.success("Pengaturan pembayaran disimpan!")}>
         <Save size={16} />
-        Save Payment Settings
+        Simpan Pengaturan Pembayaran
       </Button>
     </div>
   );
@@ -385,26 +385,26 @@ function ReceiptSettings() {
   const [showLogo, setShowLogo] = useState(true);
   const [showTaxInfo, setShowTaxInfo] = useState(true);
   const [showCustomMessage, setShowCustomMessage] = useState(false);
-  const [customMessage, setCustomMessage] = useState("Thank you for your business!");
+  const [customMessage, setCustomMessage] = useState("Terima kasih atas kunjungan Anda!");
   
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium flex items-center gap-2">
           <FileText size={18} className="text-primary" />
-          Receipt Customization
+          Kustomisasi Struk
         </h3>
         <p className="text-sm text-muted-foreground">
-          Customize how receipts are formatted and what information they include.
+          Kustomisasi bagaimana struk diformat dan informasi apa yang mereka sertakan.
         </p>
       </div>
       
       <div className="space-y-4">
         <div className="flex items-center justify-between space-x-2">
           <div className="flex-1 space-y-1">
-            <p className="font-medium">Show Business Logo</p>
+            <p className="font-medium">Tampilkan Logo Bisnis</p>
             <p className="text-sm text-muted-foreground">
-              Display your business logo at the top of receipts.
+              Tampilkan logo bisnis Anda di bagian atas struk.
             </p>
           </div>
           <Switch
@@ -415,9 +415,9 @@ function ReceiptSettings() {
         
         <div className="flex items-center justify-between space-x-2">
           <div className="flex-1 space-y-1">
-            <p className="font-medium">Include Tax Information</p>
+            <p className="font-medium">Sertakan Informasi Pajak</p>
             <p className="text-sm text-muted-foreground">
-              Show tax breakdown and business tax ID on receipts.
+              Tampilkan rincian pajak dan NPWP bisnis pada struk.
             </p>
           </div>
           <Switch
@@ -428,9 +428,9 @@ function ReceiptSettings() {
         
         <div className="flex items-center justify-between space-x-2">
           <div className="flex-1 space-y-1">
-            <p className="font-medium">Custom Thank You Message</p>
+            <p className="font-medium">Pesan Terima Kasih Kustom</p>
             <p className="text-sm text-muted-foreground">
-              Add a personalized message at the bottom of receipts.
+              Tambahkan pesan personal di bagian bawah struk.
             </p>
           </div>
           <Switch
@@ -444,19 +444,19 @@ function ReceiptSettings() {
             <Input
               value={customMessage}
               onChange={(e) => setCustomMessage(e.target.value)}
-              placeholder="Enter your custom message"
+              placeholder="Masukkan pesan kustom Anda"
               className="w-full"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              This message will appear at the bottom of all receipts.
+              Pesan ini akan muncul di bagian bawah semua struk.
             </p>
           </div>
         )}
       </div>
       
-      <Button className="mt-4 bg-primary text-white flex items-center gap-2" onClick={() => toast.success("Receipt settings saved!")}>
+      <Button className="mt-4 bg-primary text-white flex items-center gap-2" onClick={() => toast.success("Pengaturan struk disimpan!")}>
         <Save size={16} />
-        Save Receipt Settings
+        Simpan Pengaturan Struk
       </Button>
     </div>
   );
@@ -473,19 +473,19 @@ function SecuritySettings() {
       <div>
         <h3 className="text-lg font-medium flex items-center gap-2">
           <Shield size={18} className="text-primary" />
-          Security Settings
+          Pengaturan Keamanan
         </h3>
         <p className="text-sm text-muted-foreground">
-          Configure security options for your account and the application.
+          Konfigurasi opsi keamanan untuk akun dan aplikasi Anda.
         </p>
       </div>
       
       <div className="space-y-4">
         <div className="flex items-center justify-between space-x-2">
           <div className="flex-1 space-y-1">
-            <p className="font-medium">Two-Factor Authentication</p>
+            <p className="font-medium">Autentikasi Dua Faktor</p>
             <p className="text-sm text-muted-foreground">
-              Add an extra layer of security to your account.
+              Tambahkan lapisan keamanan ekstra untuk akun Anda.
             </p>
           </div>
           <Switch
@@ -496,9 +496,9 @@ function SecuritySettings() {
         
         <div className="flex items-center justify-between space-x-2">
           <div className="flex-1 space-y-1">
-            <p className="font-medium">Periodic Password Reset</p>
+            <p className="font-medium">Reset Kata Sandi Berkala</p>
             <p className="text-sm text-muted-foreground">
-              Require password changes every 90 days.
+              Wajibkan perubahan kata sandi setiap 90 hari.
             </p>
           </div>
           <Switch
@@ -509,9 +509,9 @@ function SecuritySettings() {
         
         <div className="flex items-center justify-between space-x-2">
           <div className="flex-1 space-y-1">
-            <p className="font-medium">Activity Logging</p>
+            <p className="font-medium">Pencatatan Aktivitas</p>
             <p className="text-sm text-muted-foreground">
-              Keep a log of all actions performed in the system.
+              Simpan log semua tindakan yang dilakukan dalam sistem.
             </p>
           </div>
           <Switch
@@ -522,13 +522,13 @@ function SecuritySettings() {
       </div>
       
       <div className="pt-4">
-        <Button className="bg-primary text-white flex items-center gap-2" onClick={() => toast.success("Security settings saved!")}>
+        <Button className="bg-primary text-white flex items-center gap-2" onClick={() => toast.success("Pengaturan keamanan disimpan!")}>
           <Save size={16} />
-          Save Security Settings
+          Simpan Pengaturan Keamanan
         </Button>
         
         <Button variant="outline" className="ml-4">
-          Change Password
+          Ubah Kata Sandi
         </Button>
       </div>
     </div>
