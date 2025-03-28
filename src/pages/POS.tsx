@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer } from 'lucide-react';
@@ -41,8 +40,8 @@ const POS = () => {
   );
   
   const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
     documentTitle: 'Sales Receipt',
+    contentRef: () => receiptRef.current,
     onAfterPrint: () => {
       toast.success('Receipt printed successfully!');
     }
@@ -62,7 +61,6 @@ const POS = () => {
       type: 'sale' as const
     };
     
-    // Check if we have enough stock
     const hasInsufficientStock = cart.some(item => item.quantity > item.product.stock);
     
     if (hasInsufficientStock) {
@@ -70,11 +68,9 @@ const POS = () => {
       return;
     }
     
-    // Make sure to capture the return value and handle it correctly
     const success = addTransaction(transaction);
     
     if (success) {
-      // Store the transaction info for receipt
       setLastTransaction({
         id: Date.now().toString(),
         date: new Date(),
@@ -154,7 +150,6 @@ const POS = () => {
         />
       )}
       
-      {/* Hidden receipt component for printing */}
       <div className="hidden">
         {lastTransaction && (
           <Receipt
