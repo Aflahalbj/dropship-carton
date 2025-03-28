@@ -30,7 +30,7 @@ const Purchases = () => {
   
   const handlePurchase = () => {
     if (cart.length === 0) {
-      toast.error("Cart is empty");
+      toast.error("Keranjang kosong");
       return;
     }
     
@@ -60,7 +60,7 @@ const Purchases = () => {
     const success = addTransaction(transaction);
     
     if (success) {
-      toast.success("Purchase completed successfully!");
+      toast.success("Pembelian berhasil dilakukan!");
       clearCart();
       setShowCheckout(false);
     }
@@ -70,8 +70,8 @@ const Purchases = () => {
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Purchase Inventory</h2>
-          <p className="text-muted-foreground">Restock your inventory from suppliers</p>
+          <h2 className="text-3xl font-bold tracking-tight">Pembelian Persediaan</h2>
+          <p className="text-muted-foreground">Tambah stok barang dari pemasok</p>
         </div>
         
         {cart.length > 0 && !showCheckout && (
@@ -94,7 +94,7 @@ const Purchases = () => {
             onClick={() => setShowCheckout(false)}
           >
             <X size={18} />
-            Back to Products
+            Kembali ke Produk
           </Button>
         )}
       </div>
@@ -105,7 +105,7 @@ const Purchases = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
             <Input
               type="text"
-              placeholder="Search products by name or SKU..."
+              placeholder="Cari produk berdasarkan nama atau SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -120,7 +120,7 @@ const Purchases = () => {
           
           {filteredProducts.length === 0 && (
             <div className="text-center py-10">
-              <p className="text-muted-foreground">No products found matching your search.</p>
+              <p className="text-muted-foreground">Tidak ada produk yang cocok dengan pencarian Anda.</p>
             </div>
           )}
         </>
@@ -138,10 +138,10 @@ const Purchases = () => {
             <div>
               <h3 className="font-medium">{product.name}</h3>
               <p className="text-sm text-muted-foreground mb-1">{product.sku}</p>
-              <p className="text-lg font-semibold">${product.supplierPrice.toFixed(2)}</p>
+              <p className="text-lg font-semibold">Rp{product.supplierPrice.toLocaleString('id-ID')}</p>
             </div>
             <div className="bg-accent rounded-md px-2 py-1">
-              <span className="text-sm font-medium">{product.stock} in stock</span>
+              <span className="text-sm font-medium">{product.stock} stok</span>
             </div>
           </div>
           
@@ -151,7 +151,7 @@ const Purchases = () => {
               className="h-8 bg-primary text-white"
               onClick={() => addToCart(product, 1)}
             >
-              Add to Cart
+              Tambah ke Keranjang
             </Button>
           </div>
         </div>
@@ -164,10 +164,10 @@ const Purchases = () => {
       return (
         <div className="text-center py-10">
           <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">Your cart is empty</h3>
-          <p className="text-muted-foreground mb-4">Add products to your cart to purchase</p>
+          <h3 className="text-lg font-medium mb-2">Keranjang Anda kosong</h3>
+          <p className="text-muted-foreground mb-4">Tambahkan produk ke keranjang untuk melakukan pembelian</p>
           <Button onClick={() => setShowCheckout(false)}>
-            Browse Products
+            Telusuri Produk
           </Button>
         </div>
       );
@@ -183,7 +183,7 @@ const Purchases = () => {
       <div className="animate-slide-up">
         <div className="border rounded-lg overflow-hidden mb-6">
           <div className="bg-accent p-3 border-b">
-            <h3 className="font-medium">Cart Items</h3>
+            <h3 className="font-medium">Item Keranjang</h3>
           </div>
           
           <div className="divide-y">
@@ -217,8 +217,8 @@ const Purchases = () => {
                 </div>
                 
                 <div className="text-right ml-4 w-24">
-                  <div className="font-medium">${(item.product.supplierPrice * item.quantity).toFixed(2)}</div>
-                  <div className="text-xs text-muted-foreground">${item.product.supplierPrice.toFixed(2)} each</div>
+                  <div className="font-medium">Rp{(item.product.supplierPrice * item.quantity).toLocaleString('id-ID')}</div>
+                  <div className="text-xs text-muted-foreground">Rp{item.product.supplierPrice.toLocaleString('id-ID')} per unit</div>
                 </div>
                 
                 <Button
@@ -237,8 +237,8 @@ const Purchases = () => {
         <div className="bg-card border rounded-lg p-5">
           <div className="space-y-3 mb-6">
             <div className="flex justify-between text-lg font-semibold">
-              <span>Total Purchase Amount:</span>
-              <span>${purchaseTotal.toFixed(2)}</span>
+              <span>Total Pembelian:</span>
+              <span>Rp{purchaseTotal.toLocaleString('id-ID')}</span>
             </div>
           </div>
           
@@ -248,14 +248,14 @@ const Purchases = () => {
               className="flex-1"
               onClick={() => clearCart()}
             >
-              Clear Cart
+              Kosongkan Keranjang
             </Button>
             <Button 
               className="flex-1 bg-primary text-white flex items-center justify-center gap-2"
               onClick={onCheckout}
             >
               <Check size={18} />
-              Complete Purchase
+              Selesaikan Pembelian
             </Button>
           </div>
         </div>
