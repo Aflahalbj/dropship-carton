@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer } from 'lucide-react';
@@ -21,7 +20,8 @@ const POS = () => {
     clearCart, 
     cartTotal, 
     cartProfit,
-    addTransaction
+    addTransaction,
+    handlePageNavigation
   } = useAppContext();
   
   const location = useLocation();
@@ -45,7 +45,10 @@ const POS = () => {
     if (isPurchase) {
       setShowCheckout(false);
     }
-  }, [location]);
+    
+    // Call handlePageNavigation when the location changes
+    handlePageNavigation(location.pathname);
+  }, [location, handlePageNavigation]);
   
   // Filter products based on search term
   const filteredProducts = products.filter(product => 
@@ -314,7 +317,8 @@ const POS = () => {
                   
                   <Input
                     type="number"
-                    value={item.quantity}
+                    value={item.quantity === 0 ? "" : item.quantity}
+                    placeholder="0"
                     min={0}
                     max={item.product.stock}
                     className="w-12 h-8 text-center p-0"

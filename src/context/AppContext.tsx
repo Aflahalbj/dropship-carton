@@ -267,6 +267,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCart([]);
   };
   
+  const handlePageNavigation = (currentPath: string): void => {
+    const isPOS = currentPath.includes("pos") || currentPath === "/";
+    const isPurchase = currentPath.includes("purchases");
+    
+    // Clear cart when switching between POS and Purchases
+    if (cart.length > 0) {
+      if ((isPOS && window.location.pathname.includes("purchases")) || 
+          (isPurchase && (window.location.pathname.includes("pos") || window.location.pathname === "/"))) {
+        clearCart();
+      }
+    }
+  };
+  
+  useEffect(() => {
+    const handlePathChange = () => {
+      handlePageNavigation(window.location.pathname);
+    };
+    
+    // Add event listener for popstate (back/forward navigation)
+    window.addEventListener('popstate', handlePathChange);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('popstate', handlePathChange);
+    };
+  }, [cart]);
+  
   const cartTotal = (): number => {
     return cart.reduce(
       (total, item) => total + (item.product.price * item.quantity), 
@@ -402,6 +429,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     clearCart,
     cartTotal,
     cartProfit,
+    handlePageNavigation,
     
     // Transaction functions
     addTransaction,
