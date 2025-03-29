@@ -16,8 +16,13 @@ const Sales = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [date, setDate] = useState<Date>();
   
+  // Make sure dates are properly converted to Date objects
   const salesTransactions = transactions
     .filter(t => t.type === 'sale')
+    .map(t => ({
+      ...t,
+      date: t.date instanceof Date ? t.date : new Date(t.date)
+    }))
     .sort((a, b) => b.date.getTime() - a.date.getTime());
   
   const filteredTransactions = salesTransactions.filter(transaction => {
@@ -26,7 +31,7 @@ const Sales = () => {
       item.product.sku.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
-    const dateMatch = !date || format(new Date(transaction.date), 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
+    const dateMatch = !date || format(transaction.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd');
     
     return (productsMatch || !searchTerm) && dateMatch;
   });
@@ -38,10 +43,10 @@ const Sales = () => {
     : 0;
   
   const salesByDate = salesTransactions.reduce((acc, transaction) => {
-    const dateStr = format(new Date(transaction.date), 'yyyy-MM-dd');
+    const dateStr = format(transaction.date, 'yyyy-MM-dd');
     if (!acc[dateStr]) {
       acc[dateStr] = {
-        date: new Date(transaction.date),
+        date: transaction.date,
         sales: 0,
         profit: 0,
         count: 0
