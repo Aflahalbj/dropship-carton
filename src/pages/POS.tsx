@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer } from 'lucide-react';
@@ -321,8 +322,9 @@ const POS = () => {
                     placeholder="0"
                     min={0}
                     max={item.product.stock}
-                    className="w-12 h-8 text-center p-0"
+                    className="w-16 h-8 text-center p-0"
                     onChange={(e) => {
+                      // Allow direct input of numbers
                       const newQuantity = parseInt(e.target.value) || 0;
                       updateCartItemQuantity(item.product.id, newQuantity);
                     }}

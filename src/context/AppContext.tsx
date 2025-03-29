@@ -269,16 +269,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const handlePageNavigation = (currentPath: string): void => {
+    // Clear cart when navigating between POS and Purchases pages
     const isPOS = currentPath.includes("pos") || currentPath === "/";
     const isPurchase = currentPath.includes("purchases");
     
-    // Clear cart when switching between POS and Purchases
-    if (cart.length > 0) {
-      if ((isPOS && window.location.pathname.includes("purchases")) || 
-          (isPurchase && (window.location.pathname.includes("pos") || window.location.pathname === "/"))) {
+    // Store the previous path to determine if we're switching page types
+    const prevPathRef = React.useRef<string | null>(null);
+    
+    // If the path type has changed (from POS to Purchase or vice versa), clear the cart
+    if (prevPathRef.current) {
+      const prevIsPOS = prevPathRef.current.includes("pos") || prevPathRef.current === "/";
+      const prevIsPurchase = prevPathRef.current.includes("purchases");
+      
+      // If switching between POS and Purchases, clear the cart
+      if ((isPOS && prevIsPurchase) || (isPurchase && prevIsPOS)) {
         clearCart();
       }
     }
+    
+    // Update the previous path reference
+    prevPathRef.current = currentPath;
   };
   
   useEffect(() => {

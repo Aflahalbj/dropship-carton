@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -252,8 +253,9 @@ const Purchases = () => {
                     value={item.quantity === 0 ? "" : item.quantity}
                     placeholder="0"
                     min={0}
-                    className="w-12 h-8 text-center p-0"
+                    className="w-16 h-8 text-center p-0"
                     onChange={(e) => {
+                      // Allow direct input of numbers
                       const newQuantity = parseInt(e.target.value) || 0;
                       updateCartItemQuantity(item.product.id, newQuantity);
                     }}
