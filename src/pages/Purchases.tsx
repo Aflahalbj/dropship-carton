@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -29,18 +28,15 @@ const Purchases = () => {
   const [isOnPOSPage, setIsOnPOSPage] = useState(false);
   
   useEffect(() => {
-    // Check if we're on the POS page to disable checkout here
     const isPOS = location.pathname.includes('/pos') || location.pathname === '/';
     setIsOnPOSPage(isPOS);
     if (isPOS) {
       setShowCheckout(false);
     }
     
-    // Call handlePageNavigation when the location changes
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
   
-  // Filter products based on search term
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
@@ -52,12 +48,10 @@ const Purchases = () => {
       return;
     }
     
-    // For purchases, we create a transaction with type 'purchase'
-    // The supplier price is used as the product price for purchases
     const purchaseProducts = cart.map(item => ({
       product: {
         ...item.product,
-        price: item.product.supplierPrice // Use supplier price for purchases
+        price: item.product.supplierPrice
       },
       quantity: item.quantity
     }));
@@ -67,7 +61,6 @@ const Purchases = () => {
       0
     );
     
-    // Check if we have enough capital for the purchase
     if (purchaseTotal > capital) {
       toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${capital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`);
       return;
@@ -77,7 +70,7 @@ const Purchases = () => {
       date: new Date(),
       products: purchaseProducts,
       total: purchaseTotal,
-      profit: 0, // Purchases don't generate profit
+      profit: 0,
       type: 'purchase' as const
     };
     
@@ -92,7 +85,6 @@ const Purchases = () => {
     }
   };
   
-  // Show the cart icon only if there are items and we're not in checkout mode
   const shouldShowCartIcon = cart.length > 0 && !showCheckout && !isOnPOSPage;
   
   return (
@@ -157,7 +149,6 @@ const Purchases = () => {
         <CartView onCheckout={handlePurchase} />
       )}
       
-      {/* Floating cart icon */}
       {shouldShowCartIcon && (
         <Button
           className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary text-white hover:bg-primary/90 transition-all"
@@ -217,7 +208,6 @@ const Purchases = () => {
       );
     }
     
-    // Calculate purchase total based on supplier price
     const purchaseTotal = cart.reduce(
       (total, item) => total + (item.product.supplierPrice * item.quantity), 
       0
@@ -239,36 +229,17 @@ const Purchases = () => {
                 </div>
                 
                 <div className="flex items-center gap-2 w-32">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => updateCartItemQuantity(item.product.id, Math.max(0, item.quantity - 1))}
-                  >
-                    <Minus size={16} />
-                  </Button>
-                  
                   <Input
                     type="number"
                     value={item.quantity === 0 ? "" : item.quantity}
                     placeholder="0"
                     min={0}
-                    className="w-16 h-8 text-center p-0"
+                    className="w-24 h-10 text-center"
                     onChange={(e) => {
-                      // Allow direct input of numbers
                       const newQuantity = parseInt(e.target.value) || 0;
                       updateCartItemQuantity(item.product.id, newQuantity);
                     }}
                   />
-                  
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => updateCartItemQuantity(item.product.id, item.quantity + 1)}
-                  >
-                    <Plus size={16} />
-                  </Button>
                 </div>
                 
                 <div className="text-right ml-4 w-24">
