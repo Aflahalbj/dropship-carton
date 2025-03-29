@@ -213,7 +213,16 @@ const Purchases = () => {
                     <Minus size={16} />
                   </Button>
                   
-                  <span className="w-8 text-center">{item.quantity}</span>
+                  <Input
+                    type="number"
+                    value={item.quantity}
+                    min={1}
+                    className="w-12 h-8 text-center p-0"
+                    onChange={(e) => {
+                      const newQuantity = parseInt(e.target.value) || 0;
+                      updateCartItemQuantity(item.product.id, newQuantity);
+                    }}
+                  />
                   
                   <Button
                     variant="outline"

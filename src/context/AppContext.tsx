@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from "sonner";
 
 // Define types
@@ -35,8 +34,21 @@ export type Expense = {
   description: string;
 };
 
+export type User = {
+  id: string;
+  email: string;
+  name: string;
+};
+
 // Define context type
 type AppContextType = {
+  // Auth state
+  isAuthenticated: boolean;
+  currentUser: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  logout: () => void;
+  
   // State
   capital: number;
   products: Product[];
@@ -69,17 +81,101 @@ type AppContextType = {
   addExpense: (expense: Omit<Expense, 'id'>) => boolean;
 };
 
+// Mock users for demo purposes
+const MOCK_USERS: User[] = [
+  {
+    id: "1",
+    email: "admin@example.com",
+    name: "Admin"
+  }
+];
+
 // Create context
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// Auth helper functions
+const saveToLocalStorage = (key: string, value: any) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error("Error saving to localStorage:", error);
+  }
+};
+
+const getFromLocalStorage = (key: string, defaultValue: any = null) => {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : defaultValue;
+  } catch (error) {
+    console.error("Error getting from localStorage:", error);
+    return defaultValue;
+  }
+};
+
 // Provider component
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // State
-  const [capital, setCapital] = useState<number>(0);
-  const [products, setProducts] = useState<Product[]>([]);
+  // Auth state
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getFromLocalStorage("currentUser"));
+  const [currentUser, setCurrentUser] = useState<User | null>(getFromLocalStorage("currentUser"));
+  
+  // App state
+  const [capital, setCapital] = useState<number>(getFromLocalStorage("capital", 0));
+  const [products, setProducts] = useState<Product[]>(getFromLocalStorage("products", []));
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>(getFromLocalStorage("transactions", []));
+  const [expenses, setExpenses] = useState<Expense[]>(getFromLocalStorage("expenses", []));
+  const [users, setUsers] = useState<User[]>(getFromLocalStorage("users", MOCK_USERS));
+  
+  // Persist state changes to localStorage
+  useEffect(() => {
+    saveToLocalStorage("capital", capital);
+    saveToLocalStorage("products", products);
+    saveToLocalStorage("transactions", transactions);
+    saveToLocalStorage("expenses", expenses);
+    saveToLocalStorage("users", users);
+  }, [capital, products, transactions, expenses, users]);
+  
+  // Auth functions
+  const login = async (email: string, password: string): Promise<void> => {
+    // In a real app, this would be an API call to validate credentials
+    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    
+    if (!user) {
+      throw new Error("Invalid email or password");
+    }
+    
+    // For this demo, we're not actually validating the password
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    saveToLocalStorage("currentUser", user);
+  };
+  
+  const register = async (email: string, password: string, name: string): Promise<void> => {
+    // Check if email already exists
+    const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existingUser) {
+      throw new Error("Email already registered");
+    }
+    
+    // Create new user
+    const newUser: User = {
+      id: Date.now().toString(),
+      email,
+      name
+    };
+    
+    // Update users array
+    const updatedUsers = [...users, newUser];
+    setUsers(updatedUsers);
+    
+    // In a real app, we'd hash the password and store it securely
+  };
+  
+  const logout = (): void => {
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem("currentUser");
+  };
   
   // Capital functions
   const addToCapital = (amount: number): void => {
@@ -149,12 +245,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!product) return;
     
     // Check stock only for sales (not for purchases)
-    const isInPOS = window.location.pathname.includes("pos");
+    const isInPOS = window.location.pathname.includes("pos") || window.location.pathname === "/";
     
+    // For POS (cashier), enforce stock limits
     if (isInPOS && quantity > product.stock) {
       toast.error("Stok tidak mencukupi");
       return;
     }
+    
+    // For Purchases, allow any quantity regardless of current stock
     
     setCart(prev => 
       prev.map(item => 
@@ -273,6 +372,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const value = {
+    // Auth state and functions
+    isAuthenticated,
+    currentUser,
+    login,
+    register,
+    logout,
+    
     // State
     capital,
     products,
