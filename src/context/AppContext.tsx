@@ -73,6 +73,7 @@ type AppContextType = {
   clearCart: () => void;
   cartTotal: () => number;
   cartProfit: () => number;
+  handlePageNavigation: (currentPath: string) => void;
   
   // Transaction functions
   addTransaction: (transaction: Omit<Transaction, 'id'>) => boolean;
