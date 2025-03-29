@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Search, Package, Plus, Minus, ShoppingCart, X, Check } from 'lucide-react';
 import { toast } from "sonner";
+import { useLocation } from 'react-router-dom';
 
 const Purchases = () => {
   const { 
@@ -20,8 +21,20 @@ const Purchases = () => {
     capital
   } = useAppContext();
   
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
+  const [isCartVisible, setIsCartVisible] = useState(false);
+  const [isOnPOSPage, setIsOnPOSPage] = useState(false);
+  
+  useEffect(() => {
+    // Check if we're on the POS page to disable checkout here
+    const isPOS = location.pathname.includes('/pos') || location.pathname === '/';
+    setIsOnPOSPage(isPOS);
+    if (isPOS) {
+      setShowCheckout(false);
+    }
+  }, [location]);
   
   // Filter products based on search term
   const filteredProducts = products.filter(product => 
@@ -75,6 +88,9 @@ const Purchases = () => {
     }
   };
   
+  // Show the cart icon only if there are items and we're not in checkout mode
+  const shouldShowCartIcon = cart.length > 0 && !showCheckout && !isOnPOSPage;
+  
   return (
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
@@ -83,7 +99,7 @@ const Purchases = () => {
           <p className="text-muted-foreground">Tambah stok barang dari pemasok</p>
         </div>
         
-        {cart.length > 0 && !showCheckout && (
+        {cart.length > 0 && !showCheckout && !isOnPOSPage && (
           <Button
             className="bg-primary text-white flex items-center gap-2"
             onClick={() => setShowCheckout(true)}
@@ -135,6 +151,21 @@ const Purchases = () => {
         </>
       ) : (
         <CartView onCheckout={handlePurchase} />
+      )}
+      
+      {/* Floating cart icon */}
+      {shouldShowCartIcon && (
+        <Button
+          className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary text-white hover:bg-primary/90 transition-all"
+          onClick={() => setShowCheckout(true)}
+        >
+          <div className="relative">
+            <ShoppingCart size={24} />
+            <span className="absolute -top-2 -right-2 bg-white text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+              {cart.length}
+            </span>
+          </div>
+        </Button>
       )}
     </div>
   );
@@ -208,7 +239,7 @@ const Purchases = () => {
                     variant="outline"
                     size="icon"
                     className="h-8 w-8 rounded-full"
-                    onClick={() => updateCartItemQuantity(item.product.id, item.quantity - 1)}
+                    onClick={() => updateCartItemQuantity(item.product.id, Math.max(0, item.quantity - 1))}
                   >
                     <Minus size={16} />
                   </Button>
@@ -216,7 +247,7 @@ const Purchases = () => {
                   <Input
                     type="number"
                     value={item.quantity}
-                    min={1}
+                    min={0}
                     className="w-12 h-8 text-center p-0"
                     onChange={(e) => {
                       const newQuantity = parseInt(e.target.value) || 0;

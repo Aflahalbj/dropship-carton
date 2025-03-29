@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import Receipt from '../components/Receipt';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useReactToPrint } from 'react-to-print';
+import { useLocation } from 'react-router-dom';
 
 const POS = () => {
   const { 
@@ -23,8 +24,11 @@ const POS = () => {
     addTransaction
   } = useAppContext();
   
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
+  const [isCartVisible, setIsCartVisible] = useState(false);
+  const [isOnPurchasePage, setIsOnPurchasePage] = useState(false);
   const [lastTransaction, setLastTransaction] = useState<{
     id: string;
     date: Date;
@@ -33,6 +37,15 @@ const POS = () => {
   } | null>(null);
   
   const receiptRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    // Check if we're on the Purchases page to disable checkout here
+    const isPurchase = location.pathname.includes('/purchases');
+    setIsOnPurchasePage(isPurchase);
+    if (isPurchase) {
+      setShowCheckout(false);
+    }
+  }, [location]);
   
   // Filter products based on search term
   const filteredProducts = products.filter(product => 
@@ -85,6 +98,9 @@ const POS = () => {
     }
   };
   
+  // Show the cart icon only if there are items and we're not in checkout mode
+  const shouldShowCartIcon = cart.length > 0 && !showCheckout && !isOnPurchasePage;
+  
   return (
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
@@ -93,7 +109,7 @@ const POS = () => {
           <p className="text-muted-foreground">Proses transaksi dengan cepat dan efisien</p>
         </div>
         
-        {cart.length > 0 && !showCheckout && (
+        {cart.length > 0 && !showCheckout && !isOnPurchasePage && (
           <Button
             className="bg-primary text-white flex items-center gap-2"
             onClick={() => setShowCheckout(true)}
@@ -162,6 +178,21 @@ const POS = () => {
           />
         )}
       </div>
+      
+      {/* Floating cart icon */}
+      {shouldShowCartIcon && (
+        <Button
+          className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary text-white hover:bg-primary/90 transition-all"
+          onClick={() => setShowCheckout(true)}
+        >
+          <div className="relative">
+            <ShoppingCart size={24} />
+            <span className="absolute -top-2 -right-2 bg-white text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
+              {cart.length}
+            </span>
+          </div>
+        </Button>
+      )}
     </div>
   );
   
@@ -276,7 +307,7 @@ const POS = () => {
                     variant="outline"
                     size="icon"
                     className="h-8 w-8 rounded-full"
-                    onClick={() => updateCartItemQuantity(item.product.id, item.quantity - 1)}
+                    onClick={() => updateCartItemQuantity(item.product.id, Math.max(0, item.quantity - 1))}
                   >
                     <Minus size={16} />
                   </Button>
@@ -284,7 +315,7 @@ const POS = () => {
                   <Input
                     type="number"
                     value={item.quantity}
-                    min={1}
+                    min={0}
                     max={item.product.stock}
                     className="w-12 h-8 text-center p-0"
                     onChange={(e) => {

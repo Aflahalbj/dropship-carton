@@ -236,9 +236,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const updateCartItemQuantity = (productId: string, quantity: number): void => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
+    if (quantity < 0) {
+      quantity = 0;
     }
     
     const product = products.find(p => p.id === productId);
