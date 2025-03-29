@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast } from "sonner";
 
 // Define types
@@ -126,6 +127,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [transactions, setTransactions] = useState<Transaction[]>(getFromLocalStorage("transactions", []));
   const [expenses, setExpenses] = useState<Expense[]>(getFromLocalStorage("expenses", []));
   const [users, setUsers] = useState<User[]>(getFromLocalStorage("users", MOCK_USERS));
+  // Store previous path to compare when navigating
+  const previousPathRef = useRef<string | null>(null);
   
   // Persist state changes to localStorage
   useEffect(() => {
@@ -268,18 +271,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCart([]);
   };
   
+  // Handle navigation between pages
   const handlePageNavigation = (currentPath: string): void => {
     // Clear cart when navigating between POS and Purchases pages
     const isPOS = currentPath.includes("pos") || currentPath === "/";
     const isPurchase = currentPath.includes("purchases");
     
-    // Store the previous path to determine if we're switching page types
-    const prevPathRef = React.useRef<string | null>(null);
-    
-    // If the path type has changed (from POS to Purchase or vice versa), clear the cart
-    if (prevPathRef.current) {
-      const prevIsPOS = prevPathRef.current.includes("pos") || prevPathRef.current === "/";
-      const prevIsPurchase = prevPathRef.current.includes("purchases");
+    // If there's a previous path to compare with
+    if (previousPathRef.current) {
+      const prevIsPOS = previousPathRef.current.includes("pos") || previousPathRef.current === "/";
+      const prevIsPurchase = previousPathRef.current.includes("purchases");
       
       // If switching between POS and Purchases, clear the cart
       if ((isPOS && prevIsPurchase) || (isPurchase && prevIsPOS)) {
@@ -287,10 +288,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
     
-    // Update the previous path reference
-    prevPathRef.current = currentPath;
+    // Update the previous path reference for next comparison
+    previousPathRef.current = currentPath;
   };
   
+  // Setup navigation event listener
   useEffect(() => {
     const handlePathChange = () => {
       handlePageNavigation(window.location.pathname);
@@ -303,7 +305,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => {
       window.removeEventListener('popstate', handlePathChange);
     };
-  }, [cart]);
+  }, []);
   
   const cartTotal = (): number => {
     return cart.reduce(
