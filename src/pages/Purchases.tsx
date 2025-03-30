@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -228,13 +229,13 @@ const Purchases = () => {
                   <p className="text-sm text-muted-foreground">{item.product.sku}</p>
                 </div>
                 
-                <div className="flex items-center gap-2 w-32">
+                <div className="w-32">
                   <Input
                     type="number"
                     value={item.quantity === 0 ? "" : item.quantity}
                     placeholder="0"
                     min={0}
-                    className="w-24 h-10 text-center"
+                    className="w-full h-10"
                     onChange={(e) => {
                       const newQuantity = parseInt(e.target.value) || 0;
                       updateCartItemQuantity(item.product.id, newQuantity);

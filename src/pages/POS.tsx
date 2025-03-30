@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer } from 'lucide-react';
@@ -40,18 +39,15 @@ const POS = () => {
   const receiptRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    // Check if we're on the Purchases page to disable checkout here
     const isPurchase = location.pathname.includes('/purchases');
     setIsOnPurchasePage(isPurchase);
     if (isPurchase) {
       setShowCheckout(false);
     }
     
-    // Call handlePageNavigation when the location changes
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
   
-  // Filter products based on search term
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
@@ -102,7 +98,6 @@ const POS = () => {
     }
   };
   
-  // Show the cart icon only if there are items and we're not in checkout mode
   const shouldShowCartIcon = cart.length > 0 && !showCheckout && !isOnPurchasePage;
   
   return (
@@ -183,7 +178,6 @@ const POS = () => {
         )}
       </div>
       
-      {/* Floating cart icon */}
       {shouldShowCartIcon && (
         <Button
           className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary text-white hover:bg-primary/90 transition-all"
@@ -306,39 +300,19 @@ const POS = () => {
                   <p className="text-sm text-muted-foreground">{item.product.sku}</p>
                 </div>
                 
-                <div className="flex items-center gap-2 w-32">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => updateCartItemQuantity(item.product.id, Math.max(0, item.quantity - 1))}
-                  >
-                    <Minus size={16} />
-                  </Button>
-                  
+                <div className="w-32">
                   <Input
                     type="number"
                     value={item.quantity === 0 ? "" : item.quantity}
                     placeholder="0"
                     min={0}
                     max={item.product.stock}
-                    className="w-16 h-8 text-center p-0"
+                    className="w-full h-10"
                     onChange={(e) => {
-                      // Allow direct input of numbers
                       const newQuantity = parseInt(e.target.value) || 0;
                       updateCartItemQuantity(item.product.id, newQuantity);
                     }}
                   />
-                  
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => updateCartItemQuantity(item.product.id, item.quantity + 1)}
-                    disabled={item.quantity >= item.product.stock}
-                  >
-                    <Plus size={16} />
-                  </Button>
                 </div>
                 
                 <div className="text-right ml-4 w-24">
