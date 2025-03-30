@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@ const Inventory = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
@@ -22,7 +20,6 @@ const Inventory = () => {
     stock: '',
   });
   
-  // Filter products based on search term
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
@@ -68,7 +65,6 @@ const Inventory = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     if (!formData.name || !formData.sku) {
       toast.error("Nama dan SKU harus diisi");
       return;
@@ -98,7 +94,6 @@ const Inventory = () => {
       return;
     }
     
-    // Check if SKU already exists (for new products)
     if (!editingProduct && products.some(p => p.sku === formData.sku)) {
       toast.error("SKU sudah ada");
       return;
@@ -279,7 +274,6 @@ const Inventory = () => {
         </div>
       </div>
       
-      {/* Product Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <Card className="max-w-lg w-full relative animate-slide-up">
@@ -336,7 +330,6 @@ const Inventory = () => {
                       id="price"
                       name="price"
                       type="number"
-                      step="0.01"
                       placeholder="0"
                       value={formData.price}
                       onChange={handleInputChange}
@@ -352,7 +345,6 @@ const Inventory = () => {
                       id="supplierPrice"
                       name="supplierPrice"
                       type="number"
-                      step="0.01"
                       placeholder="0"
                       value={formData.supplierPrice}
                       onChange={handleInputChange}
@@ -370,8 +362,10 @@ const Inventory = () => {
                     name="stock"
                     type="number"
                     placeholder="0"
+                    min="0"
                     value={formData.stock}
                     onChange={handleInputChange}
+                    className="w-full h-10"
                     required
                   />
                 </div>
