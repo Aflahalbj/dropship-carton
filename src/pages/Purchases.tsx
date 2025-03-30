@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -234,7 +233,7 @@ const Purchases = () => {
                     type="text"
                     placeholder="0"
                     className="w-full h-10 text-center"
-                    value={item.quantity > 0 ? item.quantity.toString() : ""}
+                    defaultValue={item.quantity > 0 ? item.quantity.toString() : ""}
                     onBlur={(e) => {
                       const newValue = e.target.value.trim();
                       const newQuantity = newValue === "" ? 0 : parseInt(newValue);
@@ -243,9 +242,7 @@ const Purchases = () => {
                       }
                     }}
                     onChange={(e) => {
-                      // Allow only numbers in the input
                       const value = e.target.value.replace(/[^0-9]/g, '');
-                      // We don't update the cart state here, only on blur
                       e.target.value = value;
                     }}
                     onKeyDown={(e) => {

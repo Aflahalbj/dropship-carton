@@ -1,6 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from '@supabase/supabase-js';
 
 // Define types
 export type Product = {
@@ -83,15 +85,6 @@ type AppContextType = {
   addExpense: (expense: Omit<Expense, 'id'>) => boolean;
 };
 
-// Mock users for demo purposes
-const MOCK_USERS: User[] = [
-  {
-    id: "1",
-    email: "admin@example.com",
-    name: "Admin"
-  }
-];
-
 // Create context
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -119,6 +112,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getFromLocalStorage("currentUser"));
   const [currentUser, setCurrentUser] = useState<User | null>(getFromLocalStorage("currentUser"));
+  const [session, setSession] = useState<Session | null>(null);
   
   // App state
   const [capital, setCapital] = useState<number>(getFromLocalStorage("capital", 0));
@@ -126,9 +120,96 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>(getFromLocalStorage("transactions", []));
   const [expenses, setExpenses] = useState<Expense[]>(getFromLocalStorage("expenses", []));
-  const [users, setUsers] = useState<User[]>(getFromLocalStorage("users", MOCK_USERS));
+  const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
   // Store previous path to compare when navigating
   const previousPathRef = useRef<string | null>(null);
+  
+  // Initialize Supabase auth
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          const user = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata.name || ''
+          };
+          setCurrentUser(user);
+          setIsAuthenticated(true);
+          saveToLocalStorage("currentUser", user);
+        } else {
+          setCurrentUser(null);
+          setIsAuthenticated(false);
+          localStorage.removeItem("currentUser");
+        }
+      }
+    );
+    
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        const user = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata.name || ''
+        };
+        setCurrentUser(user);
+        setIsAuthenticated(true);
+        saveToLocalStorage("currentUser", user);
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+  
+  // Load initial data from Supabase when authenticated
+  useEffect(() => {
+    const loadInitialData = async () => {
+      if (isAuthenticated && currentUser) {
+        // Load capital
+        const { data: capitalData, error: capitalError } = await supabase
+          .from('capital')
+          .select('*')
+          .limit(1)
+          .single();
+        
+        if (capitalError) {
+          console.error("Error loading capital:", capitalError);
+        } else if (capitalData) {
+          setCapital(capitalData.amount);
+        }
+        
+        // Load products
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('*');
+        
+        if (productsError) {
+          console.error("Error loading products:", productsError);
+        } else if (productsData) {
+          const formattedProducts = productsData.map(p => ({
+            id: p.id,
+            name: p.name,
+            sku: p.sku,
+            price: p.price,
+            supplierPrice: p.supplier_price,
+            stock: p.stock,
+            image: p.image
+          }));
+          setProducts(formattedProducts);
+        }
+        
+        // We can add more data loading here as needed
+      }
+    };
+    
+    loadInitialData();
+  }, [isAuthenticated, currentUser]);
   
   // Persist state changes to localStorage
   useEffect(() => {
@@ -136,69 +217,135 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     saveToLocalStorage("products", products);
     saveToLocalStorage("transactions", transactions);
     saveToLocalStorage("expenses", expenses);
-    saveToLocalStorage("users", users);
-  }, [capital, products, transactions, expenses, users]);
+  }, [capital, products, transactions, expenses]);
   
   // Auth functions
   const login = async (email: string, password: string): Promise<void> => {
-    // In a real app, this would be an API call to validate credentials
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     
-    if (!user) {
-      throw new Error("Invalid email or password");
+    if (error) {
+      throw new Error(error.message);
     }
     
-    // For this demo, we're not actually validating the password
-    setCurrentUser(user);
-    setIsAuthenticated(true);
-    saveToLocalStorage("currentUser", user);
+    // Auth state will be updated by the onAuthStateChange listener
   };
   
   const register = async (email: string, password: string, name: string): Promise<void> => {
-    // Check if email already exists
-    const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (existingUser) {
-      throw new Error("Email already registered");
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+        },
+      },
+    });
+    
+    if (error) {
+      throw new Error(error.message);
     }
     
-    // Create new user
-    const newUser: User = {
-      id: Date.now().toString(),
-      email,
-      name
-    };
-    
-    // Update users array
-    const updatedUsers = [...users, newUser];
-    setUsers(updatedUsers);
-    
-    // In a real app, we'd hash the password and store it securely
+    // Auth state will be updated by the onAuthStateChange listener
   };
   
-  const logout = (): void => {
-    setCurrentUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem("currentUser");
+  const logout = async (): void => {
+    await supabase.auth.signOut();
+    // Auth state will be updated by the onAuthStateChange listener
   };
   
   // Capital functions
-  const addToCapital = (amount: number): void => {
-    setCapital(prev => prev + amount);
+  const addToCapital = async (amount: number): Promise<void> => {
+    const newAmount = capital + amount;
+    
+    // Update in Supabase if authenticated
+    if (isAuthenticated) {
+      const { data, error } = await supabase
+        .from('capital')
+        .update({ amount: newAmount })
+        .eq('id', (await supabase.from('capital').select('id').limit(1).single()).data?.id)
+        .select();
+      
+      if (error) {
+        console.error("Error updating capital:", error);
+        toast.error("Gagal memperbarui modal");
+        return;
+      }
+    }
+    
+    setCapital(newAmount);
     toast.success(`Rp${amount.toLocaleString('id-ID')} ditambahkan ke modal`);
   };
   
-  const subtractFromCapital = (amount: number): boolean => {
+  const subtractFromCapital = async (amount: number): Promise<boolean> => {
     if (amount > capital) {
       toast.error("Modal tidak mencukupi");
       return false;
     }
     
-    setCapital(prev => prev - amount);
+    const newAmount = capital - amount;
+    
+    // Update in Supabase if authenticated
+    if (isAuthenticated) {
+      const { data, error } = await supabase
+        .from('capital')
+        .update({ amount: newAmount })
+        .eq('id', (await supabase.from('capital').select('id').limit(1).single()).data?.id)
+        .select();
+      
+      if (error) {
+        console.error("Error updating capital:", error);
+        toast.error("Gagal memperbarui modal");
+        return false;
+      }
+    }
+    
+    setCapital(newAmount);
     return true;
   };
   
   // Product functions
-  const addProduct = (product: Omit<Product, 'id'>): void => {
+  const addProduct = async (product: Omit<Product, 'id'>): Promise<void> => {
+    // Add to Supabase if authenticated
+    if (isAuthenticated) {
+      const { data, error } = await supabase
+        .from('products')
+        .insert({
+          name: product.name,
+          sku: product.sku,
+          price: product.price,
+          supplier_price: product.supplierPrice,
+          stock: product.stock,
+          image: product.image
+        })
+        .select();
+      
+      if (error) {
+        console.error("Error adding product:", error);
+        toast.error(`Gagal menambahkan produk: ${error.message}`);
+        return;
+      }
+      
+      if (data && data[0]) {
+        const newProduct = {
+          id: data[0].id,
+          name: data[0].name,
+          sku: data[0].sku,
+          price: data[0].price,
+          supplierPrice: data[0].supplier_price,
+          stock: data[0].stock,
+          image: data[0].image
+        };
+        
+        setProducts(prev => [...prev, newProduct]);
+        toast.success(`Produk ditambahkan: ${product.name}`);
+        return;
+      }
+    }
+    
+    // Fallback to local storage if not authenticated or Supabase operation failed
     const newProduct = {
       ...product,
       id: Date.now().toString(),
@@ -208,14 +355,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast.success(`Produk ditambahkan: ${product.name}`);
   };
   
-  const updateProduct = (product: Product): void => {
+  const updateProduct = async (product: Product): Promise<void> => {
+    // Update in Supabase if authenticated
+    if (isAuthenticated) {
+      const { data, error } = await supabase
+        .from('products')
+        .update({
+          name: product.name,
+          sku: product.sku,
+          price: product.price,
+          supplier_price: product.supplierPrice,
+          stock: product.stock,
+          image: product.image
+        })
+        .eq('id', product.id)
+        .select();
+      
+      if (error) {
+        console.error("Error updating product:", error);
+        toast.error(`Gagal memperbarui produk: ${error.message}`);
+        return;
+      }
+    }
+    
     setProducts(prev => 
       prev.map(p => p.id === product.id ? product : p)
     );
     toast.success(`Produk diperbarui: ${product.name}`);
   };
   
-  const deleteProduct = (id: string): void => {
+  const deleteProduct = async (id: string): Promise<void> => {
+    // Delete from Supabase if authenticated
+    if (isAuthenticated) {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error("Error deleting product:", error);
+        toast.error(`Gagal menghapus produk: ${error.message}`);
+        return;
+      }
+    }
+    
     setProducts(prev => prev.filter(p => p.id !== id));
     toast.success("Produk dihapus");
   };
@@ -323,7 +506,79 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   // Transaction functions
-  const addTransaction = (transaction: Omit<Transaction, 'id'>): boolean => {
+  const addTransaction = async (transaction: Omit<Transaction, 'id'>): Promise<boolean> => {
+    if (isAuthenticated) {
+      // Start a transaction in Supabase
+      const { data: transactionData, error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: currentUser?.id,
+          date: transaction.date.toISOString(),
+          total: transaction.total,
+          profit: transaction.profit,
+          type: transaction.type
+        })
+        .select();
+      
+      if (transactionError) {
+        console.error("Error adding transaction:", transactionError);
+        toast.error(`Gagal menambahkan transaksi: ${transactionError.message}`);
+        return false;
+      }
+      
+      if (transactionData && transactionData[0]) {
+        const transactionId = transactionData[0].id;
+        
+        // Add transaction items
+        const transactionItems = transaction.products.map(item => ({
+          transaction_id: transactionId,
+          product_id: item.product.id,
+          quantity: item.quantity,
+          price: transaction.type === 'sale' ? item.product.price : item.product.supplierPrice
+        }));
+        
+        const { error: itemsError } = await supabase
+          .from('transaction_items')
+          .insert(transactionItems);
+        
+        if (itemsError) {
+          console.error("Error adding transaction items:", itemsError);
+          toast.error(`Gagal menambahkan item transaksi: ${itemsError.message}`);
+          return false;
+        }
+        
+        // Update products stock
+        for (const item of transaction.products) {
+          const product = products.find(p => p.id === item.product.id);
+          if (product) {
+            const newStock = transaction.type === 'sale' 
+              ? product.stock - item.quantity 
+              : product.stock + item.quantity;
+            
+            const { error: stockError } = await supabase
+              .from('products')
+              .update({ stock: newStock })
+              .eq('id', product.id);
+            
+            if (stockError) {
+              console.error("Error updating product stock:", stockError);
+              toast.error(`Gagal memperbarui stok produk: ${stockError.message}`);
+              continue;
+            }
+          }
+        }
+        
+        // Update capital
+        if (transaction.type === 'sale') {
+          await addToCapital(transaction.total);
+        } else {
+          const success = await subtractFromCapital(transaction.total);
+          if (!success) return false;
+        }
+      }
+    }
+    
+    // Fallback to local logic if not connected to Supabase
     const newTransaction = {
       ...transaction,
       id: Date.now().toString(),
@@ -395,9 +650,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   // Expense functions
-  const addExpense = (expense: Omit<Expense, 'id'>): boolean => {
+  const addExpense = async (expense: Omit<Expense, 'id'>): Promise<boolean> => {
     if (!subtractFromCapital(expense.amount)) {
       return false;
+    }
+    
+    if (isAuthenticated) {
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert({
+          user_id: currentUser?.id,
+          date: expense.date.toISOString(),
+          amount: expense.amount,
+          category: expense.category,
+          description: expense.description
+        })
+        .select();
+      
+      if (error) {
+        console.error("Error adding expense:", error);
+        toast.error(`Gagal menambahkan pengeluaran: ${error.message}`);
+        return false;
+      }
+      
+      if (data && data[0]) {
+        const newExpense = {
+          id: data[0].id,
+          date: new Date(data[0].date),
+          amount: data[0].amount,
+          category: data[0].category,
+          description: data[0].description
+        };
+        
+        setExpenses(prev => [...prev, newExpense]);
+        toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`);
+        return true;
+      }
     }
     
     const newExpense = {
