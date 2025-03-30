@@ -234,7 +234,7 @@ const Purchases = () => {
                     type="number"
                     value={item.quantity === 0 ? "" : item.quantity}
                     placeholder="0"
-                    min={0}
+                    min="0"
                     className="w-full h-10"
                     onChange={(e) => {
                       const newQuantity = parseInt(e.target.value) || 0;
