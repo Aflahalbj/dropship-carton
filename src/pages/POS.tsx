@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer } from 'lucide-react';
@@ -302,14 +303,45 @@ const POS = () => {
                 
                 <div className="w-32">
                   <Input
-                    type="number"
-                    value={item.quantity === 0 ? "" : item.quantity}
+                    type="text"
                     placeholder="0"
-                    min="0"
-                    className="w-full h-10"
+                    className="w-full h-10 text-center"
+                    value={item.quantity > 0 ? item.quantity.toString() : ""}
+                    onBlur={(e) => {
+                      const newValue = e.target.value.trim();
+                      const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                      if (!isNaN(newQuantity)) {
+                        // Check stock limit for POS
+                        if (newQuantity > item.product.stock) {
+                          toast.error(`Stok ${item.product.name} hanya tersedia ${item.product.stock}`);
+                          updateCartItemQuantity(item.product.id, item.product.stock);
+                        } else {
+                          updateCartItemQuantity(item.product.id, newQuantity);
+                        }
+                      }
+                    }}
                     onChange={(e) => {
-                      const newQuantity = parseInt(e.target.value) || 0;
-                      updateCartItemQuantity(item.product.id, newQuantity);
+                      // Allow only numbers in the input
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      // We don't update the cart state here, only on blur
+                      e.target.value = value;
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const target = e.target as HTMLInputElement;
+                        const newValue = target.value.trim();
+                        const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                        if (!isNaN(newQuantity)) {
+                          // Check stock limit for POS
+                          if (newQuantity > item.product.stock) {
+                            toast.error(`Stok ${item.product.name} hanya tersedia ${item.product.stock}`);
+                            updateCartItemQuantity(item.product.id, item.product.stock);
+                          } else {
+                            updateCartItemQuantity(item.product.id, newQuantity);
+                          }
+                        }
+                        target.blur();
+                      }
                     }}
                   />
                 </div>
