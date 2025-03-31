@@ -17,9 +17,13 @@ export const AuthButton = () => {
   const { currentUser, logout } = useAppContext();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/auth');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/auth');
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (

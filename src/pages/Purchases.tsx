@@ -228,11 +228,11 @@ const Purchases = () => {
                   <p className="text-sm text-muted-foreground">{item.product.sku}</p>
                 </div>
                 
-                <div className="w-32">
+                <div className="w-24">
                   <Input
                     type="text"
                     placeholder="0"
-                    className="w-full h-10 text-center"
+                    className="w-full h-8 text-center text-sm"
                     defaultValue={item.quantity > 0 ? item.quantity.toString() : ""}
                     onBlur={(e) => {
                       const newValue = e.target.value.trim();
