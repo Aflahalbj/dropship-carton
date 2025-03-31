@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Session } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 // Define types
 export type Product = {
@@ -37,7 +37,7 @@ export type Expense = {
   description: string;
 };
 
-export type User = {
+export type AppUser = {
   id: string;
   email: string;
   name: string;
@@ -47,7 +47,7 @@ export type User = {
 type AppContextType = {
   // Auth state
   isAuthenticated: boolean;
-  currentUser: User | null;
+  currentUser: AppUser | null;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
@@ -61,13 +61,13 @@ type AppContextType = {
   
   // Capital functions
   setCapital: (amount: number) => void;
-  addToCapital: (amount: number) => void;
-  subtractFromCapital: (amount: number) => boolean;
+  addToCapital: (amount: number) => Promise<void>;
+  subtractFromCapital: (amount: number) => Promise<boolean>;
   
   // Product functions
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  updateProduct: (product: Product) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
+  updateProduct: (product: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
   
   // Cart functions
   addToCart: (product: Product, quantity: number) => void;
@@ -79,10 +79,10 @@ type AppContextType = {
   handlePageNavigation: (currentPath: string) => void;
   
   // Transaction functions
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => boolean;
+  addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<boolean>;
   
   // Expense functions
-  addExpense: (expense: Omit<Expense, 'id'>) => boolean;
+  addExpense: (expense: Omit<Expense, 'id'>) => Promise<boolean>;
 };
 
 // Create context
@@ -111,7 +111,7 @@ const getFromLocalStorage = (key: string, defaultValue: any = null) => {
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getFromLocalStorage("currentUser"));
-  const [currentUser, setCurrentUser] = useState<User | null>(getFromLocalStorage("currentUser"));
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(getFromLocalStorage("currentUser"));
   const [session, setSession] = useState<Session | null>(null);
   
   // App state
@@ -120,7 +120,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>(getFromLocalStorage("transactions", []));
   const [expenses, setExpenses] = useState<Expense[]>(getFromLocalStorage("expenses", []));
-  const [supabaseUser, setSupabaseUser] = useState<User | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   // Store previous path to compare when navigating
   const previousPathRef = useRef<string | null>(null);
   
@@ -131,7 +131,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       (event, session) => {
         setSession(session);
         if (session?.user) {
-          const user = {
+          const user: AppUser = {
             id: session.user.id,
             email: session.user.email || '',
             name: session.user.user_metadata.name || ''
@@ -151,7 +151,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
-        const user = {
+        const user: AppUser = {
           id: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata.name || ''
@@ -251,7 +251,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Auth state will be updated by the onAuthStateChange listener
   };
   
-  const logout = async (): void => {
+  const logout = async (): Promise<void> => {
     await supabase.auth.signOut();
     // Auth state will be updated by the onAuthStateChange listener
   };
@@ -616,12 +616,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       
       // Add the sale amount to capital
-      addToCapital(transaction.total);
+      await addToCapital(transaction.total);
     } else if (transaction.type === 'purchase') {
       // For purchases, increase stock and deduct from capital
       
       // Check if we have enough capital
-      if (!subtractFromCapital(transaction.total)) {
+      const success = await subtractFromCapital(transaction.total);
+      if (!success) {
         return false;
       }
       
@@ -651,7 +652,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   // Expense functions
   const addExpense = async (expense: Omit<Expense, 'id'>): Promise<boolean> => {
-    if (!subtractFromCapital(expense.amount)) {
+    const success = await subtractFromCapital(expense.amount);
+    if (!success) {
       return false;
     }
     
