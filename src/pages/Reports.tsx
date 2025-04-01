@@ -36,6 +36,13 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -102,14 +109,22 @@ const Reports = () => {
           <p className="text-muted-foreground">Ringkasan performa bisnis Anda untuk {getTodayDateString()}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={() => setDateRange('7')}>
-            <Calendar className="w-3 h-3" />
-            7 Hari
-          </Button>
-          <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={() => setDateRange('30')}>
-            <Calendar className="w-3 h-3" />
-            30 Hari
-          </Button>
+          <div className="w-36">
+            <Select
+              value={dateRange}
+              onValueChange={(value) => setDateRange(value)}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <Calendar className="w-3 h-3 mr-1" />
+                <SelectValue placeholder="Pilih Periode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">7 Hari</SelectItem>
+                <SelectItem value="30">30 Hari</SelectItem>
+                <SelectItem value="90">90 Hari</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={downloadReport}>
             <Download className="w-3 h-3" />
             Export
