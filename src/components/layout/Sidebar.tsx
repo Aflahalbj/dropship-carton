@@ -9,8 +9,13 @@ import {
   FileText, 
   BarChart, 
   Settings, 
-  TrendingUp 
+  TrendingUp,
+  LogOut
 } from "lucide-react";
+import { AuthButton } from "./AuthButton";
+import { useAppContext } from "@/context/AppContext";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -19,6 +24,9 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isOpen, isMobile, toggle }: SidebarProps) => {
+  const { logout } = useAppContext();
+  const navigate = useNavigate();
+  
   const navItems = [
     { name: "Kasir", icon: <Home size={20} />, path: "/" },
     { name: "Modal", icon: <DollarSign size={20} />, path: "/capital" },
@@ -30,6 +38,15 @@ export const Sidebar = ({ isOpen, isMobile, toggle }: SidebarProps) => {
     { name: "Pengaturan", icon: <Settings size={20} />, path: "/settings" },
   ];
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/auth');
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   const sidebarClasses = `
     h-full bg-card border-r flex flex-col w-64 transform transition-transform duration-400 ease-in-out z-30
     ${isMobile ? (isOpen ? 'translate-x-0' : '-translate-x-full fixed') : 'relative'}
@@ -37,7 +54,7 @@ export const Sidebar = ({ isOpen, isMobile, toggle }: SidebarProps) => {
 
   return (
     <aside className={sidebarClasses}>
-      <div className="p-4">
+      <div className="p-4 flex flex-col h-full">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl font-bold text-primary">Dropship POS</h2>
           {isMobile && (
@@ -72,16 +89,25 @@ export const Sidebar = ({ isOpen, isMobile, toggle }: SidebarProps) => {
             </NavLink>
           ))}
         </nav>
-      </div>
-      
-      <div className="mt-auto p-4 border-t">
-        <div className="flex items-center">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-            <span className="font-medium">DS</span>
-          </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium">Toko Dropship</p>
-            <p className="text-xs text-muted-foreground">Admin</p>
+        
+        <div className="mt-auto">
+          <Button 
+            variant="destructive" 
+            className="w-full justify-center gap-2 mb-4"
+            onClick={handleLogout}
+          >
+            <LogOut size={16} />
+            <span>Keluar</span>
+          </Button>
+          
+          <div className="flex items-center border-t pt-4">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <span className="font-medium">DS</span>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium">Toko Dropship</p>
+              <p className="text-xs text-muted-foreground">Admin</p>
+            </div>
           </div>
         </div>
       </div>

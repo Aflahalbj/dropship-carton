@@ -47,6 +47,15 @@ export const AuthButton = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      
+      <Button 
+        variant="destructive" 
+        className="w-full justify-center gap-2"
+        onClick={handleLogout}
+      >
+        <LogOut size={16} />
+        <span>Logout</span>
+      </Button>
     </div>
   );
 };

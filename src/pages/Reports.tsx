@@ -1,372 +1,468 @@
 
-import React, { useState } from 'react';
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { BarChart, LineChart, PieChart, Calendar, Download, Filter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Chart as ChartComponent, 
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
+  BarChart3, 
+  LineChart, 
+  PieChart, 
+  ArrowDown, 
+  ArrowUp, 
+  Calendar,
+  Download
+} from "lucide-react";
+import { 
+  generateMockSalesData, 
+  generateMockExpenseData, 
+  generateMockProductSalesData,
+  generateMockMonthlySummary,
+  calculateMonthlyGrowth
+} from '@/utils/mockReports';
+import { Button } from "@/components/ui/button";
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend,
-  ArcElement,
-  Filler, // Add Filler plugin for area charts
-} from 'chart.js';
-import { Bar, Line, Pie } from 'react-chartjs-2';
-import { format, subDays } from 'date-fns';
+  ResponsiveContainer,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 
-// Register ChartJS components including Filler for area charts
-ChartComponent.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  Filler // Register Filler plugin
-);
-
-// Generate dates for the past week
-const generatePastWeekDates = () => {
-  const dates = [];
-  for (let i = 6; i >= 0; i--) {
-    dates.push(format(subDays(new Date(), i), 'dd MMM'));
-  }
-  return dates;
-};
-
-// Generate random data for sales
-const generateRandomData = (min: number, max: number, count: number) => {
-  return Array.from({ length: count }, () => 
-    Math.floor(Math.random() * (max - min + 1) + min)
-  );
-};
-
-// Generate fake transaction data for the past week
-const generateFakeTransactions = () => {
-  const dates = [];
-  const transactions = [];
-  
-  for (let i = 6; i >= 0; i--) {
-    const date = subDays(new Date(), i);
-    const formattedDate = format(date, 'yyyy-MM-dd');
-    const dailyTransCount = Math.floor(Math.random() * 5) + 1; // 1-5 transactions per day
-    
-    for (let j = 0; j < dailyTransCount; j++) {
-      const transactionAmount = Math.floor(Math.random() * 500000) + 50000; // 50k-550k transaction
-      const profit = Math.floor(transactionAmount * 0.2); // 20% profit margin
-      const type = Math.random() > 0.7 ? 'purchase' : 'sale'; // 70% sales, 30% purchases
-      
-      transactions.push({
-        id: `trans-${formattedDate}-${j}`,
-        date: format(date, 'dd MMM yyyy, HH:mm'),
-        fullDate: date,
-        type,
-        total: transactionAmount,
-        profit: type === 'sale' ? profit : 0,
-        products: Math.floor(Math.random() * 3) + 1 // 1-3 products per transaction
-      });
-    }
-    
-    dates.push(formattedDate);
-  }
-  
-  return { dates, transactions };
-};
-
-const { dates: pastWeekDates, transactions: fakeTransactions } = generateFakeTransactions();
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 const Reports = () => {
-  const [activeTab, setActiveTab] = useState('summary');
-  const [reportPeriod, setReportPeriod] = useState('week');
-  
-  const pastWeekLabels = generatePastWeekDates();
-  
-  // Calculate daily sales and profits from transactions
-  const dailySales = pastWeekLabels.map(date => {
-    const dayTransactions = fakeTransactions.filter(
-      t => t.date.includes(date) && t.type === 'sale'
-    );
-    return dayTransactions.reduce((sum, t) => sum + t.total, 0);
-  });
-  
-  const dailyProfits = pastWeekLabels.map(date => {
-    const dayTransactions = fakeTransactions.filter(
-      t => t.date.includes(date) && t.type === 'sale'
-    );
-    return dayTransactions.reduce((sum, t) => sum + t.profit, 0);
-  });
-  
-  const dailyPurchases = pastWeekLabels.map(date => {
-    const dayTransactions = fakeTransactions.filter(
-      t => t.date.includes(date) && t.type === 'purchase'
-    );
-    return dayTransactions.reduce((sum, t) => sum + t.total, 0);
-  });
-  
-  // Prepare chart data
-  const salesData = {
-    labels: pastWeekLabels,
-    datasets: [
-      {
-        label: 'Penjualan',
-        data: dailySales,
-        backgroundColor: 'rgba(37, 99, 235, 0.5)',
-        borderColor: 'rgba(37, 99, 235, 1)',
-        borderWidth: 1,
-      },
-    ],
+  const [salesData, setSalesData] = useState([]);
+  const [expenseData, setExpenseData] = useState([]);
+  const [productSalesData, setProductSalesData] = useState([]);
+  const [monthlySummary, setMonthlySummary] = useState(null);
+  const [growth, setGrowth] = useState(null);
+  const [dateRange, setDateRange] = useState('30');
+
+  useEffect(() => {
+    // Load mock data
+    setSalesData(generateMockSalesData());
+    setExpenseData(generateMockExpenseData());
+    setProductSalesData(generateMockProductSalesData());
+    setMonthlySummary(generateMockMonthlySummary());
+    setGrowth(calculateMonthlyGrowth());
+  }, []);
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(value);
   };
-  
-  const salesVsPurchasesData = {
-    labels: pastWeekLabels,
-    datasets: [
-      {
-        label: 'Penjualan',
-        data: dailySales,
-        backgroundColor: 'rgba(37, 99, 235, 0.5)',
-        borderColor: 'rgba(37, 99, 235, 1)',
-        borderWidth: 1,
-      },
-      {
-        label: 'Pembelian',
-        data: dailyPurchases,
-        backgroundColor: 'rgba(220, 38, 38, 0.5)',
-        borderColor: 'rgba(220, 38, 38, 1)',
-        borderWidth: 1,
-      },
-    ],
+
+  const getTodayDateString = () => {
+    return format(new Date(), 'dd MMMM yyyy', { locale: id });
   };
-  
-  const profitData = {
-    labels: pastWeekLabels,
-    datasets: [
-      {
-        label: 'Keuntungan',
-        data: dailyProfits,
-        backgroundColor: 'rgba(16, 185, 129, 0.5)',
-        borderColor: 'rgba(16, 185, 129, 1)',
-        borderWidth: 1,
-        fill: true,
-      },
-    ],
+
+  // Function to filter data based on date range
+  const filterDataByDateRange = (data) => {
+    if (!data || !data.length) return [];
+    
+    const days = parseInt(dateRange);
+    const filteredData = data.slice(-days);
+    return filteredData;
   };
-  
-  // Calculate totals
-  const totalSales = dailySales.reduce((sum, value) => sum + value, 0);
-  const totalPurchases = dailyPurchases.reduce((sum, value) => sum + value, 0);
-  const totalProfit = dailyProfits.reduce((sum, value) => sum + value, 0);
-  const totalTransactions = fakeTransactions.length;
-  
-  // Product category distribution for pie chart
-  const pieData = {
-    labels: ['Elektronik', 'Pakaian', 'Makanan', 'Minuman', 'Aksesoris'],
-    datasets: [
-      {
-        data: [25, 30, 15, 10, 20],
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.5)',
-          'rgba(54, 162, 235, 0.5)',
-          'rgba(255, 206, 86, 0.5)',
-          'rgba(75, 192, 192, 0.5)',
-          'rgba(153, 102, 255, 0.5)',
-        ],
-        borderColor: [
-          'rgba(255, 99, 132, 1)',
-          'rgba(54, 162, 235, 1)',
-          'rgba(255, 206, 86, 1)',
-          'rgba(75, 192, 192, 1)',
-          'rgba(153, 102, 255, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
+
+  // Function to calculate totals from filtered data
+  const calculateTotals = (data, key) => {
+    if (!data || !data.length) return 0;
+    return data.reduce((total, item) => total + item[key], 0);
   };
-  
+
+  const filteredSalesData = filterDataByDateRange(salesData);
+  const filteredExpenseData = filterDataByDateRange(expenseData);
+
+  const totalSales = calculateTotals(filteredSalesData, 'sales');
+  const totalExpenses = calculateTotals(filteredExpenseData, 'amount');
+  const totalProfit = totalSales - totalExpenses;
+
+  const downloadReport = () => {
+    alert('Laporan telah diunduh');
+  };
+
   return (
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Laporan</h2>
-          <p className="text-muted-foreground">Lihat analisis bisnis Anda</p>
+          <p className="text-muted-foreground">Ringkasan performa bisnis Anda untuk {getTodayDateString()}</p>
         </div>
-        
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-1 text-xs h-8">
-            <Calendar size={14} />
-            <span>7 hari terakhir</span>
+          <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={() => setDateRange('7')}>
+            <Calendar className="w-3 h-3" />
+            7 Hari
           </Button>
-          <Button variant="outline" size="sm" className="gap-1 text-xs h-8">
-            <Download size={14} />
-            <span>Export</span>
+          <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={() => setDateRange('30')}>
+            <Calendar className="w-3 h-3" />
+            30 Hari
+          </Button>
+          <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={downloadReport}>
+            <Download className="w-3 h-3" />
+            Export
           </Button>
         </div>
       </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4">
-          <h3 className="text-muted-foreground text-sm mb-1">Total Penjualan</h3>
-          <p className="text-2xl font-bold">Rp{totalSales.toLocaleString('id-ID')}</p>
-          <p className="text-xs text-green-500 mt-1">+12.5% minggu ini</p>
+
+      {/* Summary Cards */}
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Penjualan</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(totalSales)}</div>
+            {growth && (
+              <p className={`text-xs flex items-center mt-1 ${growth.salesGrowth > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {growth.salesGrowth > 0 ? <ArrowUp className="w-3 h-3 mr-1" /> : <ArrowDown className="w-3 h-3 mr-1" />}
+                {Math.abs(growth.salesGrowth)}% dari bulan lalu
+              </p>
+            )}
+          </CardContent>
         </Card>
         
-        <Card className="p-4">
-          <h3 className="text-muted-foreground text-sm mb-1">Total Pembelian</h3>
-          <p className="text-2xl font-bold">Rp{totalPurchases.toLocaleString('id-ID')}</p>
-          <p className="text-xs text-red-500 mt-1">+8.3% minggu ini</p>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pengeluaran</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(totalExpenses)}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Termasuk pembelian & biaya operasional
+            </p>
+          </CardContent>
         </Card>
         
-        <Card className="p-4">
-          <h3 className="text-muted-foreground text-sm mb-1">Keuntungan</h3>
-          <p className="text-2xl font-bold">Rp{totalProfit.toLocaleString('id-ID')}</p>
-          <p className="text-xs text-green-500 mt-1">+15.2% minggu ini</p>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Profit Bersih</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(totalProfit)}</div>
+            {growth && (
+              <p className={`text-xs flex items-center mt-1 ${growth.profitGrowth > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {growth.profitGrowth > 0 ? <ArrowUp className="w-3 h-3 mr-1" /> : <ArrowDown className="w-3 h-3 mr-1" />}
+                {Math.abs(growth.profitGrowth)}% dari bulan lalu
+              </p>
+            )}
+          </CardContent>
         </Card>
         
-        <Card className="p-4">
-          <h3 className="text-muted-foreground text-sm mb-1">Transaksi</h3>
-          <p className="text-2xl font-bold">{totalTransactions}</p>
-          <p className="text-xs text-green-500 mt-1">+5.7% minggu ini</p>
-        </Card>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card className="p-4">
-          <h3 className="font-medium mb-4">Penjualan Harian</h3>
-          <div className="h-64">
-            <Bar 
-              data={salesData} 
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'top' as const,
-                  },
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      callback: function(value) {
-                        return 'Rp' + Number(value).toLocaleString('id-ID');
-                      }
-                    }
-                  }
-                }
-              }}
-            />
-          </div>
-        </Card>
-        
-        <Card className="p-4">
-          <h3 className="font-medium mb-4">Keuntungan Harian</h3>
-          <div className="h-64">
-            <Line 
-              data={profitData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'top' as const,
-                  },
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      callback: function(value) {
-                        return 'Rp' + Number(value).toLocaleString('id-ID');
-                      }
-                    }
-                  }
-                }
-              }}
-            />
-          </div>
-        </Card>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <Card className="p-4">
-          <h3 className="font-medium mb-4">Penjualan vs Pembelian</h3>
-          <div className="h-64">
-            <Bar 
-              data={salesVsPurchasesData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'top' as const,
-                  },
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      callback: function(value) {
-                        return 'Rp' + Number(value).toLocaleString('id-ID');
-                      }
-                    }
-                  }
-                }
-              }}
-            />
-          </div>
-        </Card>
-        
-        <Card className="p-4">
-          <h3 className="font-medium mb-4">Distribusi Kategori Produk</h3>
-          <div className="h-64 flex items-center justify-center">
-            <div className="w-3/4 h-full">
-              <Pie 
-                data={pieData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'right' as const,
-                    },
-                  },
-                }}
-              />
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Transaksi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {filteredSalesData.reduce((total, item) => total + item.transactions, 0)}
             </div>
-          </div>
+            {growth && (
+              <p className={`text-xs flex items-center mt-1 ${growth.transactionGrowth > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {growth.transactionGrowth > 0 ? <ArrowUp className="w-3 h-3 mr-1" /> : <ArrowDown className="w-3 h-3 mr-1" />}
+                {Math.abs(growth.transactionGrowth)}% dari bulan lalu
+              </p>
+            )}
+          </CardContent>
         </Card>
       </div>
-      
-      <Card>
-        <div className="p-4 border-b">
-          <h3 className="font-medium">Transaksi Terbaru</h3>
-        </div>
-        <div className="divide-y">
-          {fakeTransactions.slice(0, 10).map((transaction) => (
-            <div key={transaction.id} className="p-4 flex justify-between items-center">
-              <div>
-                <p className="font-medium">{transaction.type === 'sale' ? 'Penjualan' : 'Pembelian'}</p>
-                <p className="text-sm text-muted-foreground">{transaction.date}</p>
+
+      <Tabs defaultValue="sales" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="sales" className="flex items-center gap-2">
+            <LineChart className="h-4 w-4" />
+            Penjualan
+          </TabsTrigger>
+          <TabsTrigger value="expenses" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Pengeluaran
+          </TabsTrigger>
+          <TabsTrigger value="products" className="flex items-center gap-2">
+            <PieChart className="h-4 w-4" />
+            Produk
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="sales" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tren Penjualan</CardTitle>
+              <CardDescription>
+                Grafik penjualan harian selama {dateRange} hari terakhir
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={filteredSalesData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(date) => {
+                      const parts = date.split('-');
+                      return `${parts[2]}/${parts[1]}`;
+                    }}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => new Intl.NumberFormat('id-ID', {
+                      notation: 'compact',
+                      compactDisplay: 'short',
+                      currency: 'IDR'
+                    }).format(value)}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [formatCurrency(value), 'Penjualan']}
+                    labelFormatter={(label) => format(new Date(label), 'dd MMMM yyyy', { locale: id })}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="sales" 
+                    stroke="#4f46e5" 
+                    fill="#4f46e5" 
+                    fillOpacity={0.2} 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Jumlah Transaksi</CardTitle>
+                <CardDescription>
+                  Jumlah transaksi harian
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={filteredSalesData}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                    <XAxis 
+                      dataKey="date" 
+                      tickFormatter={(date) => {
+                        const parts = date.split('-');
+                        return `${parts[2]}/${parts[1]}`;
+                      }}
+                    />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value) => [value, 'Transaksi']}
+                      labelFormatter={(label) => format(new Date(label), 'dd MMMM yyyy', { locale: id })}
+                    />
+                    <Bar dataKey="transactions" fill="#22c55e" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Produk Terjual</CardTitle>
+                <CardDescription>
+                  Jumlah produk terjual harian
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-[250px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={filteredSalesData}>
+                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                    <XAxis 
+                      dataKey="date" 
+                      tickFormatter={(date) => {
+                        const parts = date.split('-');
+                        return `${parts[2]}/${parts[1]}`;
+                      }}
+                    />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value) => [value, 'Produk']}
+                      labelFormatter={(label) => format(new Date(label), 'dd MMMM yyyy', { locale: id })}
+                    />
+                    <Bar dataKey="products" fill="#f59e0b" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="expenses" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tren Pengeluaran</CardTitle>
+              <CardDescription>
+                Grafik pengeluaran harian selama {dateRange} hari terakhir
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={filteredExpenseData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(date) => {
+                      const parts = date.split('-');
+                      return `${parts[2]}/${parts[1]}`;
+                    }}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => new Intl.NumberFormat('id-ID', {
+                      notation: 'compact',
+                      compactDisplay: 'short',
+                      currency: 'IDR'
+                    }).format(value)}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [formatCurrency(value), 'Pengeluaran']}
+                    labelFormatter={(label) => format(new Date(label), 'dd MMMM yyyy', { locale: id })}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="amount" 
+                    stroke="#ef4444" 
+                    fill="#ef4444" 
+                    fillOpacity={0.2} 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Pengeluaran berdasarkan Kategori</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={
+                      filteredExpenseData.reduce((acc, expense) => {
+                        const existingCategory = acc.find(item => item.name === expense.category);
+                        if (existingCategory) {
+                          existingCategory.value += expense.amount;
+                        } else {
+                          acc.push({ name: expense.category, value: expense.amount });
+                        }
+                        return acc;
+                      }, [])
+                    }
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {filteredExpenseData.reduce((acc, expense) => {
+                      const existingCategory = acc.find(item => item.name === expense.category);
+                      if (existingCategory) {
+                        existingCategory.value += expense.amount;
+                      } else {
+                        acc.push({ name: expense.category, value: expense.amount });
+                      }
+                      return acc;
+                    }, []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => formatCurrency(value)}
+                  />
+                  <Legend />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="products" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Produk Teratas</CardTitle>
+              <CardDescription>
+                10 produk dengan penjualan tertinggi
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terjual</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pendapatan</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {productSalesData.map((product, index) => (
+                      <tr key={index}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.quantity}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(product.revenue)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(product.profit)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="text-right">
-                <p className={`font-medium ${transaction.type === 'sale' ? 'text-green-600' : 'text-red-600'}`}>
-                  {transaction.type === 'sale' ? '+' : '-'}Rp{transaction.total.toLocaleString('id-ID')}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {transaction.products} produk
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Distribusi Penjualan Produk</CardTitle>
+              <CardDescription>
+                Persentase penjualan berdasarkan kategori produk
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={monthlySummary?.topSellingCategories || []}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percentage }) => `${name}: ${percentage}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="percentage"
+                  >
+                    {monthlySummary?.topSellingCategories.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => [`${value}%`, 'Persentase']}
+                  />
+                  <Legend />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
