@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -232,7 +233,7 @@ const Purchases = () => {
                   <Input
                     type="text"
                     placeholder="0"
-                    className="w-full h-7 text-center text-xs"
+                    className="w-full h-8 text-center text-sm font-medium"
                     defaultValue={item.quantity > 0 ? item.quantity.toString() : ""}
                     onBlur={(e) => {
                       const newValue = e.target.value.trim();

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer } from 'lucide-react';
@@ -304,7 +305,7 @@ const POS = () => {
                   <Input
                     type="text"
                     placeholder="0"
-                    className="w-full h-8 text-center text-sm"
+                    className="w-full h-8 text-center text-sm font-medium"
                     defaultValue={item.quantity > 0 ? item.quantity.toString() : ""}
                     onBlur={(e) => {
                       const newValue = e.target.value.trim();

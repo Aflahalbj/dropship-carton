@@ -199,12 +199,12 @@ const Reports = () => {
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Calendar size={16} />
+          <Button variant="outline" size="sm" className="gap-1 text-xs h-8">
+            <Calendar size={14} />
             <span>7 hari terakhir</span>
           </Button>
-          <Button variant="outline" className="gap-2">
-            <Download size={16} />
+          <Button variant="outline" size="sm" className="gap-1 text-xs h-8">
+            <Download size={14} />
             <span>Export</span>
           </Button>
         </div>
