@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,6 +35,10 @@ import {
 } from 'recharts';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import {
+  ToggleGroup,
+  ToggleGroupItem
+} from "@/components/ui/toggle-group";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -102,14 +105,20 @@ const Reports = () => {
           <p className="text-muted-foreground">Ringkasan performa bisnis Anda untuk {getTodayDateString()}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={() => setDateRange('7')}>
-            <Calendar className="w-3 h-3" />
-            7 Hari
-          </Button>
-          <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={() => setDateRange('30')}>
-            <Calendar className="w-3 h-3" />
-            30 Hari
-          </Button>
+          <ToggleGroup type="single" value={dateRange} onValueChange={(value) => value && setDateRange(value)}>
+            <ToggleGroupItem value="7" size="sm" className="text-xs h-8 px-2 gap-1">
+              <Calendar className="w-3 h-3" />
+              7 Hari
+            </ToggleGroupItem>
+            <ToggleGroupItem value="30" size="sm" className="text-xs h-8 px-2 gap-1">
+              <Calendar className="w-3 h-3" />
+              30 Hari
+            </ToggleGroupItem>
+            <ToggleGroupItem value="90" size="sm" className="text-xs h-8 px-2 gap-1">
+              <Calendar className="w-3 h-3" />
+              90 Hari
+            </ToggleGroupItem>
+          </ToggleGroup>
           <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={downloadReport}>
             <Download className="w-3 h-3" />
             Export
