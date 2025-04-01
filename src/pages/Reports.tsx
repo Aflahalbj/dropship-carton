@@ -14,11 +14,12 @@ import {
   Tooltip,
   Legend,
   ArcElement,
+  Filler, // Add Filler plugin for area charts
 } from 'chart.js';
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import { format, subDays } from 'date-fns';
 
-// Register ChartJS components
+// Register ChartJS components including Filler for area charts
 ChartComponent.register(
   CategoryScale,
   LinearScale,
@@ -28,7 +29,8 @@ ChartComponent.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
+  Filler // Register Filler plugin
 );
 
 // Generate dates for the past week
