@@ -27,24 +27,35 @@ export const AuthButton = () => {
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full justify-start gap-2 mt-2">
-          <User size={18} />
-          <span className="truncate">{currentUser?.name || 'User'}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
-        <DropdownMenuItem disabled>
-          {currentUser?.email || 'user@example.com'}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500">
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Keluar</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex flex-col gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-full justify-start gap-2">
+            <User size={18} />
+            <span className="truncate">{currentUser?.name || 'User'}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
+          <DropdownMenuItem disabled>
+            {currentUser?.email || 'user@example.com'}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLogout} className="text-red-500 focus:text-red-500">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Keluar</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
+      <Button 
+        variant="destructive" 
+        className="w-full justify-center gap-2"
+        onClick={handleLogout}
+      >
+        <LogOut size={16} />
+        <span>Logout</span>
+      </Button>
+    </div>
   );
 };
