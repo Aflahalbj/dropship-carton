@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,9 +7,9 @@ import {
   LineChart, 
   PieChart, 
   ArrowDown, 
-  ArrowUp, 
-  Calendar,
-  Download
+  ArrowUp,
+  Download,
+  Calendar
 } from "lucide-react";
 import { 
   generateMockSalesData, 
@@ -36,9 +37,12 @@ import {
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import {
-  ToggleGroup,
-  ToggleGroupItem
-} from "@/components/ui/toggle-group";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
@@ -105,20 +109,17 @@ const Reports = () => {
           <p className="text-muted-foreground">Ringkasan performa bisnis Anda untuk {getTodayDateString()}</p>
         </div>
         <div className="flex gap-2">
-          <ToggleGroup type="single" value={dateRange} onValueChange={(value) => value && setDateRange(value)}>
-            <ToggleGroupItem value="7" size="sm" className="text-xs h-8 px-2 gap-1">
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-36 h-8 text-xs gap-1">
               <Calendar className="w-3 h-3" />
-              7 Hari
-            </ToggleGroupItem>
-            <ToggleGroupItem value="30" size="sm" className="text-xs h-8 px-2 gap-1">
-              <Calendar className="w-3 h-3" />
-              30 Hari
-            </ToggleGroupItem>
-            <ToggleGroupItem value="90" size="sm" className="text-xs h-8 px-2 gap-1">
-              <Calendar className="w-3 h-3" />
-              90 Hari
-            </ToggleGroupItem>
-          </ToggleGroup>
+              <SelectValue placeholder="Pilih periode" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">7 Hari</SelectItem>
+              <SelectItem value="30">30 Hari</SelectItem>
+              <SelectItem value="90">90 Hari</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" className="text-xs h-8 px-2 gap-1" onClick={downloadReport}>
             <Download className="w-3 h-3" />
             Export
