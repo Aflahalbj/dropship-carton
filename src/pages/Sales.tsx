@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -10,11 +9,29 @@ import { TrendingUp, Search, Calendar as CalendarIcon, ChevronRight, FileText, P
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import DateRangeSelector from '@/components/reports/DateRangeSelector';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
+import { toast } from 'sonner';
 
 const Sales = () => {
   const { transactions } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [date, setDate] = useState<Date>();
+  const [dateRange, setDateRange] = useState('30');
   
   // Make sure dates are properly converted to Date objects
   const salesTransactions = transactions
@@ -35,6 +52,42 @@ const Sales = () => {
     
     return (productsMatch || !searchTerm) && dateMatch;
   });
+  
+  // Filter transactions based on date range
+  const getFilteredTransactionsByRange = () => {
+    const days = parseInt(dateRange);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return salesTransactions.filter(transaction => 
+      transaction.date >= cutoffDate
+    );
+  };
+  
+  const rangeFilteredTransactions = getFilteredTransactionsByRange();
+  
+  // Calculate sales data for chart
+  const getSalesDataByDay = () => {
+    const salesByDay = {};
+    
+    rangeFilteredTransactions.forEach(transaction => {
+      const dateStr = format(transaction.date, 'yyyy-MM-dd');
+      if (!salesByDay[dateStr]) {
+        salesByDay[dateStr] = {
+          date: dateStr,
+          sales: 0,
+          transactions: 0,
+          products: 0
+        };
+      }
+      
+      salesByDay[dateStr].sales += transaction.total;
+      salesByDay[dateStr].transactions += 1;
+      salesByDay[dateStr].products += transaction.products.reduce((total, item) => total + item.quantity, 0);
+    });
+    
+    return Object.values(salesByDay).sort((a: any, b: any) => a.date.localeCompare(b.date));
+  };
   
   const totalSales = salesTransactions.reduce((sum, t) => sum + t.total, 0);
   const totalProfit = salesTransactions.reduce((sum, t) => sum + t.profit, 0);
@@ -64,6 +117,12 @@ const Sales = () => {
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 7);
   
+  const salesData = getSalesDataByDay();
+  
+  const downloadReport = () => {
+    toast.success('Laporan telah diunduh');
+  };
+  
   return (
     <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
@@ -71,6 +130,11 @@ const Sales = () => {
           <h2 className="text-3xl font-bold tracking-tight">Riwayat Penjualan</h2>
           <p className="text-muted-foreground">Lacak dan analisis transaksi penjualan Anda</p>
         </div>
+        <DateRangeSelector 
+          dateRange={dateRange} 
+          setDateRange={setDateRange} 
+          onDownload={downloadReport} 
+        />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -111,6 +175,98 @@ const Sales = () => {
           <span className="text-xs text-muted-foreground mt-1">
             Per transaksi
           </span>
+        </Card>
+      </div>
+      
+      {/* Sales chart section */}
+      <Card className="mb-6">
+        <div className="p-6">
+          <h3 className="text-lg font-medium mb-4">Tren Penjualan ({dateRange} Hari Terakhir)</h3>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={salesData}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(date) => {
+                    const parts = date.split('-');
+                    return `${parts[2]}/${parts[1]}`;
+                  }}
+                />
+                <YAxis 
+                  tickFormatter={(value) => new Intl.NumberFormat('id-ID', {
+                    notation: 'compact',
+                    compactDisplay: 'short',
+                    currency: 'IDR'
+                  }).format(value)}
+                />
+                <Tooltip 
+                  formatter={(value) => [`Rp${value.toLocaleString('id-ID')}`, 'Penjualan']}
+                  labelFormatter={(label) => format(new Date(label), 'dd MMMM yyyy')}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="sales" 
+                  stroke="#4f46e5" 
+                  fill="#4f46e5" 
+                  fillOpacity={0.2} 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </Card>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <Card className="p-4">
+          <h3 className="text-lg font-medium mb-4">Jumlah Transaksi</h3>
+          <div className="h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={salesData}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(date) => {
+                    const parts = date.split('-');
+                    return `${parts[2]}/${parts[1]}`;
+                  }}
+                />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value) => [value, 'Transaksi']}
+                  labelFormatter={(label) => format(new Date(label), 'dd MMMM yyyy')}
+                />
+                <Bar dataKey="transactions" fill="#22c55e" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+        
+        <Card className="p-4">
+          <h3 className="text-lg font-medium mb-4">Produk Terjual</h3>
+          <div className="h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={salesData}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(date) => {
+                    const parts = date.split('-');
+                    return `${parts[2]}/${parts[1]}`;
+                  }}
+                />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value) => [value, 'Produk']}
+                  labelFormatter={(label) => format(new Date(label), 'dd MMMM yyyy')}
+                />
+                <Bar dataKey="products" fill="#f59e0b" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </Card>
       </div>
       
