@@ -20,12 +20,47 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import DateRangeSelector from '@/components/reports/DateRangeSelector';
 import { toast } from 'sonner';
+import { 
+  generateMockSalesData, 
+  generateMockExpenseData, 
+  generateMockProductSalesData,
+  generateMockMonthlySummary,
+  calculateMonthlyGrowth
+} from '@/utils/mockReports';
 
 const Sales = () => {
   const { transactions } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [date, setDate] = useState<Date>();
   const [dateRange, setDateRange] = useState('30');
+  const [salesData, setSalesData] = useState<any[]>([]);
+  const [expenseData, setExpenseData] = useState<any[]>([]);
+  const [productSalesData, setProductSalesData] = useState<any[]>([]);
+  const [monthlySummary, setMonthlySummary] = useState<any>(null);
+  const [growth, setGrowth] = useState<any>(null);
+  
+  useEffect(() => {
+    // Load mock data
+    setSalesData(generateMockSalesData());
+    setExpenseData(generateMockExpenseData());
+    setProductSalesData(generateMockProductSalesData());
+    setMonthlySummary(generateMockMonthlySummary());
+    setGrowth(calculateMonthlyGrowth());
+  }, []);
+
+  // Format currency for display
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(value);
+  };
+
+  // Get today's date string
+  const getTodayDateString = () => {
+    return format(new Date(), 'dd MMMM yyyy', { locale: id });
+  };
   
   // Make sure dates are properly converted to Date objects
   const salesTransactions = transactions
@@ -60,6 +95,28 @@ const Sales = () => {
   
   const rangeFilteredTransactions = getFilteredTransactionsByRange();
   
+  // Function to filter data based on date range
+  const filterDataByDateRange = (data: any[]) => {
+    if (!data || !data.length) return [];
+    
+    const days = parseInt(dateRange);
+    const filteredData = data.slice(-days);
+    return filteredData;
+  };
+
+  // Function to calculate totals from filtered data
+  const calculateTotals = (data: any[], key: string) => {
+    if (!data || !data.length) return 0;
+    return data.reduce((total, item) => total + item[key], 0);
+  };
+
+  const filteredSalesData = filterDataByDateRange(salesData);
+  const filteredExpenseData = filterDataByDateRange(expenseData);
+
+  const totalSales = calculateTotals(filteredSalesData, 'sales');
+  const totalExpenses = calculateTotals(filteredExpenseData, 'amount');
+  const totalProfit = totalSales - totalExpenses;
+  
   const downloadReport = () => {
     toast.success('Laporan telah diunduh');
   };
@@ -69,13 +126,67 @@ const Sales = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Riwayat Penjualan</h2>
-          <p className="text-muted-foreground">Lacak dan analisis transaksi penjualan Anda</p>
+          <p className="text-muted-foreground">Lacak dan analisis transaksi penjualan Anda untuk {getTodayDateString()}</p>
         </div>
         <DateRangeSelector 
           dateRange={dateRange} 
           setDateRange={setDateRange} 
           onDownload={downloadReport} 
         />
+      </div>
+      
+      {/* Summary Cards */}
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-6">
+        <Card className="p-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Total Penjualan</p>
+            <p className="text-2xl font-bold mt-1">{formatCurrency(totalSales)}</p>
+            {growth && (
+              <p className={`text-xs flex items-center mt-1 ${growth.salesGrowth > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {growth.salesGrowth > 0 ? <span className="mr-1">↑</span> : <span className="mr-1">↓</span>}
+                {Math.abs(growth.salesGrowth)}% dari bulan lalu
+              </p>
+            )}
+          </div>
+        </Card>
+        
+        <Card className="p-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Total Pengeluaran</p>
+            <p className="text-2xl font-bold mt-1">{formatCurrency(totalExpenses)}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Termasuk pembelian & biaya operasional
+            </p>
+          </div>
+        </Card>
+        
+        <Card className="p-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Profit Bersih</p>
+            <p className="text-2xl font-bold mt-1">{formatCurrency(totalProfit)}</p>
+            {growth && (
+              <p className={`text-xs flex items-center mt-1 ${growth.profitGrowth > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {growth.profitGrowth > 0 ? <span className="mr-1">↑</span> : <span className="mr-1">↓</span>}
+                {Math.abs(growth.profitGrowth)}% dari bulan lalu
+              </p>
+            )}
+          </div>
+        </Card>
+        
+        <Card className="p-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Total Transaksi</p>
+            <p className="text-2xl font-bold mt-1">
+              {filteredSalesData.reduce((total, item) => total + item.transactions, 0)}
+            </p>
+            {growth && (
+              <p className={`text-xs flex items-center mt-1 ${growth.transactionGrowth > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {growth.transactionGrowth > 0 ? <span className="mr-1">↑</span> : <span className="mr-1">↓</span>}
+                {Math.abs(growth.transactionGrowth)}% dari bulan lalu
+              </p>
+            )}
+          </div>
+        </Card>
       </div>
       
       <div className="mb-6">
@@ -163,6 +274,56 @@ const Sales = () => {
           />
         </TabsContent>
       </Tabs>
+      
+      {/* Product Analysis Section */}
+      <div className="mt-8">
+        <h3 className="text-lg font-medium mb-4">Analisis Produk</h3>
+        <div className="rounded-md border overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terjual</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pendapatan</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profit</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {productSalesData.map((product, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.quantity}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(product.revenue)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(product.profit)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      {/* Category Distribution Section */}
+      {monthlySummary && (
+        <div className="mt-8">
+          <h3 className="text-lg font-medium mb-4">Distribusi Kategori</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2">
+            {monthlySummary.topSellingCategories.map((category: any, index: number) => (
+              <Card key={index} className="p-3">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium">{category.name}</p>
+                  <p className="text-sm font-semibold">{category.percentage}%</p>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full" 
+                    style={{ width: `${category.percentage}%` }}
+                  ></div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
