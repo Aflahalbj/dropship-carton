@@ -18,6 +18,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import DateRangeSelector from '@/components/reports/DateRangeSelector';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow
+} from "@/components/ui/table";
 import { toast } from 'sonner';
 import { 
   generateMockSalesData, 
@@ -268,28 +277,30 @@ const Sales = () => {
       
       <div className="mt-8">
         <h3 className="text-lg font-medium mb-4">Analisis Produk</h3>
-        <div className="rounded-md border overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produk</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terjual</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pendapatan</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profit</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {productSalesData.map((product, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{product.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{product.quantity}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(product.revenue)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(product.profit)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Card>
+          <ScrollArea className="h-[350px] w-full">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Produk</TableHead>
+                  <TableHead>Terjual</TableHead>
+                  <TableHead>Pendapatan</TableHead>
+                  <TableHead>Profit</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productSalesData.map((product, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.quantity}</TableCell>
+                    <TableCell>{formatCurrency(product.revenue)}</TableCell>
+                    <TableCell>{formatCurrency(product.profit)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </Card>
       </div>
       
       {monthlySummary && (
