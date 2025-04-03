@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,6 @@ const Sales = () => {
   const [growth, setGrowth] = useState<any>(null);
   
   useEffect(() => {
-    // Load mock data
     setSalesData(generateMockSalesData());
     setExpenseData(generateMockExpenseData());
     setProductSalesData(generateMockProductSalesData());
@@ -48,7 +46,6 @@ const Sales = () => {
     setGrowth(calculateMonthlyGrowth());
   }, []);
 
-  // Format currency for display
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -57,12 +54,10 @@ const Sales = () => {
     }).format(value);
   };
 
-  // Get today's date string
   const getTodayDateString = () => {
     return format(new Date(), 'dd MMMM yyyy', { locale: id });
   };
   
-  // Make sure dates are properly converted to Date objects
   const salesTransactions = transactions
     .filter(t => t.type === 'sale')
     .map(t => ({
@@ -82,7 +77,6 @@ const Sales = () => {
     return (productsMatch || !searchTerm) && dateMatch;
   });
   
-  // Filter transactions based on date range
   const getFilteredTransactionsByRange = () => {
     const days = parseInt(dateRange);
     const cutoffDate = new Date();
@@ -95,7 +89,6 @@ const Sales = () => {
   
   const rangeFilteredTransactions = getFilteredTransactionsByRange();
   
-  // Function to filter data based on date range
   const filterDataByDateRange = (data: any[]) => {
     if (!data || !data.length) return [];
     
@@ -104,7 +97,6 @@ const Sales = () => {
     return filteredData;
   };
 
-  // Function to calculate totals from filtered data
   const calculateTotals = (data: any[], key: string) => {
     if (!data || !data.length) return 0;
     return data.reduce((total, item) => total + item[key], 0);
@@ -135,7 +127,6 @@ const Sales = () => {
         />
       </div>
       
-      {/* Summary Cards */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-6">
         <Card className="p-4">
           <div>
@@ -204,24 +195,24 @@ const Sales = () => {
       
       <Tabs defaultValue="all" className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <TabsList>
-            <TabsTrigger value="all">Semua Penjualan</TabsTrigger>
-            <TabsTrigger value="today">Hari Ini</TabsTrigger>
-            <TabsTrigger value="week">Minggu Ini</TabsTrigger>
+          <TabsList className="h-8">
+            <TabsTrigger value="all" className="text-xs px-2 py-1">Semua Penjualan</TabsTrigger>
+            <TabsTrigger value="today" className="text-xs px-2 py-1">Hari Ini</TabsTrigger>
+            <TabsTrigger value="week" className="text-xs px-2 py-1">Minggu Ini</TabsTrigger>
           </TabsList>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "w-[240px] pl-3 text-left font-normal",
+                    "h-8 text-xs px-2 w-[200px] sm:w-[240px] pl-3 text-left font-normal",
                     !date && "text-muted-foreground"
                   )}
                 >
                   {date ? format(date, "PPP") : <span>Filter berdasarkan tanggal</span>}
-                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  <CalendarIcon className="ml-auto h-3 w-3 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
@@ -239,20 +230,20 @@ const Sales = () => {
                 variant="ghost" 
                 size="icon"
                 onClick={() => setDate(undefined)}
-                className="h-9 w-9"
+                className="h-8 w-8"
               >
-                <X size={14} />
+                <X size={12} />
               </Button>
             )}
             
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={12} />
               <Input
                 type="text"
                 placeholder="Cari produk..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-[180px] pl-9"
+                className="w-[160px] sm:w-[180px] h-8 pl-7 pr-2 text-xs"
               />
             </div>
           </div>
@@ -275,7 +266,6 @@ const Sales = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Product Analysis Section */}
       <div className="mt-8">
         <h3 className="text-lg font-medium mb-4">Analisis Produk</h3>
         <div className="rounded-md border overflow-hidden">
@@ -302,7 +292,6 @@ const Sales = () => {
         </div>
       </div>
       
-      {/* Category Distribution Section */}
       {monthlySummary && (
         <div className="mt-8">
           <h3 className="text-lg font-medium mb-4">Distribusi Kategori</h3>
@@ -388,8 +377,8 @@ const TransactionsList = ({ transactions }: { transactions: Transaction[] }) => 
             </div>
             
             <div className="mt-3 flex justify-end">
-              <Button variant="ghost" size="sm" className="text-xs flex items-center gap-1">
-                Lihat Detail <ChevronRight size={14} />
+              <Button variant="ghost" size="sm" className="text-xs h-7 px-2 py-1 flex items-center gap-1">
+                Lihat Detail <ChevronRight size={12} />
               </Button>
             </div>
           </div>
