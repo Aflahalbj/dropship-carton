@@ -25,9 +25,9 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   const isMobile = useIsMobile();
   
   return (
-    <div className={`flex ${isMobile ? 'flex-col w-full' : 'flex-row'} gap-2`}>
+    <div className="flex flex-row gap-2">
       <Select value={dateRange} onValueChange={setDateRange}>
-        <SelectTrigger className={`${isMobile ? 'w-full' : 'w-36'} h-8 text-xs gap-1`}>
+        <SelectTrigger className="w-28 h-8 text-xs gap-1">
           <Calendar className="w-3 h-3" />
           <SelectValue placeholder="Pilih periode" />
         </SelectTrigger>
@@ -39,7 +39,7 @@ const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
       </Select>
       <Button 
         variant="outline" 
-        className={`text-xs h-8 px-2 gap-1 ${isMobile ? 'w-full' : ''}`} 
+        className="text-xs h-8 px-2 gap-1" 
         onClick={onDownload}
       >
         <Download className="w-3 h-3" />
