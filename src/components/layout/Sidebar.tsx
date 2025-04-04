@@ -49,7 +49,7 @@ export const Sidebar = ({ isOpen, isMobile, toggle }: SidebarProps) => {
 
   const sidebarClasses = `
     h-full bg-card border-r flex flex-col w-64 transform transition-transform duration-400 ease-in-out z-30
-    ${isMobile ? (isOpen ? 'translate-x-0' : '-translate-x-full fixed') : 'relative'}
+    ${isMobile ? (isOpen ? 'translate-x-0 fixed left-0 top-0' : '-translate-x-full fixed left-0 top-0') : 'relative'}
   `;
 
   return (
