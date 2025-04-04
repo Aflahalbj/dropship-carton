@@ -2,7 +2,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.3b19d3c7910e4f0ea66d44ee09fa7eea',
+  appId: 'com.lovable.dropshipcarton',
   appName: 'dropship-carton',
   webDir: 'dist',
   server: {
