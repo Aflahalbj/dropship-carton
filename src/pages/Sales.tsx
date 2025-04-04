@@ -280,30 +280,28 @@ const Sales = () => {
         <Card>
           <ScrollArea className="h-[350px]">
             <div className="overflow-x-auto">
-              <ScrollArea orientation="horizontal">
-                <div className="min-w-[600px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[200px]">Produk</TableHead>
-                        <TableHead>Terjual</TableHead>
-                        <TableHead>Pendapatan</TableHead>
-                        <TableHead>Profit</TableHead>
+              <div className="min-w-[600px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[200px]">Produk</TableHead>
+                      <TableHead>Terjual</TableHead>
+                      <TableHead>Pendapatan</TableHead>
+                      <TableHead>Profit</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {productSalesData.map((product, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>{product.quantity}</TableCell>
+                        <TableCell>{formatCurrency(product.revenue)}</TableCell>
+                        <TableCell>{formatCurrency(product.profit)}</TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {productSalesData.map((product, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell>{product.quantity}</TableCell>
-                          <TableCell>{formatCurrency(product.revenue)}</TableCell>
-                          <TableCell>{formatCurrency(product.profit)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </ScrollArea>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </ScrollArea>
         </Card>
