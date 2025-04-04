@@ -6,8 +6,9 @@ const config: CapacitorConfig = {
   appName: 'dropship-carton',
   webDir: 'dist',
   server: {
-    url: 'https://3b19d3c7-910e-4f0e-a66d-44ee09fa7eea.lovableproject.com?forceHideBadge=true',
-    cleartext: true
+    androidScheme: 'https',
+    cleartext: true,
+    allowNavigation: ['*.lovableproject.com']
   },
   android: {
     buildOptions: {
