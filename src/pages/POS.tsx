@@ -31,6 +31,7 @@ const POS = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [isOnPurchasePage, setIsOnPurchasePage] = useState(false);
+  const [discountedPrices, setDiscountedPrices] = useState<{[key: string]: number}>({});
   const [lastTransaction, setLastTransaction] = useState<{
     id: string;
     date: Date;
@@ -139,7 +140,7 @@ const POS = () => {
         total: total,
         paymentMethod: paymentMethod,
         customerName: customerName || 'Pelanggan',
-        cashAmount: paymentMethod === 'cash' ? cashAmount : undefined,
+        cashAmount: paymentMethod === 'cash' && cashAmount ? parseFloat(cashAmount) : undefined,
         changeAmount: paymentMethod === 'cash' ? changeAmount : undefined
       });
       
@@ -552,7 +553,7 @@ const POS = () => {
                         Jumlah Uang Tunai
                       </label>
                       <Input
-                        type="number"
+                        type="text"
                         value={cashAmount}
                         onChange={(e) => {
                           const value = e.target.value;
