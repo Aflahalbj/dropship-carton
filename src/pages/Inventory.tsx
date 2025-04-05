@@ -1,10 +1,12 @@
+
 import React, { useState } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Plus, Package, Search, Edit, Trash, X, Check } from 'lucide-react';
+import { Plus, Search, Edit, Trash, X, Check, Image, Link } from 'lucide-react';
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 const Inventory = () => {
   const { products, addProduct, updateProduct, deleteProduct } = useAppContext();
@@ -18,7 +20,13 @@ const Inventory = () => {
     price: '',
     supplierPrice: '',
     stock: '',
+    image: '',
   });
+  
+  const [imageSource, setImageSource] = useState<'url' | 'file'>('url');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
   
   const filteredProducts = products.filter(product => 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -32,7 +40,10 @@ const Inventory = () => {
       price: '',
       supplierPrice: '',
       stock: '',
+      image: '',
     });
+    setImageSource('url');
+    setImageFile(null);
     setEditingProduct(null);
   };
   
@@ -45,7 +56,9 @@ const Inventory = () => {
         price: product.price.toString(),
         supplierPrice: product.supplierPrice.toString(),
         stock: product.stock.toString(),
+        image: product.image || '',
       });
+      setImageSource(product.image?.startsWith('data:') ? 'file' : 'url');
     } else {
       resetForm();
     }
@@ -60,6 +73,20 @@ const Inventory = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      
+      // Convert file to data URL for preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -99,19 +126,21 @@ const Inventory = () => {
       return;
     }
     
+    let imageUrl = imageSource === 'url' ? formData.image : formData.image;
+    
     const productData = {
       name: formData.name,
       sku: formData.sku,
       price,
       supplierPrice,
       stock,
+      image: imageUrl,
     };
     
     if (editingProduct) {
       updateProduct({
         ...productData,
         id: editingProduct.id,
-        image: editingProduct.image,
       });
     } else {
       addProduct(productData);
@@ -120,9 +149,17 @@ const Inventory = () => {
     handleCloseForm();
   };
   
-  const handleDeleteProduct = (id: string) => {
-    if (confirm("Apakah Anda yakin ingin menghapus produk ini?")) {
-      deleteProduct(id);
+  const confirmDeleteProduct = (id: string) => {
+    setProductToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  const handleDeleteProduct = () => {
+    if (productToDelete) {
+      deleteProduct(productToDelete);
+      setIsDeleteDialogOpen(false);
+      setProductToDelete(null);
+      toast.success("Produk berhasil dihapus");
     }
   };
   
@@ -134,63 +171,13 @@ const Inventory = () => {
           <p className="text-muted-foreground">Kelola katalog produk dan tingkat stok Anda</p>
         </div>
         
-        <div className="flex gap-2">
-          <Button 
-            className="bg-primary text-white flex items-center gap-2"
-            onClick={() => handleOpenForm()}
-          >
-            <Plus size={18} />
-            Tambah Produk
-          </Button>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Total Produk</p>
-            <p className="text-2xl font-bold">{products.length}</p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Package size={24} className="text-primary" />
-          </div>
-        </Card>
-        
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Stok Habis</p>
-            <p className="text-2xl font-bold">
-              {products.filter(p => p.stock === 0).length}
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
-            <Package size={24} className="text-red-500" />
-          </div>
-        </Card>
-        
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Stok Rendah</p>
-            <p className="text-2xl font-bold">
-              {products.filter(p => p.stock > 0 && p.stock <= 5).length}
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center">
-            <Package size={24} className="text-amber-500" />
-          </div>
-        </Card>
-        
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Stok Tersedia</p>
-            <p className="text-2xl font-bold">
-              {products.filter(p => p.stock > 5).length}
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center">
-            <Package size={24} className="text-green-500" />
-          </div>
-        </Card>
+        <Button 
+          className="bg-primary text-white flex items-center gap-2"
+          onClick={() => handleOpenForm()}
+        >
+          <Plus size={18} />
+          Tambah Produk
+        </Button>
       </div>
       
       <div className="relative mb-6">
@@ -221,7 +208,16 @@ const Inventory = () => {
             <tbody className="divide-y">
               {filteredProducts.map((product) => (
                 <tr key={product.id} className="hover:bg-accent/30 transition-colors">
-                  <td className="py-3 px-4">{product.name}</td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-3">
+                      {product.image && (
+                        <div className="w-10 h-10 rounded bg-accent overflow-hidden flex-shrink-0">
+                          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <span>{product.name}</span>
+                    </div>
+                  </td>
                   <td className="py-3 px-4 text-muted-foreground">{product.sku}</td>
                   <td className="py-3 px-4 text-right">Rp{product.price.toLocaleString('id-ID')}</td>
                   <td className="py-3 px-4 text-right">Rp{product.supplierPrice.toLocaleString('id-ID')}</td>
@@ -253,7 +249,7 @@ const Inventory = () => {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => handleDeleteProduct(product.id)}
+                        onClick={() => confirmDeleteProduct(product.id)}
                       >
                         <Trash size={16} />
                       </Button>
@@ -273,6 +269,31 @@ const Inventory = () => {
           </table>
         </div>
       </div>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <div className="p-4">
+            <h3 className="text-xl font-semibold mb-4">Konfirmasi Hapus Produk</h3>
+            <p className="mb-6">Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.</p>
+            
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteProduct}
+              >
+                Hapus Produk
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -355,7 +376,7 @@ const Inventory = () => {
                 
                 <div>
                   <label htmlFor="stock" className="block text-sm font-medium text-muted-foreground mb-1">
-                    Stok Awal
+                    Stok
                   </label>
                   <Input
                     id="stock"
@@ -368,6 +389,62 @@ const Inventory = () => {
                     className="w-full h-10"
                     required
                   />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
+                    Foto Produk
+                  </label>
+                  
+                  <div className="flex gap-2 mb-3">
+                    <Button 
+                      type="button"
+                      variant={imageSource === 'url' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setImageSource('url')}
+                      className="flex items-center gap-1"
+                    >
+                      <Link size={14} />
+                      URL
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant={imageSource === 'file' ? 'default' : 'outline'} 
+                      size="sm"
+                      onClick={() => setImageSource('file')}
+                      className="flex items-center gap-1"
+                    >
+                      <Image size={14} />
+                      Upload
+                    </Button>
+                  </div>
+                  
+                  {imageSource === 'url' ? (
+                    <Input
+                      name="image"
+                      placeholder="https://example.com/image.jpg"
+                      value={formData.image}
+                      onChange={handleInputChange}
+                    />
+                  ) : (
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="text-sm"
+                    />
+                  )}
+                  
+                  {formData.image && (
+                    <div className="mt-3 border rounded overflow-hidden w-24 h-24">
+                      <img 
+                        src={formData.image} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => (e.target as HTMLImageElement).src = 'https://placehold.co/100x100?text=Error'} 
+                      />
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex justify-end gap-3 pt-2">

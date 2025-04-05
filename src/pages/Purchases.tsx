@@ -134,7 +134,7 @@ const Purchases = () => {
             />
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -168,8 +168,18 @@ const Purchases = () => {
   
   function ProductCard({ product }: { product: Product }) {
     return (
-      <Card className="overflow-hidden card-hover">
-        <div className="p-4">
+      <Card className="overflow-hidden card-hover h-full flex flex-col">
+        {product.image && (
+          <div className="h-32 overflow-hidden">
+            <img 
+              src={product.image} 
+              alt={product.name}
+              className="w-full h-full object-cover"
+              onError={(e) => (e.target as HTMLImageElement).src = 'https://placehold.co/300x150?text=No+Image'} 
+            />
+          </div>
+        )}
+        <div className="p-4 flex-grow">
           <div className="flex justify-between items-start">
             <div>
               <h3 className="font-medium">{product.name}</h3>
@@ -181,10 +191,10 @@ const Purchases = () => {
             </div>
           </div>
           
-          <div className="flex mt-3 justify-end">
+          <div className="mt-3">
             <Button 
               size="sm" 
-              className="h-8 bg-primary text-white"
+              className="w-full h-8 bg-primary text-white"
               onClick={() => addToCart(product, 1)}
             >
               Tambah ke Keranjang
@@ -217,14 +227,31 @@ const Purchases = () => {
     return (
       <div className="animate-slide-up">
         <div className="border rounded-lg overflow-hidden mb-6">
-          <div className="bg-accent p-3 border-b">
+          <div className="bg-accent p-3 border-b flex justify-between items-center">
             <h3 className="font-medium">Item Keranjang</h3>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => clearCart()} 
+              className="text-muted-foreground hover:text-destructive"
+            >
+              Kosongkan
+            </Button>
           </div>
           
           <div className="divide-y">
             {cart.map((item) => (
               <div key={item.product.id} className="p-4 flex justify-between items-center">
                 <div className="flex-1">
+                  {item.product.image && (
+                    <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
+                      <img 
+                        src={item.product.image} 
+                        alt={item.product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <h4 className="font-medium">{item.product.name}</h4>
                   <p className="text-sm text-muted-foreground">{item.product.sku}</p>
                 </div>
