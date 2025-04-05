@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer, User, CreditCard, Wallet } from 'lucide-react';
@@ -140,7 +141,7 @@ const POS = () => {
         total: total,
         paymentMethod: paymentMethod,
         customerName: customerName || 'Pelanggan',
-        cashAmount: paymentMethod === 'cash' && cashAmount ? parseFloat(cashAmount) : undefined,
+        cashAmount: paymentMethod === 'cash' && cashAmount ? parseFloat(cashAmount.replace(/[^\d]/g, '')) : undefined,
         changeAmount: paymentMethod === 'cash' ? changeAmount : undefined
       });
       
@@ -155,8 +156,9 @@ const POS = () => {
   
   const handleUpdateItemPrice = (productId: string, newPrice: number) => {
     if (newPrice <= 0) {
-      delete discountedPrices[productId];
-      setDiscountedPrices({...discountedPrices});
+      const updatedPrices = {...discountedPrices};
+      delete updatedPrices[productId];
+      setDiscountedPrices(updatedPrices);
       return;
     }
     
@@ -572,7 +574,7 @@ const POS = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Kembalian:</span>
                         <span className="font-medium">
-                          Rp{changeAmount.toLocaleString('id-ID')}
+                          Rp{changeAmount > 0 ? changeAmount.toLocaleString('id-ID') : '0'}
                         </span>
                       </div>
                     </div>
