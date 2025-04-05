@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Plus, Search, Edit, Trash, X, Check, Image, Link } from 'lucide-react';
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Inventory = () => {
   const { products, addProduct, updateProduct, deleteProduct } = useAppContext();
@@ -27,10 +29,37 @@ const Inventory = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Add sort order state
+  const [sortOrder, setSortOrder] = useState<string>("name-asc");
+  
+  const filteredProducts = products
+    .filter(product => 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Apply sorting
+      switch (sortOrder) {
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "price-asc":
+          return a.price - b.price;
+        case "price-desc":
+          return b.price - a.price;
+        case "stock-asc":
+          return a.stock - b.stock;
+        case "stock-desc":
+          return b.stock - a.stock;
+        case "profit-asc":
+          return (a.price - a.supplierPrice) - (b.price - b.supplierPrice);
+        case "profit-desc":
+          return (b.price - b.supplierPrice) - (a.price - a.supplierPrice);
+        default:
+          return 0;
+      }
+    });
   
   const resetForm = () => {
     setFormData({
@@ -125,7 +154,8 @@ const Inventory = () => {
       return;
     }
     
-    let imageUrl = imageSource === 'url' ? formData.image : formData.image;
+    // Default image if none provided
+    let imageUrl = formData.image || "https://placehold.co/300x150?text=Produk";
     
     const productData = {
       name: formData.name,
@@ -179,15 +209,40 @@ const Inventory = () => {
         </Button>
       </div>
       
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-        <Input
-          type="text"
-          placeholder="Cari produk berdasarkan nama atau SKU..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
+        <div className="flex-grow">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+            <Input
+              type="text"
+              placeholder="Cari produk berdasarkan nama atau SKU..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        
+        <div className="w-full md:w-64">
+          <label className="block text-sm font-medium text-muted-foreground mb-1">
+            Urutkan
+          </label>
+          <Select value={sortOrder} onValueChange={setSortOrder}>
+            <SelectTrigger>
+              <SelectValue placeholder="Urutkan berdasarkan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
+              <SelectItem value="price-asc">Harga Jual (Terendah-Tertinggi)</SelectItem>
+              <SelectItem value="price-desc">Harga Jual (Tertinggi-Terendah)</SelectItem>
+              <SelectItem value="stock-asc">Stok (Terendah-Tertinggi)</SelectItem>
+              <SelectItem value="stock-desc">Stok (Tertinggi-Terendah)</SelectItem>
+              <SelectItem value="profit-asc">Keuntungan (Terendah-Tertinggi)</SelectItem>
+              <SelectItem value="profit-desc">Keuntungan (Tertinggi-Terendah)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       <div className="bg-card border rounded-lg overflow-hidden">
@@ -209,11 +264,14 @@ const Inventory = () => {
                 <tr key={product.id} className="hover:bg-accent/30 transition-colors">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
-                      {product.image && (
-                        <div className="w-10 h-10 rounded bg-accent overflow-hidden flex-shrink-0">
-                          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                        </div>
-                      )}
+                      <div className="w-10 h-10 rounded bg-accent overflow-hidden flex-shrink-0">
+                        <img 
+                          src={product.image || "https://placehold.co/300x150?text=Produk"} 
+                          alt={product.name} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"}
+                        />
+                      </div>
                       <span>{product.name}</span>
                     </div>
                   </td>
@@ -350,10 +408,13 @@ const Inventory = () => {
                     <Input
                       id="price"
                       name="price"
-                      type="number"
+                      type="text"
                       placeholder="0"
                       value={formData.price}
-                      onChange={handleInputChange}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^\d]/g, '');
+                        setFormData(prev => ({ ...prev, price: value }));
+                      }}
                       required
                     />
                   </div>
@@ -365,10 +426,13 @@ const Inventory = () => {
                     <Input
                       id="supplierPrice"
                       name="supplierPrice"
-                      type="number"
+                      type="text"
                       placeholder="0"
                       value={formData.supplierPrice}
-                      onChange={handleInputChange}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^\d]/g, '');
+                        setFormData(prev => ({ ...prev, supplierPrice: value }));
+                      }}
                       required
                     />
                   </div>
@@ -381,11 +445,13 @@ const Inventory = () => {
                   <Input
                     id="stock"
                     name="stock"
-                    type="number"
+                    type="text"
                     placeholder="0"
-                    min="0"
                     value={formData.stock}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^\d]/g, '');
+                      setFormData(prev => ({ ...prev, stock: value }));
+                    }}
                     className="w-full h-10"
                     required
                   />
@@ -435,13 +501,21 @@ const Inventory = () => {
                     />
                   )}
                   
-                  {formData.image && (
+                  {formData.image ? (
                     <div className="mt-3 border rounded overflow-hidden w-24 h-24">
                       <img 
                         src={formData.image} 
                         alt="Preview" 
                         className="w-full h-full object-cover"
                         onError={(e) => (e.target as HTMLImageElement).src = 'https://placehold.co/100x100?text=Error'} 
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-3 border rounded overflow-hidden w-24 h-24">
+                      <img 
+                        src="https://placehold.co/300x150?text=Produk" 
+                        alt="Default" 
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   )}

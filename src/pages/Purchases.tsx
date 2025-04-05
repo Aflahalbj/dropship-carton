@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Search, Package, Plus, Minus, ShoppingCart, X, Check } from 'lucide-react';
 import { toast } from "sonner";
 import { useLocation } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Purchases = () => {
   const { 
@@ -28,6 +29,9 @@ const Purchases = () => {
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [isOnPOSPage, setIsOnPOSPage] = useState(false);
   
+  // Add sort order state
+  const [sortOrder, setSortOrder] = useState<string>("name-asc");
+  
   useEffect(() => {
     const isPOS = location.pathname.includes('/pos') || location.pathname === '/';
     setIsOnPOSPage(isPOS);
@@ -38,10 +42,30 @@ const Purchases = () => {
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
   
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products
+    .filter(product => 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      // Apply sorting
+      switch (sortOrder) {
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "price-asc":
+          return a.supplierPrice - b.supplierPrice;
+        case "price-desc":
+          return b.supplierPrice - a.supplierPrice;
+        case "stock-asc":
+          return a.stock - b.stock;
+        case "stock-desc":
+          return b.stock - a.stock;
+        default:
+          return 0;
+      }
+    });
   
   const handlePurchase = () => {
     if (cart.length === 0) {
@@ -123,15 +147,39 @@ const Purchases = () => {
       
       {!showCheckout ? (
         <>
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input
-              type="text"
-              placeholder="Cari produk berdasarkan nama atau SKU..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="mb-6">
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+              <Input
+                type="text"
+                placeholder="Cari produk berdasarkan nama atau SKU..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Add sorting dropdown */}
+            <div className="flex justify-end mb-4">
+              <div className="w-full md:w-64">
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                  Urutkan
+                </label>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Urutkan berdasarkan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
+                    <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
+                    <SelectItem value="price-asc">Harga (Terendah-Tertinggi)</SelectItem>
+                    <SelectItem value="price-desc">Harga (Tertinggi-Terendah)</SelectItem>
+                    <SelectItem value="stock-asc">Stok (Terendah-Tertinggi)</SelectItem>
+                    <SelectItem value="stock-desc">Stok (Tertinggi-Terendah)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -167,18 +215,24 @@ const Purchases = () => {
   );
   
   function ProductCard({ product }: { product: Product }) {
+    const defaultImage = "https://placehold.co/300x150?text=Produk";
+    
     return (
-      <Card className="overflow-hidden card-hover h-full flex flex-col">
-        {product.image && (
-          <div className="h-32 overflow-hidden">
-            <img 
-              src={product.image} 
-              alt={product.name}
-              className="w-full h-full object-cover"
-              onError={(e) => (e.target as HTMLImageElement).src = 'https://placehold.co/300x150?text=No+Image'} 
-            />
-          </div>
-        )}
+      <Card 
+        className="overflow-hidden card-hover h-full flex flex-col cursor-pointer"
+        onClick={() => {
+          addToCart(product, 1);
+          toast.success(`${product.name} ditambahkan ke keranjang`);
+        }}
+      >
+        <div className="h-32 overflow-hidden">
+          <img 
+            src={product.image || defaultImage} 
+            alt={product.name}
+            className="w-full h-full object-cover"
+            onError={(e) => (e.target as HTMLImageElement).src = defaultImage} 
+          />
+        </div>
         <div className="p-4 flex-grow">
           <div className="flex justify-between items-start">
             <div>
@@ -186,19 +240,15 @@ const Purchases = () => {
               <p className="text-sm text-muted-foreground mb-1">{product.sku}</p>
               <p className="text-lg font-semibold">Rp{product.supplierPrice.toLocaleString('id-ID')}</p>
             </div>
-            <div className="bg-accent rounded-md px-2 py-1">
+            <div className={`rounded-md px-2 py-1 ${
+              product.stock === 0 
+                ? 'bg-red-100 text-red-600'
+                : product.stock <= 5
+                  ? 'bg-amber-100 text-amber-600'
+                  : 'bg-green-100 text-green-600'
+            }`}>
               <span className="text-sm font-medium">{product.stock} stok</span>
             </div>
-          </div>
-          
-          <div className="mt-3">
-            <Button 
-              size="sm" 
-              className="w-full h-8 bg-primary text-white"
-              onClick={() => addToCart(product, 1)}
-            >
-              Tambah ke Keranjang
-            </Button>
           </div>
         </div>
       </Card>
@@ -249,6 +299,7 @@ const Purchases = () => {
                         src={item.product.image} 
                         alt={item.product.name}
                         className="w-full h-full object-cover"
+                        onError={(e) => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"}
                       />
                     </div>
                   )}
@@ -275,12 +326,8 @@ const Purchases = () => {
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        e.preventDefault();
                         const target = e.target as HTMLInputElement;
-                        const newValue = target.value.trim();
-                        const newQuantity = newValue === "" ? 0 : parseInt(newValue);
-                        if (!isNaN(newQuantity)) {
-                          updateCartItemQuantity(item.product.id, newQuantity);
-                        }
                         target.blur();
                       }
                     }}

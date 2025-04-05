@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer, User, CreditCard, Wallet } from 'lucide-react';
@@ -44,9 +43,6 @@ const POS = () => {
     changeAmount?: number;
   } | null>(null);
   
-  // Add filter state variables
-  const [priceFilter, setPriceFilter] = useState<string>("all");
-  const [stockFilter, setStockFilter] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
@@ -66,34 +62,9 @@ const POS = () => {
   }, [location, handlePageNavigation]);
   
   const filteredProducts = products.filter(product => {
-    // Apply text search filter
-    const matchesSearch = 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Apply price filter
-    let matchesPrice = true;
-    if (priceFilter === "low") {
-      matchesPrice = product.price < 50000;
-    } else if (priceFilter === "medium") {
-      matchesPrice = product.price >= 50000 && product.price <= 100000;
-    } else if (priceFilter === "high") {
-      matchesPrice = product.price > 100000;
-    }
-    
-    // Apply stock filter
-    let matchesStock = true;
-    if (stockFilter === "out") {
-      matchesStock = product.stock === 0;
-    } else if (stockFilter === "low") {
-      matchesStock = product.stock > 0 && product.stock <= 5;
-    } else if (stockFilter === "available") {
-      matchesStock = product.stock > 5;
-    }
-    
-    return matchesSearch && matchesPrice && matchesStock;
+    return product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+           product.sku.toLowerCase().includes(searchTerm.toLowerCase());
   }).sort((a, b) => {
-    // Apply sorting
     switch (sortOrder) {
       case "name-asc":
         return a.name.localeCompare(b.name);
@@ -264,43 +235,8 @@ const POS = () => {
               />
             </div>
             
-            {/* Filter Controls */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Filter Harga
-                </label>
-                <Select value={priceFilter} onValueChange={setPriceFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Semua harga" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua harga</SelectItem>
-                    <SelectItem value="low">&lt; Rp50.000</SelectItem>
-                    <SelectItem value="medium">Rp50.000 - Rp100.000</SelectItem>
-                    <SelectItem value="high">&gt; Rp100.000</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Filter Stok
-                </label>
-                <Select value={stockFilter} onValueChange={setStockFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Semua stok" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua stok</SelectItem>
-                    <SelectItem value="out">Stok habis</SelectItem>
-                    <SelectItem value="low">Stok menipis (≤ 5)</SelectItem>
-                    <SelectItem value="available">Stok tersedia (&gt; 5)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
+            <div className="flex justify-end mb-4">
+              <div className="w-full md:w-64">
                 <label className="block text-sm font-medium text-muted-foreground mb-1">
                   Urutkan
                 </label>
@@ -318,21 +254,6 @@ const POS = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
-              <div className="flex items-end">
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => {
-                    setSearchTerm('');
-                    setPriceFilter('all');
-                    setStockFilter('all');
-                    setSortOrder('name-asc');
-                  }}
-                >
-                  Reset Filter
-                </Button>
-              </div>
             </div>
           </div>
           
@@ -344,7 +265,7 @@ const POS = () => {
           
           {filteredProducts.length === 0 && (
             <div className="text-center py-10">
-              <p className="text-muted-foreground">Tidak ada produk yang cocok dengan filter Anda.</p>
+              <p className="text-muted-foreground">Tidak ada produk yang cocok dengan pencarian Anda.</p>
             </div>
           )}
         </>
@@ -397,18 +318,27 @@ const POS = () => {
   );
   
   function ProductCard({ product }: { product: Product }) {
+    const defaultImage = "https://placehold.co/300x150?text=Produk";
     return (
-      <Card className="overflow-hidden card-hover h-full flex flex-col">
-        {product.image && (
-          <div className="h-32 overflow-hidden">
-            <img 
-              src={product.image} 
-              alt={product.name}
-              className="w-full h-full object-cover"
-              onError={(e) => (e.target as HTMLImageElement).src = 'https://placehold.co/300x150?text=No+Image'} 
-            />
-          </div>
-        )}
+      <Card 
+        className="overflow-hidden card-hover h-full flex flex-col cursor-pointer"
+        onClick={() => {
+          if (product.stock > 0) {
+            addToCart(product, 1);
+            toast.success(`${product.name} ditambahkan ke keranjang`);
+          } else {
+            toast.error(`${product.name} stok kosong`);
+          }
+        }}
+      >
+        <div className="h-32 overflow-hidden">
+          <img 
+            src={product.image || defaultImage} 
+            alt={product.name}
+            className="w-full h-full object-cover"
+            onError={(e) => (e.target as HTMLImageElement).src = defaultImage} 
+          />
+        </div>
         <div className="p-4 flex-grow">
           <div className="flex justify-between items-start">
             <div>
@@ -416,20 +346,15 @@ const POS = () => {
               <p className="text-sm text-muted-foreground mb-1">{product.sku}</p>
               <p className="text-lg font-semibold">Rp{product.price.toLocaleString('id-ID')}</p>
             </div>
-            <div className="bg-accent rounded-md px-2 py-1">
+            <div className={`rounded-md px-2 py-1 ${
+              product.stock === 0 
+                ? 'bg-red-100 text-red-600'
+                : product.stock <= 5
+                  ? 'bg-amber-100 text-amber-600'
+                  : 'bg-green-100 text-green-600'
+            }`}>
               <span className="text-sm font-medium">{product.stock} stok</span>
             </div>
-          </div>
-          
-          <div className="mt-3">
-            <Button 
-              size="sm" 
-              className="w-full h-8 bg-primary text-white"
-              onClick={() => addToCart(product, 1)}
-              disabled={product.stock <= 0}
-            >
-              Tambah ke Keranjang
-            </Button>
           </div>
         </div>
       </Card>
@@ -579,6 +504,7 @@ const POS = () => {
                       }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
+                          e.preventDefault();
                           const target = e.target as HTMLInputElement;
                           target.blur();
                         }
@@ -588,13 +514,18 @@ const POS = () => {
                   
                   <div className="text-right w-32 ml-4">
                     <Input
-                      type="number"
+                      type="text"
                       className="w-full h-8 text-right text-sm font-medium"
                       value={discountedPrices[item.product.id] || item.product.price}
                       onChange={(e) => {
-                        const value = parseFloat(e.target.value);
+                        const value = parseFloat(e.target.value.replace(/[^\d]/g, ''));
                         if (!isNaN(value)) {
                           handleUpdateItemPrice(item.product.id, value);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
                         }
                       }}
                     />
@@ -646,7 +577,6 @@ const POS = () => {
                     onChange={(e) => setCustomerName(e.target.value)}
                     className="rounded-l-none"
                     onKeyDown={(e) => {
-                      // Prevent Enter key from submitting form
                       if (e.key === 'Enter') {
                         e.preventDefault();
                       }
@@ -689,7 +619,6 @@ const POS = () => {
                         }}
                         placeholder="Masukkan jumlah uang"
                         onKeyDown={(e) => {
-                          // Prevent Enter key from submitting form
                           if (e.key === 'Enter') {
                             e.preventDefault();
                           }
