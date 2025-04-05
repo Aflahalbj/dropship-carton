@@ -326,9 +326,7 @@ const Purchases = () => {
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const target = e.target as HTMLInputElement;
-                        target.blur();
+                        e.currentTarget.blur();
                       }
                     }}
                   />

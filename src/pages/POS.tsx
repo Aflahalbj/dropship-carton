@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer, User, CreditCard, Wallet } from 'lucide-react';
@@ -11,6 +12,7 @@ import { useReactToPrint } from 'react-to-print';
 import { useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const POS = () => {
   const { 
@@ -395,6 +397,9 @@ const POS = () => {
     discountedPrices: {[key: string]: number};
     handleUpdateItemPrice: (productId: string, newPrice: number) => void;
   }) {
+    // Add state for price change toggles
+    const [priceChangeEnabled, setPriceChangeEnabled] = useState<{[key: string]: boolean}>({});
+    
     if (cart.length === 0) {
       return (
         <div className="text-center py-10">
@@ -474,84 +479,109 @@ const POS = () => {
             
             <div className="divide-y">
               {cart.map((item) => (
-                <div key={item.product.id} className="p-4 flex justify-between items-center">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{item.product.name}</h4>
-                    <p className="text-sm text-muted-foreground">{item.product.sku}</p>
-                  </div>
-                  
-                  <div className="w-24">
-                    <Input
-                      type="text"
-                      placeholder="0"
-                      className="w-full h-8 text-center text-sm font-medium"
-                      defaultValue={item.quantity > 0 ? item.quantity.toString() : ""}
-                      onBlur={(e) => {
-                        const newValue = e.target.value.trim();
-                        const newQuantity = newValue === "" ? 0 : parseInt(newValue);
-                        if (!isNaN(newQuantity)) {
-                          if (newQuantity > item.product.stock) {
-                            toast.error(`Stok ${item.product.name} hanya tersedia ${item.product.stock}`);
-                            updateCartItemQuantity(item.product.id, item.product.stock);
-                          } else {
-                            updateCartItemQuantity(item.product.id, newQuantity);
+                <div key={item.product.id} className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.product.name}</h4>
+                      <p className="text-sm text-muted-foreground">{item.product.sku}</p>
+                    </div>
+                    
+                    <div className="w-24">
+                      <Input
+                        type="text"
+                        placeholder="0"
+                        className="w-full h-8 text-center text-sm font-medium"
+                        defaultValue={item.quantity > 0 ? item.quantity.toString() : ""}
+                        onBlur={(e) => {
+                          const newValue = e.target.value.trim();
+                          const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                          if (!isNaN(newQuantity)) {
+                            if (newQuantity > item.product.stock) {
+                              toast.error(`Stok ${item.product.name} hanya tersedia ${item.product.stock}`);
+                              updateCartItemQuantity(item.product.id, item.product.stock);
+                            } else {
+                              updateCartItemQuantity(item.product.id, newQuantity);
+                            }
                           }
-                        }
-                      }}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, '');
-                        e.target.value = value;
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          const target = e.target as HTMLInputElement;
-                          target.blur();
-                        }
-                      }}
-                    />
-                  </div>
-                  
-                  <div className="text-right w-32 ml-4">
-                    <Input
-                      type="text"
-                      className="w-full h-8 text-right text-sm font-medium"
-                      value={discountedPrices[item.product.id] || item.product.price}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value.replace(/[^\d]/g, ''));
-                        if (!isNaN(value)) {
-                          handleUpdateItemPrice(item.product.id, value);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {discountedPrices[item.product.id] && 
-                        discountedPrices[item.product.id] !== item.product.price ? 
-                        <span className="line-through">Rp{item.product.price.toLocaleString('id-ID')}</span> : 
-                        'Harga asli'}
+                        }}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          e.target.value = value;
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                          }
+                        }}
+                      />
                     </div>
-                  </div>
-                  
-                  <div className="text-right ml-4 w-24">
-                    <div className="font-medium">
-                      Rp{((discountedPrices[item.product.id] || item.product.price) * 
-                        item.quantity).toLocaleString('id-ID')}
+                    
+                    <div className="text-right ml-4 w-24">
+                      <div className="font-medium">
+                        Rp{((discountedPrices[item.product.id] || item.product.price) * 
+                          item.quantity).toLocaleString('id-ID')}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {discountedPrices[item.product.id] && 
+                          discountedPrices[item.product.id] !== item.product.price ? 
+                          <span className="line-through">Rp{item.product.price.toLocaleString('id-ID')}</span> : 
+                          'Harga asli'}
+                      </div>
                     </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="ml-2 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeFromCart(item.product.id)}
+                    >
+                      <X size={18} />
+                    </Button>
                   </div>
                   
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="ml-2 text-muted-foreground hover:text-destructive"
-                    onClick={() => removeFromCart(item.product.id)}
-                  >
-                    <X size={18} />
-                  </Button>
+                  {/* Price change section with checkbox */}
+                  <div className="mt-2 pl-2">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <Checkbox 
+                        id={`enable-price-change-${item.product.id}`}
+                        checked={priceChangeEnabled[item.product.id] || false}
+                        onCheckedChange={(checked) => {
+                          setPriceChangeEnabled({
+                            ...priceChangeEnabled,
+                            [item.product.id]: checked === true
+                          });
+                        }}
+                      />
+                      <label 
+                        htmlFor={`enable-price-change-${item.product.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        Ubah harga sementara
+                      </label>
+                    </div>
+                    
+                    {priceChangeEnabled[item.product.id] && (
+                      <div className="flex items-center mt-1">
+                        <span className="text-sm text-muted-foreground mr-2">Rp</span>
+                        <Input
+                          type="text"
+                          className="w-32 h-8 text-sm"
+                          value={discountedPrices[item.product.id] || item.product.price}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^\d]/g, '');
+                            if (value) {
+                              handleUpdateItemPrice(item.product.id, parseInt(value));
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.currentTarget.blur();
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
