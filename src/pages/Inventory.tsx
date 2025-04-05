@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -295,13 +294,14 @@ const Inventory = () => {
         </DialogContent>
       </Dialog>
       
+      {/* Product Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-lg w-full relative animate-slide-up">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <Card className="max-w-lg w-full relative animate-slide-up max-h-[90vh] overflow-y-auto">
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-4 right-4"
+              className="absolute top-4 right-4 z-10"
               onClick={handleCloseForm}
             >
               <X size={20} />

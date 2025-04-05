@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer, User, CreditCard, Wallet } from 'lucide-react';
@@ -43,11 +42,9 @@ const POS = () => {
     changeAmount?: number;
   } | null>(null);
   
-  // Checkout additional fields
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
-  const [cashAmount, setCashAmount] = useState<number>(0);
   const [customerName, setCustomerName] = useState<string>('');
-  const [discountedPrices, setDiscountedPrices] = useState<{[key: string]: number}>({});
+  const [cashAmount, setCashAmount] = useState<string>('');
   
   const receiptRef = useRef<HTMLDivElement>(null);
   
@@ -80,25 +77,31 @@ const POS = () => {
       return;
     }
     
-    // Calculate final total with any discounted prices
     const total = cart.reduce((sum, item) => {
       const price = discountedPrices[item.product.id] || item.product.price;
       return sum + (price * item.quantity);
     }, 0);
     
-    // Recalculate profit based on any discounts applied
     const profit = cart.reduce((sum, item) => {
       const price = discountedPrices[item.product.id] || item.product.price;
       return sum + ((price - item.product.supplierPrice) * item.quantity);
     }, 0);
     
-    // Verify cash amount for cash payments
-    if (paymentMethod === 'cash' && cashAmount < total) {
-      toast.error("Jumlah uang tidak mencukupi");
-      return;
+    let changeAmount = 0;
+    if (paymentMethod === 'cash' && cashAmount) {
+      const cashValue = parseFloat(cashAmount.replace(/[^\d]/g, ''));
+      if (!isNaN(cashValue)) {
+        changeAmount = cashValue - total;
+        if (changeAmount < 0) {
+          toast.error("Jumlah uang tunai tidak mencukupi");
+          return;
+        }
+      } else {
+        toast.error("Masukkan jumlah uang tunai yang valid");
+        return;
+      }
     }
     
-    // Create transaction with modified cart items to reflect discounted prices
     const modifiedCart = cart.map(item => ({
       ...item,
       product: {
@@ -112,7 +115,11 @@ const POS = () => {
       products: modifiedCart,
       total: total,
       profit: profit,
-      type: 'sale' as const
+      type: 'sale' as const,
+      cashAmount: cashAmount ? parseFloat(cashAmount.replace(/[^\d]/g, '')) : undefined,
+      changeAmount: changeAmount > 0 ? changeAmount : undefined,
+      paymentMethod: paymentMethod,
+      customerName: customerName || 'Pelanggan'
     };
     
     const hasInsufficientStock = cart.some(item => item.quantity > item.product.stock);
@@ -125,9 +132,6 @@ const POS = () => {
     const success = addTransaction(transaction);
     
     if (success) {
-      // Calculate change amount for cash payments
-      const change = paymentMethod === 'cash' ? cashAmount - total : 0;
-      
       setLastTransaction({
         id: Date.now().toString(),
         date: new Date(),
@@ -136,13 +140,13 @@ const POS = () => {
         paymentMethod: paymentMethod,
         customerName: customerName || 'Pelanggan',
         cashAmount: paymentMethod === 'cash' ? cashAmount : undefined,
-        changeAmount: paymentMethod === 'cash' ? change : undefined
+        changeAmount: paymentMethod === 'cash' ? changeAmount : undefined
       });
       
       toast.success("Penjualan berhasil dilakukan!");
       clearCart();
       setDiscountedPrices({});
-      setCashAmount(0);
+      setCashAmount('');
       setCustomerName('');
       setShowCheckout(false);
     }
@@ -336,8 +340,8 @@ const POS = () => {
     onPrintReceipt: () => void;
     paymentMethod: 'cash' | 'transfer';
     setPaymentMethod: (method: 'cash' | 'transfer') => void;
-    cashAmount: number;
-    setCashAmount: (amount: number) => void;
+    cashAmount: string;
+    setCashAmount: (amount: string) => void;
     customerName: string;
     setCustomerName: (name: string) => void;
     discountedPrices: {[key: string]: number};
@@ -391,21 +395,18 @@ const POS = () => {
       );
     }
     
-    // Calculate total with any discounted prices
     const total = cart.reduce((sum, item) => {
       const price = discountedPrices[item.product.id] || item.product.price;
       return sum + (price * item.quantity);
     }, 0);
     
-    // Calculate profit with any discounted prices
     const profit = cart.reduce((sum, item) => {
       const price = discountedPrices[item.product.id] || item.product.price;
       return sum + ((price - item.product.supplierPrice) * item.quantity);
     }, 0);
     
-    // Calculate change amount for cash payments
     const changeAmount = paymentMethod === 'cash' ? 
-      cashAmount > total ? cashAmount - total : 0 : 0;
+      cashAmount && parseFloat(cashAmount.replace(/[^\d]/g, '')) - total : 0;
     
     return (
       <div className="animate-slide-up grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -510,7 +511,7 @@ const POS = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Nama Pelanggan
+                  Nama Pelanggan (Opsional)
                 </label>
                 <div className="flex rounded-md overflow-hidden">
                   <div className="bg-accent flex items-center justify-center px-3 border border-r-0 border-input">
@@ -548,15 +549,22 @@ const POS = () => {
                   <TabsContent value="cash" className="space-y-4 mt-2">
                     <div>
                       <label className="block text-sm font-medium text-muted-foreground mb-1">
-                        Jumlah Uang
+                        Jumlah Uang Tunai
                       </label>
                       <Input
                         type="number"
-                        value={cashAmount || ""}
-                        onChange={(e) => setCashAmount(parseFloat(e.target.value) || 0)}
-                        placeholder="0"
-                        className="text-right"
+                        value={cashAmount}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setCashAmount(value);
+                        }}
+                        placeholder="Masukkan jumlah uang"
                       />
+                      {cashAmount && (
+                        <p className="text-sm mt-1">
+                          Kembalian: Rp{Math.max(0, parseFloat(cashAmount.replace(/[^\d]/g, '') || '0') - total).toLocaleString('id-ID')}
+                        </p>
+                      )}
                     </div>
                     
                     <div className="pt-2 border-t">
@@ -595,7 +603,7 @@ const POS = () => {
                 className="w-full bg-primary text-white flex items-center justify-center gap-2 mt-4"
                 onClick={onCheckout}
                 disabled={
-                  paymentMethod === 'cash' && cashAmount < total
+                  paymentMethod === 'cash' && cashAmount && parseFloat(cashAmount.replace(/[^\d]/g, '')) < total
                 }
               >
                 <Check size={18} />

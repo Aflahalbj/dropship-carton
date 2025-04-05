@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -385,22 +384,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const deleteProduct = async (id: string): Promise<void> => {
-    // Delete from Supabase if authenticated
-    if (isAuthenticated) {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
+    try {
+      // Check if the product is used in any transactions
+      const { data: transactionItems, error: checkError } = await supabase
+        .from('transaction_items')
+        .select('id')
+        .eq('product_id', id)
+        .limit(1);
       
-      if (error) {
-        console.error("Error deleting product:", error);
-        toast.error(`Gagal menghapus produk: ${error.message}`);
+      if (checkError) {
+        console.error("Error checking product usage:", checkError);
+        toast.error(`Gagal memeriksa produk: ${checkError.message}`);
         return;
       }
+      
+      // If the product is used in transactions, show a message to the user
+      if (transactionItems && transactionItems.length > 0) {
+        toast.error("Produk tidak dapat dihapus karena sudah digunakan dalam transaksi");
+        return;
+      }
+      
+      // If product is not used in transactions, proceed with deletion
+      if (isAuthenticated) {
+        const { error } = await supabase
+          .from('products')
+          .delete()
+          .eq('id', id);
+        
+        if (error) {
+          console.error("Error deleting product:", error);
+          toast.error(`Gagal menghapus produk: ${error.message}`);
+          return;
+        }
+      }
+      
+      setProducts(prev => prev.filter(p => p.id !== id));
+      toast.success("Produk dihapus");
+    } catch (error) {
+      console.error("Error in deleteProduct:", error);
+      toast.error("Gagal menghapus produk: Terjadi kesalahan");
     }
-    
-    setProducts(prev => prev.filter(p => p.id !== id));
-    toast.success("Produk dihapus");
   };
   
   // Cart functions
