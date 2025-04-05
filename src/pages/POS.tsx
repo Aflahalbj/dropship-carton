@@ -44,6 +44,11 @@ const POS = () => {
     changeAmount?: number;
   } | null>(null);
   
+  // Add filter state variables
+  const [priceFilter, setPriceFilter] = useState<string>("all");
+  const [stockFilter, setStockFilter] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<string>("name-asc");
+  
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
   const [customerName, setCustomerName] = useState<string>('');
   const [cashAmount, setCashAmount] = useState<string>('');
@@ -60,10 +65,52 @@ const POS = () => {
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
   
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter(product => {
+    // Apply text search filter
+    const matchesSearch = 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      product.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Apply price filter
+    let matchesPrice = true;
+    if (priceFilter === "low") {
+      matchesPrice = product.price < 50000;
+    } else if (priceFilter === "medium") {
+      matchesPrice = product.price >= 50000 && product.price <= 100000;
+    } else if (priceFilter === "high") {
+      matchesPrice = product.price > 100000;
+    }
+    
+    // Apply stock filter
+    let matchesStock = true;
+    if (stockFilter === "out") {
+      matchesStock = product.stock === 0;
+    } else if (stockFilter === "low") {
+      matchesStock = product.stock > 0 && product.stock <= 5;
+    } else if (stockFilter === "available") {
+      matchesStock = product.stock > 5;
+    }
+    
+    return matchesSearch && matchesPrice && matchesStock;
+  }).sort((a, b) => {
+    // Apply sorting
+    switch (sortOrder) {
+      case "name-asc":
+        return a.name.localeCompare(b.name);
+      case "name-desc":
+        return b.name.localeCompare(a.name);
+      case "price-asc":
+        return a.price - b.price;
+      case "price-desc":
+        return b.price - a.price;
+      case "stock-asc":
+        return a.stock - b.stock;
+      case "stock-desc":
+        return b.stock - a.stock;
+      default:
+        return 0;
+    }
+  });
   
   const handlePrint = useReactToPrint({
     documentTitle: 'Struk Penjualan',
@@ -205,15 +252,88 @@ const POS = () => {
       
       {!showCheckout ? (
         <>
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input
-              type="text"
-              placeholder="Cari produk berdasarkan nama atau SKU..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="mb-6">
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+              <Input
+                type="text"
+                placeholder="Cari produk berdasarkan nama atau SKU..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Filter Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                  Filter Harga
+                </label>
+                <Select value={priceFilter} onValueChange={setPriceFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Semua harga" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua harga</SelectItem>
+                    <SelectItem value="low">&lt; Rp50.000</SelectItem>
+                    <SelectItem value="medium">Rp50.000 - Rp100.000</SelectItem>
+                    <SelectItem value="high">&gt; Rp100.000</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                  Filter Stok
+                </label>
+                <Select value={stockFilter} onValueChange={setStockFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Semua stok" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua stok</SelectItem>
+                    <SelectItem value="out">Stok habis</SelectItem>
+                    <SelectItem value="low">Stok menipis (≤ 5)</SelectItem>
+                    <SelectItem value="available">Stok tersedia (&gt; 5)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">
+                  Urutkan
+                </label>
+                <Select value={sortOrder} onValueChange={setSortOrder}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Urutkan berdasarkan" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
+                    <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
+                    <SelectItem value="price-asc">Harga (Terendah-Tertinggi)</SelectItem>
+                    <SelectItem value="price-desc">Harga (Tertinggi-Terendah)</SelectItem>
+                    <SelectItem value="stock-asc">Stok (Terendah-Tertinggi)</SelectItem>
+                    <SelectItem value="stock-desc">Stok (Tertinggi-Terendah)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-end">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setPriceFilter('all');
+                    setStockFilter('all');
+                    setSortOrder('name-asc');
+                  }}
+                >
+                  Reset Filter
+                </Button>
+              </div>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -224,7 +344,7 @@ const POS = () => {
           
           {filteredProducts.length === 0 && (
             <div className="text-center py-10">
-              <p className="text-muted-foreground">Tidak ada produk yang cocok dengan pencarian Anda.</p>
+              <p className="text-muted-foreground">Tidak ada produk yang cocok dengan filter Anda.</p>
             </div>
           )}
         </>
@@ -525,6 +645,12 @@ const POS = () => {
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     className="rounded-l-none"
+                    onKeyDown={(e) => {
+                      // Prevent Enter key from submitting form
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </div>
               </div>
@@ -562,6 +688,12 @@ const POS = () => {
                           setCashAmount(value);
                         }}
                         placeholder="Masukkan jumlah uang"
+                        onKeyDown={(e) => {
+                          // Prevent Enter key from submitting form
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                          }
+                        }}
                       />
                       {cashAmount && (
                         <p className="text-sm mt-1">
