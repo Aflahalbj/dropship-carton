@@ -8,10 +8,14 @@ interface ReceiptProps {
   total: number;
   date: Date;
   transactionId?: string;
+  paymentMethod?: string;
+  customerName?: string;
+  cashAmount?: number;
+  changeAmount?: number;
 }
 
 const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
-  ({ items, total, date, transactionId }, ref) => {
+  ({ items, total, date, transactionId, paymentMethod, customerName, cashAmount, changeAmount }, ref) => {
     return (
       <div ref={ref} className="p-4 max-w-md mx-auto bg-white text-black print:shadow-none">
         <div className="text-center mb-4">
@@ -21,6 +25,12 @@ const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
             <p className="text-xs text-gray-500">Transaksi #{transactionId.slice(-6)}</p>
           )}
         </div>
+        
+        {customerName && (
+          <div className="mb-3">
+            <p className="text-sm"><span className="font-medium">Pelanggan:</span> {customerName}</p>
+          </div>
+        )}
         
         <div className="border-t border-b border-gray-200 py-2 mb-4">
           <div className="flex font-medium text-sm mb-1">
@@ -49,6 +59,21 @@ const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
           <span>Total:</span>
           <span>Rp{total.toLocaleString('id-ID')}</span>
         </div>
+        
+        {paymentMethod && (
+          <div className="mt-3 pt-2 border-t border-gray-200">
+            <p className="text-sm"><span className="font-medium">Metode Pembayaran:</span> {paymentMethod === 'cash' ? 'Tunai' : 'Transfer'}</p>
+            
+            {paymentMethod === 'cash' && cashAmount !== undefined && (
+              <>
+                <p className="text-sm"><span className="font-medium">Jumlah Tunai:</span> Rp{cashAmount.toLocaleString('id-ID')}</p>
+                {changeAmount !== undefined && changeAmount > 0 && (
+                  <p className="text-sm"><span className="font-medium">Kembalian:</span> Rp{changeAmount.toLocaleString('id-ID')}</p>
+                )}
+              </>
+            )}
+          </div>
+        )}
         
         <div className="mt-8 text-center text-xs text-gray-500">
           <p>Terima kasih atas pembelian Anda!</p>
