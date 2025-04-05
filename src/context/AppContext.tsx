@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +27,10 @@ export type Transaction = {
   total: number;
   profit: number;
   type: 'sale' | 'purchase';
+  customerName?: string;
+  paymentMethod?: 'cash' | 'transfer';
+  cashAmount?: number;
+  changeAmount?: number;
 };
 
 export type Expense = {

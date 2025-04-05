@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Card } from "@/components/ui/card";
@@ -51,19 +50,15 @@ const Reports = () => {
     });
   }, [transactions, dateRange]);
   
-  // Separate transactions by type
   const salesTransactions = filteredTransactions.filter(t => t.type === 'sale');
   const purchaseTransactions = filteredTransactions.filter(t => t.type === 'purchase');
   
-  // Calculate totals
   const totalSales = salesTransactions.reduce((sum, t) => sum + t.total, 0);
   const totalPurchases = purchaseTransactions.reduce((sum, t) => sum + t.total, 0);
   const totalProfit = salesTransactions.reduce((sum, t) => sum + t.profit, 0);
   
-  // Format numbers
   const formatCurrency = (amount: number) => `Rp${amount.toLocaleString('id-ID')}`;
   
-  // If no transactions, show empty state
   if (transactions.length === 0) {
     return (
       <div className="animate-slide-up">
@@ -88,13 +83,12 @@ const Reports = () => {
     );
   }
   
-  // Prepare chart data
   const salesByCategory = useMemo(() => {
     const categoryMap = new Map<string, number>();
     
     salesTransactions.forEach(transaction => {
       transaction.products.forEach(item => {
-        const category = 'Produk'; // In a real app, you'd use actual product categories
+        const category = 'Produk';
         const amount = (item.product.price * item.quantity);
         categoryMap.set(category, (categoryMap.get(category) || 0) + amount);
       });
@@ -107,7 +101,6 @@ const Reports = () => {
   }, [salesTransactions]);
   
   const salesOverTime = useMemo(() => {
-    // Group transactions by date
     const dateMap = new Map<string, number>();
     const profitMap = new Map<string, number>();
     
@@ -117,7 +110,6 @@ const Reports = () => {
       profitMap.set(dateStr, (profitMap.get(dateStr) || 0) + transaction.profit);
     });
     
-    // Sort dates
     const sortedDates = Array.from(dateMap.keys()).sort();
     
     return {
@@ -127,7 +119,6 @@ const Reports = () => {
     };
   }, [salesTransactions]);
   
-  // Chart data for Pie Chart
   const pieChartData = {
     labels: salesByCategory.labels,
     datasets: [
@@ -142,7 +133,6 @@ const Reports = () => {
     ],
   };
   
-  // Chart data for Line Chart
   const lineChartData = {
     labels: salesOverTime.labels,
     datasets: [
@@ -157,7 +147,6 @@ const Reports = () => {
     ],
   };
   
-  // Chart options
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -189,7 +178,6 @@ const Reports = () => {
         </Select>
       </div>
       
-      {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <Card className="p-6">
           <div className="flex items-center justify-between">
@@ -231,9 +219,7 @@ const Reports = () => {
         </Card>
       </div>
       
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Sales by Category */}
         <Card className="p-6 col-span-1">
           <h3 className="text-lg font-medium mb-4 flex items-center">
             <PieChart size={18} className="mr-2 text-muted-foreground" />
@@ -244,7 +230,6 @@ const Reports = () => {
           </div>
         </Card>
         
-        {/* Sales Over Time */}
         <Card className="p-6 col-span-1 lg:col-span-2">
           <div className="flex justify-between mb-4 items-center">
             <h3 className="text-lg font-medium flex items-center">
@@ -264,7 +249,6 @@ const Reports = () => {
         </Card>
       </div>
       
-      {/* Recent Transactions */}
       <Card className="p-6 mt-6">
         <h3 className="text-lg font-medium mb-4 flex items-center">
           <Calendar size={18} className="mr-2 text-muted-foreground" />
