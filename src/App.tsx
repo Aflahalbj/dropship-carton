@@ -33,6 +33,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Separate the routes component to avoid React hook issues
 const AppRoutes = () => {
   return (
     <Routes>
@@ -57,19 +58,17 @@ const AppRoutes = () => {
 };
 
 const App = () => (
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <AppProvider>
-        <TooltipProvider>
-          <BrowserRouter>
-            <Toaster />
-            <Sonner />
-            <AppRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AppProvider>
-    </QueryClientProvider>
-  </React.StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <AppProvider>
+      <TooltipProvider>
+        <BrowserRouter>
+          <Toaster />
+          <Sonner />
+          <AppRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </AppProvider>
+  </QueryClientProvider>
 );
 
 export default App;

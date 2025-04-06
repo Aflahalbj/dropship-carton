@@ -89,7 +89,7 @@ type AppContextType = {
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<boolean>;
 };
 
-// Create context
+// Create context with a default value to avoid null checks
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // Auth helper functions
@@ -114,19 +114,34 @@ const getFromLocalStorage = (key: string, defaultValue: any = null) => {
 // Provider component
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Auth state
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getFromLocalStorage("currentUser"));
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(getFromLocalStorage("currentUser"));
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   
   // App state
-  const [capital, setCapital] = useState<number>(getFromLocalStorage("capital", 0));
-  const [products, setProducts] = useState<Product[]>(getFromLocalStorage("products", []));
+  const [capital, setCapital] = useState<number>(0);
+  const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>(getFromLocalStorage("transactions", []));
-  const [expenses, setExpenses] = useState<Expense[]>(getFromLocalStorage("expenses", []));
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
   // Store previous path to compare when navigating
   const previousPathRef = useRef<string | null>(null);
+  
+  // Initialize state from localStorage after component mounts
+  useEffect(() => {
+    // Load data from localStorage
+    const storedUser = getFromLocalStorage("currentUser");
+    if (storedUser) {
+      setCurrentUser(storedUser);
+      setIsAuthenticated(true);
+    }
+    
+    setCapital(getFromLocalStorage("capital", 0));
+    setProducts(getFromLocalStorage("products", []));
+    setTransactions(getFromLocalStorage("transactions", []));
+    setExpenses(getFromLocalStorage("expenses", []));
+  }, []);
   
   // Initialize Supabase auth
   useEffect(() => {
