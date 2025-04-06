@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, FileText, Filter, Plus, Trash, Search } from 'lucide-react';
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // Define expense categories
 const EXPENSE_CATEGORIES = [
@@ -59,7 +60,8 @@ const formSchema = z.object({
 const Expenses = () => {
   const { expenses, addExpense } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all'); // Changed from empty string to 'all'
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Set up form
   const form = useForm<z.infer<typeof formSchema>>({
@@ -70,6 +72,7 @@ const Expenses = () => {
       description: '',
       date: new Date(),
     },
+    mode: 'onSubmit', // Only validate on submit
   });
   
   // Filter expenses
@@ -78,27 +81,48 @@ const Expenses = () => {
     const matchesSearch = !searchTerm || 
       expense.description.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filter by category (changed to check for 'all' value)
+    // Filter by category
     const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
     
     return matchesSearch && matchesCategory;
   }).sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date descending
 
   // Form submission
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    const amount = parseFloat(values.amount);
-    
-    const newExpense = {
-      date: values.date,
-      amount,
-      category: values.category,
-      description: values.description,
-    };
-    
-    const success = addExpense(newExpense);
-    
-    if (success) {
-      form.reset();
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setIsSubmitting(true);
+      
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user || !user.id) {
+        toast.error("Anda harus login terlebih dahulu");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const amount = parseFloat(values.amount);
+      
+      const newExpense = {
+        date: values.date,
+        amount,
+        category: values.category,
+        description: values.description,
+        user_id: user.id
+      };
+      
+      // Add expense to context/database
+      const success = addExpense(newExpense);
+      
+      if (success) {
+        form.reset();
+        toast.success("Pengeluaran berhasil dicatat");
+      }
+    } catch (error) {
+      console.error("Error submitting expense:", error);
+      toast.error("Gagal mencatat pengeluaran");
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -150,6 +174,7 @@ const Expenses = () => {
                               placeholder="0" 
                               className="pl-8" 
                               {...field} 
+                              onChange={(e) => field.onChange(e.target.value)}
                             />
                           </div>
                         </FormControl>
@@ -197,6 +222,7 @@ const Expenses = () => {
                         <Input 
                           placeholder="Masukkan deskripsi pengeluaran" 
                           {...field} 
+                          onChange={(e) => field.onChange(e.target.value)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -246,8 +272,9 @@ const Expenses = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-primary text-white"
+                  disabled={isSubmitting}
                 >
-                  Catat Pengeluaran
+                  {isSubmitting ? "Menyimpan..." : "Catat Pengeluaran"}
                 </Button>
               </form>
             </Form>

@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
@@ -164,6 +165,48 @@ const FormMessage = React.forwardRef<
 })
 FormMessage.displayName = "FormMessage"
 
+// Add custom debounced form component
+const DebouncedFormControl = React.forwardRef<
+  React.ElementRef<typeof Slot>,
+  React.ComponentPropsWithoutRef<typeof Slot> & { debounceTime?: number }
+>(({ debounceTime = 500, onChange, ...props }, ref) => {
+  const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+  
+  // Use debounce for onChange events
+  const debouncedOnChange = React.useMemo(() => {
+    if (!onChange) return undefined;
+    
+    let timeout: NodeJS.Timeout;
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      clearTimeout(timeout);
+      const target = e.target;
+      
+      timeout = setTimeout(() => {
+        onChange({
+          ...e,
+          target,
+        } as React.ChangeEvent<HTMLInputElement>);
+      }, debounceTime);
+    };
+  }, [onChange, debounceTime]);
+
+  return (
+    <Slot
+      ref={ref}
+      id={formItemId}
+      aria-describedby={
+        !error
+          ? `${formDescriptionId}`
+          : `${formDescriptionId} ${formMessageId}`
+      }
+      aria-invalid={!!error}
+      onChange={debouncedOnChange}
+      {...props}
+    />
+  );
+});
+DebouncedFormControl.displayName = "DebouncedFormControl"
+
 export {
   useFormField,
   Form,
@@ -173,4 +216,5 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  DebouncedFormControl,
 }
