@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Card } from "@/components/ui/card";
@@ -26,16 +25,14 @@ const Transactions = () => {
   const receiptRef = useRef<HTMLDivElement>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   
-  // Handle printing via browser
   const handlePrint = useReactToPrint({
     documentTitle: 'Struk Penjualan',
-    content: () => receiptRef.current,
+    contentRef: receiptRef,
     onAfterPrint: () => {
       console.log('Print job completed');
     }
   });
   
-  // Handle printing via Bluetooth printer
   const handleBluetoothPrint = async () => {
     if (!selectedTransaction) return;
     
@@ -51,7 +48,6 @@ const Transactions = () => {
     );
   };
   
-  // Filter and prepare all transactions (sales, purchases, expenses)
   const allTransactions = [
     ...transactions.map(t => ({
       ...t,
@@ -68,15 +64,12 @@ const Transactions = () => {
     }))
   ];
   
-  // Filter transactions based on search term and transaction type
   const filteredTransactions = allTransactions
     .filter(transaction => {
-      // Filter by transaction type
       if (transactionType !== 'all' && transaction.transactionType !== transactionType) {
         return false;
       }
       
-      // Filter by search term
       const searchLower = searchTerm.toLowerCase();
       
       if (transaction.transactionType === 'expense') {
@@ -86,9 +79,10 @@ const Transactions = () => {
           transaction.category?.toLowerCase().includes(searchLower)
         );
       } else {
+        const customerName = 'customerName' in transaction ? transaction.customerName : '';
         return (
           transaction.id?.toString().toLowerCase().includes(searchLower) ||
-          (transaction.customerName && transaction.customerName.toLowerCase().includes(searchLower))
+          (customerName && customerName.toLowerCase().includes(searchLower))
         );
       }
     })
@@ -141,7 +135,6 @@ const Transactions = () => {
       </div>
       
       <Card className="p-6">
-        {/* Filter and search controls */}
         <TransactionFilter 
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -155,7 +148,6 @@ const Transactions = () => {
           }}
         />
         
-        {/* Transaction tabs by type */}
         <Tabs defaultValue="all" value={transactionType} onValueChange={setTransactionType}>
           <TabsList className="mb-4">
             <TabsTrigger value="all">Semua</TabsTrigger>
@@ -192,7 +184,6 @@ const Transactions = () => {
         )}
       </Card>
       
-      {/* Hidden receipt component for printing */}
       <div className="hidden">
         {selectedTransaction && (
           <Receipt
@@ -211,7 +202,6 @@ const Transactions = () => {
     </div>
   );
   
-  // Helper function to render transactions table
   function renderTransactionsTable(transactions: any[]) {
     if (transactions.length === 0) {
       return (
@@ -274,7 +264,7 @@ const Transactions = () => {
                       <div className="text-xs text-muted-foreground">{transaction.description}</div>
                     </>
                   ) : (
-                    transaction.customerName || "Pelanggan"
+                    'customerName' in transaction ? transaction.customerName : "Pelanggan"
                   )}
                 </td>
                 <td className="py-3 px-4">
@@ -344,7 +334,6 @@ const Transactions = () => {
     );
   }
   
-  // Helper function to toggle sorting
   function toggleSort(field: 'date' | 'amount') {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -354,7 +343,6 @@ const Transactions = () => {
     }
   }
   
-  // Helper function to get transaction type badge classes
   function getTransactionTypeBadgeClasses(type: string) {
     switch (type) {
       case 'sale':
@@ -368,7 +356,6 @@ const Transactions = () => {
     }
   }
   
-  // Helper function to get transaction type label
   function getTransactionTypeLabel(type: string) {
     switch (type) {
       case 'sale':
