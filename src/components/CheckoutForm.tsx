@@ -66,6 +66,14 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     }
   };
   
+  const handleQuickAmount = (amount: number) => {
+    setCashAmount(amount);
+  };
+  
+  const setExactAmount = () => {
+    setCashAmount(cartTotal);
+  };
+  
   return (
     <Card className="p-5">
       <h3 className="font-medium text-lg mb-4">Informasi Pembayaran</h3>
@@ -107,6 +115,54 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
                 onChange={setCashAmount}
                 error={errors.cashAmount}
               />
+              
+              <div className="grid grid-cols-4 gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleQuickAmount(1000000)}
+                  className="text-xs"
+                >
+                  1.000.000
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleQuickAmount(5000000)}
+                  className="text-xs"
+                >
+                  5.000.000
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleQuickAmount(10000000)}
+                  className="text-xs"
+                >
+                  10.000.000
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleQuickAmount(20000000)}
+                  className="text-xs"
+                >
+                  20.000.000
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={setExactAmount}
+                  className="col-span-4 mt-1 text-xs"
+                >
+                  Uang Pas: {cartTotal.toLocaleString('id-ID')}
+                </Button>
+              </div>
               
               {cashAmount > 0 && (
                 <div className="pt-2 border-t">

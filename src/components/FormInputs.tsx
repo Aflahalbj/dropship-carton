@@ -44,7 +44,7 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
           value={formattedValue}
           onChange={handleChange}
           onBlur={handleBlur}
-          className="pl-8"
+          className="pl-10"
           placeholder={placeholder}
           disabled={disabled}
         />

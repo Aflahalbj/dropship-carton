@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Search, Plus, Minus, ShoppingCart, X, Check, Printer, User, CreditCard, Wallet, ArrowUpDown } from 'lucide-react';
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CheckoutForm, CheckoutFormData } from "@/components/CheckoutForm";
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
+import { supabase, ensureAnonymousUser } from '@/integrations/supabase/client';
 
 const POS = () => {
   const { 
@@ -98,7 +98,7 @@ const POS = () => {
     }
   });
   
-  const handleCheckout = (formData: CheckoutFormData) => {
+  const handleCheckout = async (formData: CheckoutFormData) => {
     if (cart.length === 0) {
       toast.error("Keranjang kosong");
       return;
@@ -107,6 +107,8 @@ const POS = () => {
     setIsProcessing(true);
     
     try {
+      await ensureAnonymousUser();
+      
       const total = cart.reduce((sum, item) => {
         const price = discountedPrices[item.product.id] || item.product.price;
         return sum + (price * item.quantity);
@@ -155,7 +157,7 @@ const POS = () => {
         return;
       }
       
-      const success = addTransaction(transaction);
+      const success = await addTransaction(transaction);
       
       if (success) {
         setLastTransaction({
@@ -475,12 +477,7 @@ const POS = () => {
               {cart.map((item) => (
                 <div key={item.product.id} className="p-4">
                   <div className="flex justify-between items-center">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{item.product.name}</h4>
-                      <p className="text-sm text-muted-foreground">{item.product.sku}</p>
-                    </div>
-                    
-                    <div className="w-24">
+                    <div className="w-24 mr-4">
                       <Input
                         type="text"
                         placeholder="0"
@@ -510,6 +507,10 @@ const POS = () => {
                       />
                     </div>
                     
+                    <div className="flex-1">
+                      <h4 className="font-medium">{item.product.name}</h4>
+                    </div>
+                    
                     <div className="text-right ml-4 w-24">
                       <div className="font-medium">
                         Rp{((discountedPrices[item.product.id] || item.product.price) * 
@@ -533,7 +534,6 @@ const POS = () => {
                     </Button>
                   </div>
                   
-                  {/* Use the CartItemPriceEditor component */}
                   <CartItemPriceEditor
                     productId={item.product.id}
                     originalPrice={item.product.price}
