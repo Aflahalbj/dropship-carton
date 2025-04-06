@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 /**
  * Utility to format currency input with thousand separators
@@ -32,25 +32,56 @@ export const parseCurrency = (value: string): number => {
 };
 
 /**
- * Custom hook for handling currency input
+ * Custom hook for controlled currency input
  * @param initialValue - Initial currency value
- * @param onChange - Callback function when value changes
  * @returns Object with value, handleChange, and formatted value
  */
-export const useCurrencyInput = (
-  initialValue: string = '',
-  onChange?: (value: string) => void
-) => {
+export const useControlledCurrencyInput = (initialValue: string = '') => {
+  const [value, setValue] = useState(initialValue);
+  const [formattedValue, setFormattedValue] = useState(formatCurrency(initialValue));
+  
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedValue = formatCurrency(e.target.value);
-    if (onChange) {
-      onChange(formattedValue);
+    const inputValue = e.target.value;
+    const numericValue = inputValue.replace(/\D/g, '');
+    setValue(numericValue);
+    
+    if (numericValue) {
+      setFormattedValue(formatCurrency(numericValue));
+    } else {
+      setFormattedValue('');
     }
-  }, [onChange]);
+  }, []);
+  
+  const updateValue = useCallback((newValue: string) => {
+    setValue(newValue.replace(/\D/g, ''));
+    setFormattedValue(formatCurrency(newValue));
+  }, []);
   
   return {
+    value,
+    formattedValue,
     handleChange,
-    formatCurrency
+    updateValue,
+    parsedValue: parseCurrency(value)
+  };
+};
+
+/**
+ * Custom hook for handling text input
+ * @param initialValue - Initial text value
+ * @returns Object with value and handleChange
+ */
+export const useControlledTextInput = (initialValue: string = '') => {
+  const [value, setValue] = useState(initialValue);
+  
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value);
+  }, []);
+  
+  return {
+    value,
+    handleChange,
+    setValue
   };
 };
 
@@ -71,4 +102,32 @@ export const validateRequiredFields = (fields: Record<string, any>) => {
   });
   
   return { isValid, errors };
+};
+
+/**
+ * Custom hook for handling form submission validation
+ * @returns Object with validation state and handlers
+ */
+export const useFormValidation = () => {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const validateForm = useCallback((fields: Record<string, any>) => {
+    const { isValid, errors } = validateRequiredFields(fields);
+    setErrors(errors);
+    return isValid;
+  }, []);
+  
+  const clearErrors = useCallback(() => {
+    setErrors({});
+  }, []);
+  
+  return {
+    errors,
+    setErrors,
+    isSubmitting,
+    setIsSubmitting,
+    validateForm,
+    clearErrors
+  };
 };

@@ -19,6 +19,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { CheckoutForm, CheckoutFormData } from "@/components/CheckoutForm";
+import CartItemPriceEditor from '@/components/CartItemPriceEditor';
 
 const POS = () => {
   const { 
@@ -52,10 +54,7 @@ const POS = () => {
   } | null>(null);
   
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
-  
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
-  const [customerName, setCustomerName] = useState<string>('');
-  const [cashAmount, setCashAmount] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const receiptRef = useRef<HTMLDivElement>(null);
   
@@ -99,84 +98,87 @@ const POS = () => {
     }
   });
   
-  const handleCheckout = () => {
+  const handleCheckout = (formData: CheckoutFormData) => {
     if (cart.length === 0) {
       toast.error("Keranjang kosong");
       return;
     }
     
-    const total = cart.reduce((sum, item) => {
-      const price = discountedPrices[item.product.id] || item.product.price;
-      return sum + (price * item.quantity);
-    }, 0);
+    setIsProcessing(true);
     
-    const profit = cart.reduce((sum, item) => {
-      const price = discountedPrices[item.product.id] || item.product.price;
-      return sum + ((price - item.product.supplierPrice) * item.quantity);
-    }, 0);
-    
-    let changeAmount = 0;
-    if (paymentMethod === 'cash' && cashAmount) {
-      const cashValue = parseFloat(cashAmount);
-      if (!isNaN(cashValue)) {
-        changeAmount = cashValue - total;
+    try {
+      const total = cart.reduce((sum, item) => {
+        const price = discountedPrices[item.product.id] || item.product.price;
+        return sum + (price * item.quantity);
+      }, 0);
+      
+      const profit = cart.reduce((sum, item) => {
+        const price = discountedPrices[item.product.id] || item.product.price;
+        return sum + ((price - item.product.supplierPrice) * item.quantity);
+      }, 0);
+      
+      let changeAmount = 0;
+      if (formData.paymentMethod === 'cash') {
+        changeAmount = Math.max(0, formData.cashAmount - total);
         if (changeAmount < 0) {
           toast.error("Jumlah uang tunai tidak mencukupi");
+          setIsProcessing(false);
           return;
         }
-      } else {
-        toast.error("Masukkan jumlah uang tunai yang valid");
+      }
+      
+      const modifiedCart = cart.map(item => ({
+        ...item,
+        product: {
+          ...item.product,
+          price: discountedPrices[item.product.id] || item.product.price
+        }
+      }));
+      
+      const transaction = {
+        date: new Date(),
+        products: modifiedCart,
+        total: total,
+        profit: profit,
+        type: 'sale' as const,
+        cashAmount: formData.paymentMethod === 'cash' ? formData.cashAmount : undefined,
+        changeAmount: changeAmount > 0 ? changeAmount : undefined,
+        paymentMethod: formData.paymentMethod,
+        customerName: formData.customerName || 'Pelanggan'
+      };
+      
+      const hasInsufficientStock = cart.some(item => item.quantity > item.product.stock);
+      
+      if (hasInsufficientStock) {
+        toast.error("Stok tidak mencukupi untuk beberapa barang");
+        setIsProcessing(false);
         return;
       }
-    }
-    
-    const modifiedCart = cart.map(item => ({
-      ...item,
-      product: {
-        ...item.product,
-        price: discountedPrices[item.product.id] || item.product.price
-      }
-    }));
-    
-    const transaction = {
-      date: new Date(),
-      products: modifiedCart,
-      total: total,
-      profit: profit,
-      type: 'sale' as const,
-      cashAmount: cashAmount ? parseFloat(cashAmount) : undefined,
-      changeAmount: changeAmount > 0 ? changeAmount : undefined,
-      paymentMethod: paymentMethod,
-      customerName: customerName || 'Pelanggan'
-    };
-    
-    const hasInsufficientStock = cart.some(item => item.quantity > item.product.stock);
-    
-    if (hasInsufficientStock) {
-      toast.error("Stok tidak mencukupi untuk beberapa barang");
-      return;
-    }
-    
-    const success = addTransaction(transaction);
-    
-    if (success) {
-      setLastTransaction({
-        id: Date.now().toString(),
-        date: new Date(),
-        items: modifiedCart,
-        total: total,
-        paymentMethod: paymentMethod,
-        customerName: customerName || 'Pelanggan',
-        cashAmount: paymentMethod === 'cash' && cashAmount ? parseFloat(cashAmount) : undefined,
-        changeAmount: paymentMethod === 'cash' ? changeAmount : undefined
-      });
       
-      toast.success("Penjualan berhasil dilakukan!");
-      clearCart();
-      setDiscountedPrices({});
-      setCashAmount('');
-      setCustomerName('');
-      setShowCheckout(false);
+      const success = addTransaction(transaction);
+      
+      if (success) {
+        setLastTransaction({
+          id: Date.now().toString(),
+          date: new Date(),
+          items: modifiedCart,
+          total: total,
+          paymentMethod: formData.paymentMethod,
+          customerName: formData.customerName || 'Pelanggan',
+          cashAmount: formData.paymentMethod === 'cash' ? formData.cashAmount : undefined,
+          changeAmount: formData.paymentMethod === 'cash' ? changeAmount : undefined
+        });
+        
+        toast.success("Penjualan berhasil dilakukan!");
+        clearCart();
+        setDiscountedPrices({});
+        setShowCheckout(false);
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan saat memproses penjualan");
+      console.error(error);
+    } finally {
+      setIsProcessing(false);
     }
   };
   
@@ -231,7 +233,7 @@ const POS = () => {
       
       {!showCheckout ? (
         <>
-          <div className="mb-6 flex flex-wrap gap-4">
+          <div className="mb-6 flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
@@ -245,9 +247,8 @@ const POS = () => {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
+                <Button variant="outline" className="flex items-center gap-2 px-3">
                   <ArrowUpDown size={16} />
-                  <span className="hidden sm:inline">Urutkan</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -290,14 +291,9 @@ const POS = () => {
           onCheckout={handleCheckout} 
           lastTransaction={lastTransaction}
           onPrintReceipt={handlePrint}
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          cashAmount={cashAmount}
-          setCashAmount={setCashAmount}
-          customerName={customerName}
-          setCustomerName={setCustomerName}
           discountedPrices={discountedPrices}
           handleUpdateItemPrice={handleUpdateItemPrice}
+          isProcessing={isProcessing}
         />
       )}
       
@@ -379,18 +375,13 @@ const POS = () => {
   
   function CartView({ 
     onCheckout, 
-    lastTransaction, 
+    lastTransaction,
     onPrintReceipt,
-    paymentMethod,
-    setPaymentMethod,
-    cashAmount,
-    setCashAmount,
-    customerName,
-    setCustomerName,
     discountedPrices,
-    handleUpdateItemPrice
+    handleUpdateItemPrice,
+    isProcessing
   }: { 
-    onCheckout: () => void; 
+    onCheckout: (formData: CheckoutFormData) => void;
     lastTransaction: {
       id: string;
       date: Date;
@@ -402,18 +393,10 @@ const POS = () => {
       changeAmount?: number;
     } | null;
     onPrintReceipt: () => void;
-    paymentMethod: 'cash' | 'transfer';
-    setPaymentMethod: (method: 'cash' | 'transfer') => void;
-    cashAmount: string;
-    setCashAmount: (amount: string) => void;
-    customerName: string;
-    setCustomerName: (name: string) => void;
     discountedPrices: {[key: string]: number};
     handleUpdateItemPrice: (productId: string, newPrice: number) => void;
+    isProcessing: boolean;
   }) {
-    // Add state for price change toggles
-    const [priceChangeEnabled, setPriceChangeEnabled] = useState<{[key: string]: boolean}>({});
-    
     if (cart.length === 0) {
       return (
         <div className="text-center py-10">
@@ -471,16 +454,6 @@ const POS = () => {
       const price = discountedPrices[item.product.id] || item.product.price;
       return sum + ((price - item.product.supplierPrice) * item.quantity);
     }, 0);
-    
-    const changeAmount = paymentMethod === 'cash' ? 
-      cashAmount && parseFloat(cashAmount) - total : 0;
-    
-    // Handle cash amount input with number formatting
-    const handleCashAmountChange = (value: string) => {
-      // Remove non-numeric characters and convert to number
-      const numericValue = value.replace(/[^\d]/g, '');
-      setCashAmount(numericValue);
-    };
     
     return (
       <div className="animate-slide-up grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -560,49 +533,13 @@ const POS = () => {
                     </Button>
                   </div>
                   
-                  {/* Price change section with checkbox */}
-                  <div className="mt-2 pl-2">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Checkbox 
-                        id={`enable-price-change-${item.product.id}`}
-                        checked={priceChangeEnabled[item.product.id] || false}
-                        onCheckedChange={(checked) => {
-                          setPriceChangeEnabled({
-                            ...priceChangeEnabled,
-                            [item.product.id]: checked === true
-                          });
-                        }}
-                      />
-                      <label 
-                        htmlFor={`enable-price-change-${item.product.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Ubah harga sementara
-                      </label>
-                    </div>
-                    
-                    {priceChangeEnabled[item.product.id] && (
-                      <div className="flex items-center mt-1">
-                        <span className="text-sm text-muted-foreground mr-2">Rp</span>
-                        <Input
-                          type="text"
-                          className="w-32 h-8 text-sm"
-                          value={discountedPrices[item.product.id] || item.product.price}
-                          onChange={(e) => {
-                            const numericValue = e.target.value.replace(/[^\d]/g, '');
-                            if (numericValue) {
-                              handleUpdateItemPrice(item.product.id, parseInt(numericValue));
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.currentTarget.blur();
-                            }
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
+                  {/* Use the CartItemPriceEditor component */}
+                  <CartItemPriceEditor
+                    productId={item.product.id}
+                    originalPrice={item.product.price}
+                    discountedPrice={discountedPrices[item.product.id]}
+                    onPriceChange={handleUpdateItemPrice}
+                  />
                 </div>
               ))}
             </div>
@@ -610,111 +547,12 @@ const POS = () => {
         </div>
         
         <div className="md:col-span-1">
-          <Card className="p-5">
-            <h3 className="font-medium text-lg mb-4">Informasi Pembayaran</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Nama Pelanggan (Opsional)
-                </label>
-                <div className="flex rounded-md overflow-hidden">
-                  <div className="bg-accent flex items-center justify-center px-3 border border-r-0 border-input">
-                    <User size={16} className="text-muted-foreground" />
-                  </div>
-                  <Input 
-                    placeholder="Nama pelanggan" 
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="rounded-l-none"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Metode Pembayaran
-                </label>
-                <Tabs 
-                  defaultValue="cash" 
-                  className="w-full" 
-                  value={paymentMethod} 
-                  onValueChange={(v) => setPaymentMethod(v as 'cash' | 'transfer')}
-                >
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="cash" className="flex items-center gap-1">
-                      <Wallet size={16} />
-                      Tunai
-                    </TabsTrigger>
-                    <TabsTrigger value="transfer" className="flex items-center gap-1">
-                      <CreditCard size={16} />
-                      Transfer
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="cash" className="space-y-4 mt-2">
-                    <div>
-                      <label className="block text-sm font-medium text-muted-foreground mb-1">
-                        Jumlah Uang Tunai
-                      </label>
-                      <Input
-                        type="text"
-                        value={cashAmount ? parseInt(cashAmount).toLocaleString('id-ID') : ''}
-                        onChange={(e) => {
-                          handleCashAmountChange(e.target.value);
-                        }}
-                        placeholder="Masukkan jumlah uang"
-                      />
-                      {cashAmount && (
-                        <p className="text-sm mt-1">
-                          Kembalian: Rp{Math.max(0, parseFloat(cashAmount) - total).toLocaleString('id-ID')}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="pt-2 border-t">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Kembalian:</span>
-                        <span className="font-medium">
-                          Rp{changeAmount > 0 ? changeAmount.toLocaleString('id-ID') : '0'}
-                        </span>
-                      </div>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="transfer" className="space-y-4 mt-2">
-                    <div className="p-2 bg-accent rounded-md text-sm">
-                      Pembayaran akan dilakukan melalui transfer bank
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-              
-              <div className="space-y-3 pt-4 border-t">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal:</span>
-                  <span>Rp{total.toLocaleString('id-ID')}</span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span className="text-muted-foreground">Estimasi Profit:</span>
-                  <span className="text-primary">Rp{profit.toLocaleString('id-ID')}</span>
-                </div>
-                <div className="flex justify-between text-lg font-semibold">
-                  <span>Total:</span>
-                  <span>Rp{total.toLocaleString('id-ID')}</span>
-                </div>
-              </div>
-              
-              <Button 
-                className="w-full bg-primary text-white flex items-center justify-center gap-2 mt-4"
-                onClick={onCheckout}
-                disabled={
-                  paymentMethod === 'cash' && cashAmount && parseFloat(cashAmount) < total
-                }
-              >
-                <Check size={18} />
-                Selesaikan Penjualan
-              </Button>
-            </div>
-          </Card>
+          <CheckoutForm
+            cartTotal={total}
+            cartProfit={profit}
+            onSubmit={onCheckout}
+            isProcessing={isProcessing}
+          />
         </div>
       </div>
     );

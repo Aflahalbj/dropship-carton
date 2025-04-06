@@ -165,31 +165,56 @@ const FormMessage = React.forwardRef<
 })
 FormMessage.displayName = "FormMessage"
 
-// Add custom debounced form component
+// Enhanced debounced form control with proper state management
+interface DebouncedFormControlProps extends React.ComponentPropsWithoutRef<typeof Slot> {
+  debounceTime?: number;
+  onChangeComplete?: (value: any) => void;
+}
+
 const DebouncedFormControl = React.forwardRef<
   React.ElementRef<typeof Slot>,
-  React.ComponentPropsWithoutRef<typeof Slot> & { debounceTime?: number }
->(({ debounceTime = 500, onChange, ...props }, ref) => {
+  DebouncedFormControlProps
+>(({ debounceTime = 500, onChange, onChangeComplete, ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
+  const [value, setValue] = React.useState<any>(props.value || '');
+  
+  // Handle immediate controlled component updates
+  React.useEffect(() => {
+    if (props.value !== undefined && props.value !== value) {
+      setValue(props.value);
+    }
+  }, [props.value]);
   
   // Use debounce for onChange events
   const debouncedOnChange = React.useMemo(() => {
-    if (!onChange) return undefined;
+    if (!onChange && !onChangeComplete) return undefined;
     
     let timeout: NodeJS.Timeout;
     return (e: React.ChangeEvent<HTMLInputElement>) => {
       clearTimeout(timeout);
       const target = e.target;
+      const newValue = target.value;
       
-      timeout = setTimeout(() => {
+      // Update internal value immediately for controlled component behavior
+      setValue(newValue);
+      
+      // Call onChange immediately if present (for UI updates)
+      if (onChange) {
         onChange({
           ...e,
-          target,
+          target: { ...target, value: newValue }
         } as React.ChangeEvent<HTMLInputElement>);
-      }, debounceTime);
+      }
+      
+      // Debounce the onChangeComplete callback
+      if (onChangeComplete) {
+        timeout = setTimeout(() => {
+          onChangeComplete(newValue);
+        }, debounceTime);
+      }
     };
-  }, [onChange, debounceTime]);
-
+  }, [onChange, onChangeComplete, debounceTime]);
+  
   return (
     <Slot
       ref={ref}
@@ -201,6 +226,7 @@ const DebouncedFormControl = React.forwardRef<
       }
       aria-invalid={!!error}
       onChange={debouncedOnChange}
+      value={value}
       {...props}
     />
   );
