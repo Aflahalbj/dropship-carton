@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
-import { Search, Plus, Minus, ShoppingCart, X, Check, Printer, User, CreditCard, Wallet } from 'lucide-react';
+import { Search, Plus, Minus, ShoppingCart, X, Check, Printer, User, CreditCard, Wallet, ArrowUpDown } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,12 @@ import { useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const POS = () => {
   const { 
@@ -111,7 +117,7 @@ const POS = () => {
     
     let changeAmount = 0;
     if (paymentMethod === 'cash' && cashAmount) {
-      const cashValue = parseFloat(cashAmount.replace(/[^\d]/g, ''));
+      const cashValue = parseFloat(cashAmount);
       if (!isNaN(cashValue)) {
         changeAmount = cashValue - total;
         if (changeAmount < 0) {
@@ -138,7 +144,7 @@ const POS = () => {
       total: total,
       profit: profit,
       type: 'sale' as const,
-      cashAmount: cashAmount ? parseFloat(cashAmount.replace(/[^\d]/g, '')) : undefined,
+      cashAmount: cashAmount ? parseFloat(cashAmount) : undefined,
       changeAmount: changeAmount > 0 ? changeAmount : undefined,
       paymentMethod: paymentMethod,
       customerName: customerName || 'Pelanggan'
@@ -161,7 +167,7 @@ const POS = () => {
         total: total,
         paymentMethod: paymentMethod,
         customerName: customerName || 'Pelanggan',
-        cashAmount: paymentMethod === 'cash' && cashAmount ? parseFloat(cashAmount.replace(/[^\d]/g, '')) : undefined,
+        cashAmount: paymentMethod === 'cash' && cashAmount ? parseFloat(cashAmount) : undefined,
         changeAmount: paymentMethod === 'cash' ? changeAmount : undefined
       });
       
@@ -225,8 +231,8 @@ const POS = () => {
       
       {!showCheckout ? (
         <>
-          <div className="mb-6">
-            <div className="relative mb-4">
+          <div className="mb-6 flex flex-wrap gap-4">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
                 type="text"
@@ -237,26 +243,34 @@ const POS = () => {
               />
             </div>
             
-            <div className="flex justify-end mb-4">
-              <div className="w-full md:w-64">
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Urutkan
-                </label>
-                <Select value={sortOrder} onValueChange={setSortOrder}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Urutkan berdasarkan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
-                    <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
-                    <SelectItem value="price-asc">Harga (Terendah-Tertinggi)</SelectItem>
-                    <SelectItem value="price-desc">Harga (Tertinggi-Terendah)</SelectItem>
-                    <SelectItem value="stock-asc">Stok (Terendah-Tertinggi)</SelectItem>
-                    <SelectItem value="stock-desc">Stok (Tertinggi-Terendah)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <ArrowUpDown size={16} />
+                  <span className="hidden sm:inline">Urutkan</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setSortOrder("name-asc")}>
+                  Nama (A-Z)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("name-desc")}>
+                  Nama (Z-A)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("price-asc")}>
+                  Harga (Terendah-Tertinggi)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("price-desc")}>
+                  Harga (Tertinggi-Terendah)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("stock-asc")}>
+                  Stok (Terendah-Tertinggi)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("stock-desc")}>
+                  Stok (Tertinggi-Terendah)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -459,7 +473,14 @@ const POS = () => {
     }, 0);
     
     const changeAmount = paymentMethod === 'cash' ? 
-      cashAmount && parseFloat(cashAmount.replace(/[^\d]/g, '')) - total : 0;
+      cashAmount && parseFloat(cashAmount) - total : 0;
+    
+    // Handle cash amount input with number formatting
+    const handleCashAmountChange = (value: string) => {
+      // Remove non-numeric characters and convert to number
+      const numericValue = value.replace(/[^\d]/g, '');
+      setCashAmount(numericValue);
+    };
     
     return (
       <div className="animate-slide-up grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -568,9 +589,9 @@ const POS = () => {
                           className="w-32 h-8 text-sm"
                           value={discountedPrices[item.product.id] || item.product.price}
                           onChange={(e) => {
-                            const value = e.target.value.replace(/[^\d]/g, '');
-                            if (value) {
-                              handleUpdateItemPrice(item.product.id, parseInt(value));
+                            const numericValue = e.target.value.replace(/[^\d]/g, '');
+                            if (numericValue) {
+                              handleUpdateItemPrice(item.product.id, parseInt(numericValue));
                             }
                           }}
                           onKeyDown={(e) => {
@@ -606,11 +627,6 @@ const POS = () => {
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     className="rounded-l-none"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                      }
-                    }}
                   />
                 </div>
               </div>
@@ -642,21 +658,15 @@ const POS = () => {
                       </label>
                       <Input
                         type="text"
-                        value={cashAmount}
+                        value={cashAmount ? parseInt(cashAmount).toLocaleString('id-ID') : ''}
                         onChange={(e) => {
-                          const value = e.target.value;
-                          setCashAmount(value);
+                          handleCashAmountChange(e.target.value);
                         }}
                         placeholder="Masukkan jumlah uang"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                          }
-                        }}
                       />
                       {cashAmount && (
                         <p className="text-sm mt-1">
-                          Kembalian: Rp{Math.max(0, parseFloat(cashAmount.replace(/[^\d]/g, '') || '0') - total).toLocaleString('id-ID')}
+                          Kembalian: Rp{Math.max(0, parseFloat(cashAmount) - total).toLocaleString('id-ID')}
                         </p>
                       )}
                     </div>
@@ -697,7 +707,7 @@ const POS = () => {
                 className="w-full bg-primary text-white flex items-center justify-center gap-2 mt-4"
                 onClick={onCheckout}
                 disabled={
-                  paymentMethod === 'cash' && cashAmount && parseFloat(cashAmount.replace(/[^\d]/g, '')) < total
+                  paymentMethod === 'cash' && cashAmount && parseFloat(cashAmount) < total
                 }
               >
                 <Check size={18} />

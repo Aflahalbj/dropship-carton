@@ -4,10 +4,16 @@ import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Search, Package, Plus, Minus, ShoppingCart, X, Check } from 'lucide-react';
+import { Search, Package, Plus, Minus, ShoppingCart, X, Check, ArrowUpDown } from 'lucide-react';
 import { toast } from "sonner";
 import { useLocation } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Purchases = () => {
   const { 
@@ -147,8 +153,8 @@ const Purchases = () => {
       
       {!showCheckout ? (
         <>
-          <div className="mb-6">
-            <div className="relative mb-4">
+          <div className="mb-6 flex flex-wrap gap-4">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
                 type="text"
@@ -159,27 +165,34 @@ const Purchases = () => {
               />
             </div>
             
-            {/* Add sorting dropdown */}
-            <div className="flex justify-end mb-4">
-              <div className="w-full md:w-64">
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Urutkan
-                </label>
-                <Select value={sortOrder} onValueChange={setSortOrder}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Urutkan berdasarkan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
-                    <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
-                    <SelectItem value="price-asc">Harga (Terendah-Tertinggi)</SelectItem>
-                    <SelectItem value="price-desc">Harga (Tertinggi-Terendah)</SelectItem>
-                    <SelectItem value="stock-asc">Stok (Terendah-Tertinggi)</SelectItem>
-                    <SelectItem value="stock-desc">Stok (Tertinggi-Terendah)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <ArrowUpDown size={16} />
+                  <span className="hidden sm:inline">Urutkan</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => setSortOrder("name-asc")}>
+                  Nama (A-Z)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("name-desc")}>
+                  Nama (Z-A)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("price-asc")}>
+                  Harga (Terendah-Tertinggi)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("price-desc")}>
+                  Harga (Tertinggi-Terendah)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("stock-asc")}>
+                  Stok (Terendah-Tertinggi)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("stock-desc")}>
+                  Stok (Tertinggi-Terendah)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
