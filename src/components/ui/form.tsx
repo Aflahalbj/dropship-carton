@@ -166,44 +166,53 @@ const FormMessage = React.forwardRef<
 FormMessage.displayName = "FormMessage"
 
 // Enhanced debounced form control with proper state management
-interface DebouncedFormControlProps extends React.ComponentPropsWithoutRef<typeof Slot> {
+interface DebouncedFormControlProps {
   debounceTime?: number;
   onChangeComplete?: (value: any) => void;
+  onChange?: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+  defaultValue?: string | number;
+  children?: React.ReactNode;
+  className?: string;
+  id?: string;
+  [key: string]: any;
 }
 
 const DebouncedFormControl = React.forwardRef<
-  React.ElementRef<typeof Slot>,
+  HTMLInputElement | HTMLTextAreaElement,
   DebouncedFormControlProps
->(({ debounceTime = 500, onChange, onChangeComplete, ...props }, ref) => {
+>(({ debounceTime = 500, onChange, onChangeComplete, defaultValue = '', children, ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
-  const [value, setValue] = React.useState<any>(props.value || '');
+  const [internalValue, setInternalValue] = React.useState<any>(defaultValue);
   
-  // Handle immediate controlled component updates
-  React.useEffect(() => {
-    if (props.value !== undefined && props.value !== value) {
-      setValue(props.value);
+  // Create a ref for the input/textarea element
+  const inputRef = React.useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  
+  // Combine refs
+  const handleRef = (element: HTMLInputElement | HTMLTextAreaElement | null) => {
+    inputRef.current = element;
+    
+    if (typeof ref === 'function') {
+      ref(element);
+    } else if (ref) {
+      (ref as React.MutableRefObject<HTMLInputElement | HTMLTextAreaElement | null>).current = element;
     }
-  }, [props.value]);
+  };
   
   // Use debounce for onChange events
   const debouncedOnChange = React.useMemo(() => {
     if (!onChange && !onChangeComplete) return undefined;
     
     let timeout: NodeJS.Timeout;
-    return (e: React.ChangeEvent<HTMLInputElement>) => {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       clearTimeout(timeout);
-      const target = e.target;
-      const newValue = target.value;
+      const newValue = e.target.value;
       
-      // Update internal value immediately for controlled component behavior
-      setValue(newValue);
+      // Update internal value immediately
+      setInternalValue(newValue);
       
       // Call onChange immediately if present (for UI updates)
       if (onChange) {
-        onChange({
-          ...e,
-          target: { ...target, value: newValue }
-        } as React.ChangeEvent<HTMLInputElement>);
+        onChange(e);
       }
       
       // Debounce the onChangeComplete callback
@@ -217,7 +226,7 @@ const DebouncedFormControl = React.forwardRef<
   
   return (
     <Slot
-      ref={ref}
+      ref={handleRef}
       id={formItemId}
       aria-describedby={
         !error
@@ -226,9 +235,15 @@ const DebouncedFormControl = React.forwardRef<
       }
       aria-invalid={!!error}
       onChange={debouncedOnChange}
-      value={value}
       {...props}
-    />
+    >
+      {React.isValidElement(children) 
+        ? React.cloneElement(children, {
+            value: internalValue,
+            onChange: debouncedOnChange
+          } as any)
+        : children}
+    </Slot>
   );
 });
 DebouncedFormControl.displayName = "DebouncedFormControl"
