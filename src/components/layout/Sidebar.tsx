@@ -9,7 +9,7 @@ import {
   FileText, 
   BarChart, 
   Settings, 
-  TrendingUp,
+  Receipt,
   LogOut
 } from "lucide-react";
 import { AuthButton } from "./AuthButton";
@@ -33,7 +33,7 @@ export const Sidebar = ({ isOpen, isMobile, toggle }: SidebarProps) => {
     { name: "Inventaris", icon: <Package size={20} />, path: "/inventory" },
     { name: "Pembelian", icon: <ShoppingCart size={20} />, path: "/purchases" },
     { name: "Pengeluaran", icon: <FileText size={20} />, path: "/expenses" },
-    { name: "Penjualan", icon: <TrendingUp size={20} />, path: "/sales" },
+    { name: "Transaksi", icon: <Receipt size={20} />, path: "/sales" },
     { name: "Laporan", icon: <BarChart size={20} />, path: "/reports" },
     { name: "Pengaturan", icon: <Settings size={20} />, path: "/settings" },
   ];
@@ -114,3 +114,4 @@ export const Sidebar = ({ isOpen, isMobile, toggle }: SidebarProps) => {
     </aside>
   );
 };
+
