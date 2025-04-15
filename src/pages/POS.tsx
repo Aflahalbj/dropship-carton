@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
+
 function ProductCard({
   product
 }: {
@@ -49,6 +50,7 @@ function ProductCard({
       </div>
     </Card>;
 }
+
 function CartView({
   onCheckout
 }: {
@@ -97,20 +99,28 @@ function CartView({
                 </div>
                 
                 <div className="w-20">
-                  <Input type="text" placeholder="0" className="w-full h-8 text-center text-sm font-medium" defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} onBlur={e => {
-                const newValue = e.target.value.trim();
-                const newQuantity = newValue === "" ? 0 : parseInt(newValue);
-                if (!isNaN(newQuantity)) {
-                  updatePosCartItemQuantity(item.product.id, newQuantity);
-                }
-              }} onChange={e => {
-                const value = e.target.value.replace(/[^0-9]/g, '');
-                e.target.value = value;
-              }} onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.currentTarget.blur();
-                }
-              }} />
+                  <Input 
+                    type="text" 
+                    placeholder="0" 
+                    className="w-full h-20 text-center text-sm font-medium" 
+                    defaultValue={item.quantity > 0 ? item.quantity.toString() : ""}
+                    onBlur={e => {
+                      const newValue = e.target.value.trim();
+                      const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                      if (!isNaN(newQuantity)) {
+                        updatePosCartItemQuantity(item.product.id, newQuantity);
+                      }
+                    }}
+                    onChange={e => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      e.target.value = value;
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.currentTarget.blur();
+                      }
+                    }}
+                  />
                 </div>
                 
                 <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPosCart(item.product.id)}>
@@ -126,6 +136,7 @@ function CartView({
       </div>
     </div>;
 }
+
 const POS: React.FC = () => {
   const {
     products,
@@ -262,4 +273,5 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
+
 export default POS;
