@@ -23,11 +23,8 @@ function ProductCard({
   const handleAddToCart = () => {
     if (product.stock > 0) {
       addToPosCart(product, 1);
-      toast.success('Bantal ditambahkan ke keranjang', {
-        description: `${product.name} telah berhasil ditambahkan`,
-        duration: 3000,
-        icon: <Check size={20} />,
-        className: 'bg-green-500 text-white'
+      toast.success(`${product.name} ditambahkan ke keranjang`, {
+        duration: 2000
       });
     } else {
       toast.error(`${product.name} stok kosong`, {
