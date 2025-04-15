@@ -66,8 +66,7 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
   const insufficientFunds = purchaseTotal > currentCapital;
   const changeAmount = paymentMethod === 'cash' ? Math.max(0, cashAmount - purchaseTotal) : 0;
 
-  return (
-    <div className="bg-card border rounded-lg p-5 shadow-sm">
+  return <div className="bg-card border rounded-lg p-5">
       <h3 className="font-medium text-lg mb-4">Informasi Supplier</h3>
       
       <div className="space-y-4 mb-6">
@@ -90,6 +89,7 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
               value={supplierPhone}
               onChange={(e) => setSupplierPhone(e.target.value)}
               pattern="[0-9]*"
+              className=""
             />
           </div>
           
@@ -144,16 +144,14 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
                 </Button>
               </div>
               
-              {cashAmount > 0 && (
-                <div className="pt-2 border-t">
+              {cashAmount > 0 && <div className="pt-2 border-t">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Kembalian:</span>
                     <span className="font-medium">
                       Rp{changeAmount.toLocaleString('id-ID')}
                     </span>
                   </div>
-                </div>
-              )}
+                </div>}
             </TabsContent>
             <TabsContent value="transfer" className="space-y-4 mt-2">
               <div className="p-2 bg-accent rounded-md text-sm">
@@ -173,11 +171,9 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
           <span className="text-muted-foreground">Modal Saat Ini:</span>
           <span className="font-medium">Rp{currentCapital.toLocaleString('id-ID')}</span>
         </div>
-        {insufficientFunds && (
-          <div className="text-destructive text-sm mt-2">
+        {insufficientFunds && <div className="text-destructive text-sm mt-2">
             Modal tidak mencukupi untuk pembelian ini!
-          </div>
-        )}
+          </div>}
       </div>
       
       <div className="flex gap-4">
@@ -190,6 +186,7 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
           Selesaikan Pembelian
         </Button>
       </div>
-    </div>
-  );
+    </div>;
 };
+
+export default PurchaseCheckoutForm;
