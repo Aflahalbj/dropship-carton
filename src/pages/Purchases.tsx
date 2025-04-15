@@ -80,20 +80,14 @@ const Purchases = () => {
     }
   };
   const shouldShowCartIcon = purchasesCart.length > 0 && !showCheckout;
-  return <div className="container mx-auto animate-slide-up">
+  return <div className="container mx-auto animate-slide-up py-[10px] px-[20px]">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Pembelian Persediaan</h2>
           <p className="text-muted-foreground">Tambah stok barang dari pemasok</p>
         </div>
         
-        {purchasesCart.length > 0 && !showCheckout && <Button className="bg-primary text-white flex items-center gap-2" onClick={() => setShowCheckout(true)}>
-            <ShoppingCart size={18} />
-            <span>Checkout</span>
-            <span className="ml-1 bg-white text-primary rounded-full w-6 h-6 flex items-center justify-center text-sm">
-              {purchasesCart.reduce((total, item) => total + item.quantity, 0)}
-            </span>
-          </Button>}
+        {purchasesCart.length > 0 && !showCheckout}
         
         {showCheckout && <Button variant="outline" className="border-primary text-primary flex items-center gap-2" onClick={() => setShowCheckout(false)}>
             <X size={18} />
