@@ -235,7 +235,7 @@ const Purchases = () => {
           toast.success(`${product.name} ditambahkan ke keranjang`);
         }}
       >
-        <div className="h-24 overflow-hidden">
+        <div className="h-20 overflow-hidden">
           <img 
             src={product.image || defaultImage} 
             alt={product.name}
@@ -243,12 +243,12 @@ const Purchases = () => {
             onError={(e) => (e.target as HTMLImageElement).src = defaultImage} 
           />
         </div>
-        <div className="p-3 flex-grow">
+        <div className="p-2 flex-grow">
           <div className="flex justify-between items-start">
             <div className="w-full">
-              <h3 className="font-medium text-sm">{product.name}</h3>
-              <p className="text-xs text-muted-foreground mb-1">{product.sku} • {product.stock} stok</p>
-              <p className="text-base font-semibold">Rp{product.supplierPrice.toLocaleString('id-ID')}</p>
+              <h3 className="font-medium text-xs">{product.name}</h3>
+              <p className="text-xs text-muted-foreground">{product.sku} • {product.stock} stok</p>
+              <p className="text-sm font-semibold">Rp{product.supplierPrice.toLocaleString('id-ID')}</p>
             </div>
           </div>
         </div>

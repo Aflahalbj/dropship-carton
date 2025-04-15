@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAppContext, Product } from "@/context/AppContext";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowUpDown, ShoppingCart, X, Check } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +31,7 @@ function ProductCard({ product }: { product: Product }) {
         }
       }}
     >
-      <div className="h-24 overflow-hidden">
+      <div className="h-20 overflow-hidden">
         <img 
           src={product.image || defaultImage} 
           alt={product.name}
@@ -38,14 +39,14 @@ function ProductCard({ product }: { product: Product }) {
           onError={(e) => (e.target as HTMLImageElement).src = defaultImage} 
         />
       </div>
-      <div className="p-3 flex-grow">
+      <div className="p-2 flex-grow">
         <div className="flex justify-between items-start">
           <div className="w-full">
-            <h3 className="font-medium text-sm">{product.name}</h3>
-            <p className="text-xs text-muted-foreground mb-1">
+            <h3 className="font-medium text-xs">{product.name}</h3>
+            <p className="text-xs text-muted-foreground">
               {product.sku} • {product.stock} stok
             </p>
-            <p className="text-base font-semibold">Rp{product.price.toLocaleString('id-ID')}</p>
+            <p className="text-sm font-semibold">Rp{product.price.toLocaleString('id-ID')}</p>
           </div>
         </div>
       </div>
@@ -163,10 +164,16 @@ function CartView({ onCheckout }: { onCheckout: (formData: CheckoutFormData) => 
 }
 
 const POS: React.FC = () => {
-  const { products, cart, addTransaction, cartTotal } = useAppContext();
+  const { products, cart, addTransaction, cartTotal, handlePageNavigation } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   const [showCheckout, setShowCheckout] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Call handlePageNavigation to update the current path
+    handlePageNavigation(location.pathname);
+  }, [location, handlePageNavigation]);
 
   const filteredProducts = products
     .filter(product => 
@@ -300,7 +307,7 @@ const POS: React.FC = () => {
             </DropdownMenu>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -499,21 +498,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   // Handle navigation between pages
   const handlePageNavigation = (currentPath: string): void => {
-    // Clear cart when navigating between POS and Purchases pages
-    const isPOS = currentPath.includes("pos") || currentPath === "/";
-    const isPurchase = currentPath.includes("purchases");
-    
-    // If there's a previous path to compare with
-    if (previousPathRef.current) {
-      const prevIsPOS = previousPathRef.current.includes("pos") || previousPathRef.current === "/";
-      const prevIsPurchase = previousPathRef.current.includes("purchases");
-      
-      // If switching between POS and Purchases, clear the cart
-      if ((isPOS && prevIsPurchase) || (isPurchase && prevIsPOS)) {
-        clearCart();
-      }
-    }
-    
     // Update the previous path reference for next comparison
     previousPathRef.current = currentPath;
   };
