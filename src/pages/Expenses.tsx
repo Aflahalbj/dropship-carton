@@ -204,23 +204,27 @@ const Expenses = () => {
           <h3 className="font-medium">Riwayat Pengeluaran</h3>
           
           <div className="flex items-center gap-2">
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[150px] pl-9 text-xs h-9 py-1">
-                  <SelectValue placeholder="Semua Kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Kategori</SelectItem>
-                  {EXPENSE_CATEGORIES.map(category => <SelectItem key={category} value={category}>{category}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => setCategoryFilter(categoryFilter === 'all' ? EXPENSE_CATEGORIES[0] : 'all')}
+            >
+              <FilterIcon size={16} />
+              {categoryFilter === 'all' ? 'Semua Kategori' : categoryFilter}
+            </Button>
             
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-              <Input type="text" placeholder="Cari pengeluaran..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-[180px] pl-9" />
-            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => {
+                setSearchTerm(searchTerm ? '' : 'Cari pengeluaran...');
+              }}
+            >
+              <Search size={16} />
+              {searchTerm ? 'Hapus Pencarian' : 'Cari'}
+            </Button>
           </div>
         </div>
         
