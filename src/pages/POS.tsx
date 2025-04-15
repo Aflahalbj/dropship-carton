@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -10,7 +9,6 @@ import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
-
 function ProductCard({
   product
 }: {
@@ -20,7 +18,6 @@ function ProductCard({
     addToPosCart
   } = useAppContext();
   const defaultImage = "https://placehold.co/300x150?text=Produk";
-  
   const handleAddToCart = () => {
     if (product.stock > 0) {
       addToPosCart(product, 1);
@@ -33,11 +30,7 @@ function ProductCard({
       });
     }
   };
-
-  return <Card 
-    className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" 
-    onClick={handleAddToCart}
-  >
+  return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={handleAddToCart}>
       <div className="h-auto overflow-hidden flex items-center justify-center px-0 py-0 my-0 mx-0">
         <AspectRatio ratio={1 / 1} className="w-full">
           <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full object-cover" />
@@ -56,7 +49,6 @@ function ProductCard({
       </div>
     </Card>;
 }
-
 function CartView({
   onCheckout
 }: {
@@ -134,7 +126,6 @@ function CartView({
       </div>
     </div>;
 }
-
 const POS: React.FC = () => {
   const {
     products,
@@ -206,7 +197,7 @@ const POS: React.FC = () => {
         </Button>}
         
         <div className="w-full text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-left">Kasir</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-left">Checkout</h2>
           <p className="text-muted-foreground text-left">Proses penjualan produk</p>
         </div>
         
@@ -271,5 +262,4 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
-
 export default POS;
