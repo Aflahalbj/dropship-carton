@@ -184,7 +184,7 @@ const POS: React.FC = () => {
   const shouldShowCartIcon = posCart.length > 0 && !showCheckout;
   return <div className="container animate-slide-up py-[10px] mx-0 px-[21px]">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Point of Sale</h1>
+        <h1 className="font-bold text-3xl">Point of Sale</h1>
         
         {posCart.length > 0 && !showCheckout && <Button className="bg-primary text-white flex items-center gap-2" onClick={() => setShowCheckout(true)}>
             <ShoppingCart size={18} />
