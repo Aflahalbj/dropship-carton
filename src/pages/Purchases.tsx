@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,44 +133,34 @@ function CartView({
 }
 
 const Purchases = () => {
-  // State for purchase cart
   const [purchasesCart, setPurchasesCart] = useState<Array<{
     product: { id: string; name: string; supplierPrice: number; };
     quantity: number;
   }>>([]);
   
-  // State to track whether to show checkout
   const [showCheckout, setShowCheckout] = useState(false);
   
-  // Mock capital
   const [capital, setCapital] = useState(5000000);
   
-  // Function to clear cart
   const clearPurchasesCart = () => {
     setPurchasesCart([]);
   };
   
-  // Function to remove item from cart
   const removeFromPurchasesCart = (productId: string) => {
     setPurchasesCart(prev => prev.filter(item => item.product.id !== productId));
   };
   
-  // Function to update item quantity
   const updatePurchasesCartItemQuantity = (productId: string, quantity: number) => {
     setPurchasesCart(prev => prev.map(item => 
       item.product.id === productId ? { ...item, quantity } : item
     ));
   };
   
-  // Function to handle checkout
   const handleCheckout = () => {
-    // In a real app, you would process the purchase here
-    // For now, we'll just clear the cart
     clearPurchasesCart();
     setShowCheckout(false);
   };
   
-  // Mock data for product listing
   const mockProducts = [
     { id: "prod1", name: "Kemeja Polos", supplierPrice: 55000 },
     { id: "prod2", name: "Celana Jeans", supplierPrice: 120000 },
@@ -180,7 +169,6 @@ const Purchases = () => {
     { id: "prod5", name: "Topi Baseball", supplierPrice: 25000 }
   ];
   
-  // Function to add product to cart
   const addToCart = (product: typeof mockProducts[0]) => {
     setPurchasesCart(prev => {
       const existingItem = prev.find(item => item.product.id === product.id);
