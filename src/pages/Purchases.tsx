@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAppContext, Product } from '../context/AppContext';
+import { useAppContext, Product, CartItem } from '../context/AppContext'; // Added CartItem import
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
