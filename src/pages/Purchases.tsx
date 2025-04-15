@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -139,13 +140,25 @@ const Purchases = () => {
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {filteredProducts.map(product => <ProductCard key={product.id} product={product} />)}
+            {filteredProducts.map(product => <ProductCard 
+              key={product.id} 
+              product={product} 
+              onAddToCart={addToPurchasesCart}
+            />)}
           </div>
           
           {filteredProducts.length === 0 && <div className="text-center py-10">
               <p className="text-muted-foreground">Tidak ada produk yang cocok dengan pencarian Anda.</p>
             </div>}
-        </> : <CartView onCheckout={handlePurchase} />}
+        </> : <CartView 
+              onCheckout={handlePurchase} 
+              purchasesCart={purchasesCart}
+              capital={capital}
+              clearPurchasesCart={clearPurchasesCart}
+              removeFromPurchasesCart={removeFromPurchasesCart}
+              updatePurchasesCartItemQuantity={updatePurchasesCartItemQuantity}
+              setShowCheckout={setShowCheckout}
+            />}
       
       {shouldShowCartIcon && <Button onClick={() => setShowCheckout(true)} className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary hover:bg-primary/90 transition-all font-normal text-white px-0 py-0 mx-0 text-base">
           <div className="relative px-[5px] py-[5px]">
@@ -158,14 +171,15 @@ const Purchases = () => {
     </div>;
 };
 
-function ProductCard({
-  product
-}: {
+interface ProductCardProps {
   product: Product;
-}) {
+  onAddToCart: (product: Product, quantity: number) => void;
+}
+
+function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const defaultImage = "https://placehold.co/300x150?text=Produk";
   return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={() => {
-    addToPurchasesCart(product, 1);
+    onAddToCart(product, 1);
     toast.success(`${product.name} ditambahkan ke keranjang`, {
       duration: 3000
     });
@@ -187,11 +201,25 @@ function ProductCard({
   </Card>;
 }
 
-function CartView({
-  onCheckout
-}: {
+interface CartViewProps {
   onCheckout: () => void;
-}) {
+  purchasesCart: CartItem[];
+  capital: number;
+  clearPurchasesCart: () => void;
+  removeFromPurchasesCart: (productId: string) => void;
+  updatePurchasesCartItemQuantity: (productId: string, quantity: number) => void;
+  setShowCheckout: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function CartView({
+  onCheckout,
+  purchasesCart,
+  capital,
+  clearPurchasesCart,
+  removeFromPurchasesCart,
+  updatePurchasesCartItemQuantity,
+  setShowCheckout
+}: CartViewProps) {
   if (purchasesCart.length === 0) {
     return <div className="text-center py-10">
         <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
