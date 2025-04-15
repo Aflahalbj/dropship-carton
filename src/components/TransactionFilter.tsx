@@ -33,17 +33,6 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
 }) => {
   return (
     <div className="flex flex-1 gap-3 items-center">
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-        <Input
-          type="text"
-          placeholder="Cari produk berdasarkan nama atau SKU..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 rounded-full bg-slate-50 border-0"
-        />
-      </div>
-      
       <Select value={sortField + "-" + sortDirection} onValueChange={(value) => {
         const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
         onSortChange(field, direction);
@@ -62,6 +51,17 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
           <SelectItem value="profit-desc">Keuntungan (Tertinggi)</SelectItem>
         </SelectContent>
       </Select>
+      
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+        <Input
+          type="text"
+          placeholder="Cari produk berdasarkan nama atau SKU..."
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-10 rounded-full bg-slate-50 border-0"
+        />
+      </div>
       
       {!hideTransactionType && (
         <div className="w-full md:w-40">

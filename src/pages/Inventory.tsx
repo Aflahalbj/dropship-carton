@@ -204,25 +204,46 @@ const Inventory = () => {
       </div>
       
       <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
-        <TransactionFilter 
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          transactionType="all"
-          onTransactionTypeChange={() => {}}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onSortChange={handleSortChange}
-          hideTransactionType={true}
-        />
-        
-        <Button 
-          variant="outline"
-          size="icon"
-          className="w-10 h-10"
-          onClick={() => handleOpenForm()}
-        >
-          <Plus size={20} />
-        </Button>
+        <div className="flex flex-1 gap-3 items-center">
+          <Select value={sortField + "-" + sortDirection} onValueChange={(value) => {
+            const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
+            handleSortChange(field, direction);
+          }}>
+            <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border-0 justify-center">
+              <ArrowUpDown className="h-4 w-4" />
+            </SelectTrigger>
+            <SelectContent align="end">
+              <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
+              <SelectItem value="price-asc">Harga Jual (Terendah)</SelectItem>
+              <SelectItem value="price-desc">Harga Jual (Tertinggi)</SelectItem>
+              <SelectItem value="stock-asc">Stok (Terendah)</SelectItem>
+              <SelectItem value="stock-desc">Stok (Tertinggi)</SelectItem>
+              <SelectItem value="profit-asc">Keuntungan (Terendah)</SelectItem>
+              <SelectItem value="profit-desc">Keuntungan (Tertinggi)</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+            <Input
+              type="text"
+              placeholder="Cari produk berdasarkan nama atau SKU..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 rounded-full bg-slate-50 border-0"
+            />
+          </div>
+          
+          <Button 
+            variant="outline"
+            size="icon"
+            className="w-10 h-10"
+            onClick={() => handleOpenForm()}
+          >
+            <Plus size={20} />
+          </Button>
+        </div>
       </div>
       
       <div className="bg-card border rounded-lg overflow-hidden">
