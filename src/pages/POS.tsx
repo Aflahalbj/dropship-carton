@@ -203,7 +203,7 @@ const POS: React.FC = () => {
         </Button>}
         
         <h1 className="text-center w-full text-lg font-normal">
-          Rp{posCartTotal().toLocaleString('id-ID')}
+          Point of Sale
         </h1>
         
         {posCart.length > 0 && 
