@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppContext, Product } from '../context/AppContext';
+import { useAppContext } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,7 @@ const Inventory = () => {
   const { products, addProduct, updateProduct, deleteProduct } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -72,7 +72,7 @@ const Inventory = () => {
     setEditingProduct(null);
   };
   
-  const handleOpenForm = (product?: Product) => {
+  const handleOpenForm = (product?: any) => {
     if (product) {
       setEditingProduct(product);
       setFormData({
@@ -197,7 +197,7 @@ const Inventory = () => {
       </div>
       
       <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
-        <div className="flex-grow relative">
+        <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
           <Input
             type="text"
@@ -208,23 +208,21 @@ const Inventory = () => {
           />
         </div>
         
-        <div className="w-full md:w-48">
-          <Select value={sortOrder} onValueChange={setSortOrder}>
-            <SelectTrigger className="w-full justify-center">
-              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
-              <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
-              <SelectItem value="price-asc">Harga Jual (Terendah-Tertinggi)</SelectItem>
-              <SelectItem value="price-desc">Harga Jual (Tertinggi-Terendah)</SelectItem>
-              <SelectItem value="stock-asc">Stok (Terendah-Tertinggi)</SelectItem>
-              <SelectItem value="stock-desc">Stok (Tertinggi-Terendah)</SelectItem>
-              <SelectItem value="profit-asc">Keuntungan (Terendah-Tertinggi)</SelectItem>
-              <SelectItem value="profit-desc">Keuntungan (Tertinggi-Terendah)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={sortOrder} onValueChange={setSortOrder}>
+          <SelectTrigger className="w-10 h-10 justify-center">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
+            <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
+            <SelectItem value="price-asc">Harga Jual (Terendah-Tertinggi)</SelectItem>
+            <SelectItem value="price-desc">Harga Jual (Tertinggi-Terendah)</SelectItem>
+            <SelectItem value="stock-asc">Stok (Terendah-Tertinggi)</SelectItem>
+            <SelectItem value="stock-desc">Stok (Tertinggi-Terendah)</SelectItem>
+            <SelectItem value="profit-asc">Keuntungan (Terendah-Tertinggi)</SelectItem>
+            <SelectItem value="profit-desc">Keuntungan (Tertinggi-Terendah)</SelectItem>
+          </SelectContent>
+        </Select>
         
         <Button 
           variant="outline"
