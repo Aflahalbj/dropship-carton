@@ -252,9 +252,7 @@ function CartView({
       <div className="border rounded-lg overflow-hidden mb-6">
         <div className="bg-accent p-3 border-b flex justify-between items-center">
           <h3 className="font-medium">Item Keranjang</h3>
-          <Button variant="ghost" size="sm" onClick={() => clearPurchasesCart()} className="text-muted-foreground hover:text-destructive">
-            Kosongkan
-          </Button>
+          
         </div>
         <div className="divide-y">
           {purchasesCart.map(item => {
