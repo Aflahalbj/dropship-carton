@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -324,7 +323,7 @@ const Purchases: React.FC = () => {
                             <CurrencyInput 
                               id={`price-${item.product.id}`}
                               placeholder="Harga" 
-                              value={item.price} 
+                              initialValue={item.price.toString()} 
                               onChange={(val) => handleUpdatePrice(item.product.id, val)} 
                               className="h-8 text-sm" 
                             />
