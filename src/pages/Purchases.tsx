@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -71,11 +72,14 @@ const Purchases: React.FC = () => {
   const handleCheckout = () => {
     if (selectedSupplier && selectedProducts.length > 0) {
       setIsProcessing(true);
+      const purchaseTotal = selectedProducts.reduce((total, item) => total + (item.quantity * item.price), 0);
+      
       const transaction = {
         date: new Date(),
         supplier: selectedSupplier,
         products: selectedProducts,
-        total: selectedProducts.reduce((total, item) => total + (item.quantity * item.price), 0),
+        total: purchaseTotal,
+        profit: 0, // For purchases, profit is 0 as it's a cost
         type: 'purchase' as const,
         paymentMethod
       };

@@ -14,6 +14,13 @@ export type Product = {
   image?: string;
 };
 
+export type Supplier = {
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+};
+
 export type CartItem = {
   product: Product;
   quantity: number;
@@ -30,6 +37,7 @@ export type Transaction = {
   paymentMethod?: 'cash' | 'transfer';
   cashAmount?: number;
   changeAmount?: number;
+  supplier?: Supplier;
 };
 
 export type Expense = {
@@ -63,6 +71,8 @@ type AppContextType = {
   purchasesCart: CartItem[];
   transactions: Transaction[];
   expenses: Expense[];
+  suppliers: Supplier[];
+  currentCapital: number; // Alias for capital
   
   // Capital functions
   setCapital: (amount: number) => void;
@@ -106,9 +116,6 @@ type AppContextType = {
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<boolean>;
 };
 
-// Create context with a default value to avoid null checks
-const AppContext = createContext<AppContextType | undefined>(undefined);
-
 // Auth helper functions
 const saveToLocalStorage = (key: string, value: any) => {
   try {
@@ -144,12 +151,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
-  // Store previous path to compare when navigating
+  const [suppliers, setSuppliers] = useState<Supplier[]>([
+    {
+      id: '1',
+      name: 'Supplier Default',
+      phone: '08123456789',
+      address: 'Jl. Supplier No. 123'
+    }
+  ]);
   const previousPathRef = useRef<string | null>(null);
   
   // Initialize state from localStorage after component mounts
   useEffect(() => {
-    // Load data from localStorage
     const storedUser = getFromLocalStorage("currentUser");
     if (storedUser) {
       setCurrentUser(storedUser);
@@ -166,7 +179,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   // Initialize Supabase auth
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -187,7 +199,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     );
     
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
@@ -211,7 +222,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const loadInitialData = async () => {
       if (isAuthenticated && currentUser) {
-        // Load capital
         const { data: capitalData, error: capitalError } = await supabase
           .from('capital')
           .select('*')
@@ -224,7 +234,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setCapital(capitalData.amount);
         }
         
-        // Load products
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select('*');
@@ -244,7 +253,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setProducts(formattedProducts);
         }
         
-        // We can add more data loading here as needed
+        const { data: suppliersData, error: suppliersError } = await supabase
+          .from('suppliers')
+          .select('*');
+        
+        if (suppliersError) {
+          console.error("Error loading suppliers:", suppliersError);
+        } else if (suppliersData) {
+          setSuppliers(suppliersData);
+        }
       }
     };
     
@@ -271,8 +288,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (error) {
       throw new Error(error.message);
     }
-    
-    // Auth state will be updated by the onAuthStateChange listener
   };
   
   const register = async (email: string, password: string, name: string): Promise<void> => {
@@ -289,20 +304,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (error) {
       throw new Error(error.message);
     }
-    
-    // Auth state will be updated by the onAuthStateChange listener
   };
   
   const logout = async (): Promise<void> => {
     await supabase.auth.signOut();
-    // Auth state will be updated by the onAuthStateChange listener
   };
   
   // Capital functions
   const addToCapital = async (amount: number): Promise<void> => {
     const newAmount = capital + amount;
     
-    // Update in Supabase if authenticated
     if (isAuthenticated) {
       const { data, error } = await supabase
         .from('capital')
@@ -329,7 +340,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     const newAmount = capital - amount;
     
-    // Update in Supabase if authenticated
     if (isAuthenticated) {
       const { data, error } = await supabase
         .from('capital')
@@ -350,7 +360,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   // Product functions
   const addProduct = async (product: Omit<Product, 'id'>): Promise<void> => {
-    // Add to Supabase if authenticated
     if (isAuthenticated) {
       const { data, error } = await supabase
         .from('products')
@@ -387,7 +396,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
     
-    // Fallback to local storage if not authenticated or Supabase operation failed
     const newProduct = {
       ...product,
       id: Date.now().toString(),
@@ -398,7 +406,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const updateProduct = async (product: Product): Promise<void> => {
-    // Update in Supabase if authenticated
     if (isAuthenticated) {
       const { data, error } = await supabase
         .from('products')
@@ -428,7 +435,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   const deleteProduct = async (id: string): Promise<void> => {
     try {
-      // Check if the product is used in any transactions
       const { data: transactionItems, error: checkError } = await supabase
         .from('transaction_items')
         .select('id')
@@ -441,13 +447,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return;
       }
       
-      // If the product is used in transactions, show a message to the user
       if (transactionItems && transactionItems.length > 0) {
         toast.error("Produk tidak dapat dihapus karena sudah digunakan dalam transaksi");
         return;
       }
       
-      // If product is not used in transactions, proceed with deletion
       if (isAuthenticated) {
         const { error } = await supabase
           .from('products')
@@ -496,7 +500,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const product = products.find(p => p.id === productId);
     if (!product) return;
     
-    // Check stock for sales
     if (quantity > product.stock) {
       toast.error("Stok tidak mencukupi");
       return;
@@ -576,12 +579,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   // Legacy Cart functions (kept for backward compatibility)
   const addToCart = (product: Product, quantity: number): void => {
-    // Determine which cart to add to based on the current path
     const path = window.location.pathname;
     if (path.includes('/purchases')) {
       addToPurchasesCart(product, quantity);
     } else {
-      // Default to POS cart for all other paths
       addToPosCart(product, quantity);
     }
   };
@@ -623,16 +624,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const cartProfit = (): number => {
-    // Only POS cart has profit calculation
     return posCartProfit();
   };
   
   // Handle navigation between pages
   const handlePageNavigation = (currentPath: string): void => {
-    // Update the previous path reference for next comparison
     previousPathRef.current = currentPath;
     
-    // Update the current cart based on the page
     if (currentPath.includes('/purchases')) {
       setCart(purchasesCart);
     } else {
@@ -640,28 +638,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
   
-  // Setup navigation event listener
   useEffect(() => {
     const handlePathChange = () => {
       handlePageNavigation(window.location.pathname);
     };
     
-    // Add event listener for popstate (back/forward navigation)
     window.addEventListener('popstate', handlePathChange);
-    
-    // Update cart on first load
     handlePathChange();
     
-    // Cleanup
     return () => {
       window.removeEventListener('popstate', handlePathChange);
     };
   }, [posCart, purchasesCart]);
   
-  // Transaction functions
   const addTransaction = async (transaction: Omit<Transaction, 'id'>): Promise<boolean> => {
     if (isAuthenticated) {
-      // Start a transaction in Supabase
       const { data: transactionData, error: transactionError } = await supabase
         .from('transactions')
         .insert({
@@ -682,7 +673,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (transactionData && transactionData[0]) {
         const transactionId = transactionData[0].id;
         
-        // Add transaction items
         const transactionItems = transaction.products.map(item => ({
           transaction_id: transactionId,
           product_id: item.product.id,
@@ -700,7 +690,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return false;
         }
         
-        // Update products stock
         for (const item of transaction.products) {
           const product = products.find(p => p.id === item.product.id);
           if (product) {
@@ -721,7 +710,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }
         }
         
-        // Update capital
         if (transaction.type === 'sale') {
           await addToCapital(transaction.total);
         } else {
@@ -731,17 +719,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     }
     
-    // Fallback to local logic if not connected to Supabase
     const newTransaction = {
       ...transaction,
       id: Date.now().toString(),
     };
     
-    // Update stock for products
     const updatedProducts = [...products];
     
     if (transaction.type === 'sale') {
-      // Check if we have enough stock
       const hasInsufficientStock = transaction.products.some(
         item => {
           const product = products.find(p => p.id === item.product.id);
@@ -754,7 +739,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return false;
       }
       
-      // Reduce stock for sold products
       transaction.products.forEach(item => {
         const productIndex = updatedProducts.findIndex(
           p => p.id === item.product.id
@@ -768,21 +752,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       });
       
-      // Add the sale amount to capital
       await addToCapital(transaction.total);
-      
-      // Clear the POS cart after a successful sale
       clearPosCart();
     } else if (transaction.type === 'purchase') {
-      // For purchases, increase stock and deduct from capital
-      
-      // Check if we have enough capital
       const success = await subtractFromCapital(transaction.total);
       if (!success) {
         return false;
       }
       
-      // Increase stock for purchased products
       transaction.products.forEach(item => {
         const productIndex = updatedProducts.findIndex(
           p => p.id === item.product.id
@@ -796,20 +773,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       });
       
-      // Clear the purchases cart after a successful purchase
       clearPurchasesCart();
     }
     
-    // Update products state
     setProducts(updatedProducts);
-    
-    // Add the transaction to state
     setTransactions(prev => [...prev, newTransaction]);
     
     return true;
   };
   
-  // Expense functions
   const addExpense = async (expense: Omit<Expense, 'id'>): Promise<boolean> => {
     const success = await subtractFromCapital(expense.amount);
     if (!success) {
@@ -859,15 +831,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return true;
   };
   
+  const currentCapital = capital;
+  
   const value = {
-    // Auth state and functions
     isAuthenticated,
     currentUser,
     login,
     register,
     logout,
     
-    // State
     capital,
     products,
     cart,
@@ -875,18 +847,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     purchasesCart,
     transactions,
     expenses,
+    suppliers,
+    currentCapital,
     
-    // Capital functions
     setCapital,
     addToCapital,
     subtractFromCapital,
     
-    // Product functions
     addProduct,
     updateProduct,
     deleteProduct,
     
-    // Legacy Cart functions
     addToCart,
     removeFromCart,
     updateCartItemQuantity,
@@ -894,7 +865,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     cartTotal,
     cartProfit,
     
-    // POS Cart functions
     addToPosCart,
     removeFromPosCart,
     updatePosCartItemQuantity,
@@ -902,7 +872,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     posCartTotal,
     posCartProfit,
     
-    // Purchases Cart functions
     addToPurchasesCart,
     removeFromPurchasesCart,
     updatePurchasesCartItemQuantity,
@@ -911,10 +880,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     handlePageNavigation,
     
-    // Transaction functions
     addTransaction,
     
-    // Expense functions
     addExpense,
   };
   
@@ -925,7 +892,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
-// Custom hook to use the context
 export const useAppContext = (): AppContextType => {
   const context = useContext(AppContext);
   
