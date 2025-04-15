@@ -1,4 +1,21 @@
 
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ShoppingCart, X } from 'lucide-react';
+import CartItemPriceEditor from '@/components/CartItemPriceEditor';
+import { PurchaseCheckoutForm } from '@/components/PurchaseCheckoutForm';
+
+interface CartViewProps {
+  onCheckout: () => void;
+  purchasesCart: any[];
+  capital: number;
+  clearPurchasesCart: () => void;
+  removeFromPurchasesCart: (productId: string) => void;
+  updatePurchasesCartItemQuantity: (productId: string, quantity: number) => void;
+  setShowCheckout: (show: boolean) => void;
+}
+
 function CartView({
   onCheckout,
   purchasesCart,
@@ -48,6 +65,7 @@ function CartView({
       }
       return item;
     });
+    
     onCheckout();
     setIsProcessing(false);
   };
@@ -56,7 +74,7 @@ function CartView({
       <div className="border rounded-lg overflow-hidden mb-6">
         <div className="bg-accent p-3 border-b flex justify-between items-center">
           <h3 className="font-medium">Item Keranjang</h3>
-          <Button variant="ghost" size="sm" onClick={() => clearPurchasesCart()} className="text-muted-foreground hover:text-destructive">
+          <Button variant="ghost" size="sm" onClick={clearPurchasesCart} className="text-muted-foreground hover:text-destructive">
             Kosongkan
           </Button>
         </div>
@@ -107,3 +125,16 @@ function CartView({
       <PurchaseCheckoutForm purchaseTotal={purchaseTotal} currentCapital={capital} onCheckout={handleCheckout} isProcessing={isProcessing} />
     </div>;
 }
+
+// Create the main Purchases component
+const Purchases: React.FC = () => {
+  // This is just a placeholder until you implement the full page
+  return (
+    <div className="container py-6">
+      <h1 className="text-3xl font-bold mb-6">Halaman Pembelian</h1>
+      <p className="text-muted-foreground">Kelola pembelian produk dari supplier</p>
+    </div>
+  );
+};
+
+export default Purchases;
