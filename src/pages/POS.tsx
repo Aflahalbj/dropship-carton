@@ -1,6 +1,13 @@
 
+import React from 'react';
+import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import { useAppContext, Product } from "@/context/AppContext";
+
 function ProductCard({ product }: { product: Product }) {
+  const { addToCart } = useAppContext();
   const defaultImage = "https://placehold.co/300x150?text=Produk";
+  
   return (
     <Card 
       className="overflow-hidden card-hover h-full flex flex-col cursor-pointer"
@@ -35,3 +42,21 @@ function ProductCard({ product }: { product: Product }) {
     </Card>
   );
 }
+
+const POS: React.FC = () => {
+  const { products } = useAppContext();
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Point of Sale</h1>
+      
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default POS;
