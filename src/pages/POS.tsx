@@ -10,7 +10,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
-
 function ProductCard({
   product
 }: {
@@ -51,7 +50,6 @@ function ProductCard({
       </div>
     </Card>;
 }
-
 function CartView({
   onCheckout
 }: {
@@ -67,7 +65,6 @@ function CartView({
   } = useAppContext();
   const [isProcessing, setIsProcessing] = useState(false);
   const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
-
   if (posCart.length === 0) {
     return <div className="text-center py-10">
         <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -75,14 +72,12 @@ function CartView({
         <p className="text-muted-foreground mb-4">Tambahkan produk ke keranjang untuk melakukan penjualan</p>
       </div>;
   }
-
   const handlePriceChange = (productId: string, newPrice: number) => {
     setTemporaryPrices(prev => ({
       ...prev,
       [productId]: newPrice
     }));
   };
-
   const handleSubmit = (formData: CheckoutFormData) => {
     setIsProcessing(true);
     const modifiedCart = posCart.map(item => {
@@ -97,13 +92,11 @@ function CartView({
       }
       return item;
     });
-    
     onCheckout({
       ...formData,
       modifiedCart
     });
   };
-
   return <div className="animate-slide-up grid gap-6 md:grid-cols-5">
       <div className="md:col-span-3">
         <div className="border rounded-lg overflow-hidden">
@@ -114,9 +107,8 @@ function CartView({
           
           <div className="divide-y">
             {posCart.map(item => {
-              const discountedPrice = temporaryPrices[item.product.id];
-              
-              return <div key={item.product.id} className="p-4 flex justify-between items-center">
+            const discountedPrice = temporaryPrices[item.product.id];
+            return <div key={item.product.id} className="p-4 flex justify-between items-center">
                 <div className="flex-1">
                   {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
                       <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
@@ -127,58 +119,47 @@ function CartView({
                       {item.quantity} × Rp{(discountedPrice || item.product.price).toLocaleString('id-ID')} = Rp{((discountedPrice || item.product.price) * item.quantity).toLocaleString('id-ID')}
                     </p>
                     
-                    <CartItemPriceEditor 
-                      productId={item.product.id}
-                      originalPrice={item.product.price}
-                      discountedPrice={discountedPrice}
-                      onPriceChange={handlePriceChange}
-                    />
+                    <CartItemPriceEditor productId={item.product.id} originalPrice={item.product.price} discountedPrice={discountedPrice} onPriceChange={handlePriceChange} />
                   </div>
                 </div>
                 
                 <div className="w-20">
                   <Input type="text" placeholder="0" defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} onBlur={e => {
-                const newValue = e.target.value.trim();
-                const newQuantity = newValue === "" ? 0 : parseInt(newValue);
-                if (!isNaN(newQuantity)) {
-                  updatePosCartItemQuantity(item.product.id, newQuantity);
-                }
-              }} onChange={e => {
-                const value = e.target.value.replace(/[^0-9]/g, '');
-                e.target.value = value;
-              }} onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  e.currentTarget.blur();
-                }
-              }} className="w-10 h-10 text-center text-sm font-medium px-0 mx-[47px]" />
+                  const newValue = e.target.value.trim();
+                  const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                  if (!isNaN(newQuantity)) {
+                    updatePosCartItemQuantity(item.product.id, newQuantity);
+                  }
+                }} onChange={e => {
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  e.target.value = value;
+                }} onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.currentTarget.blur();
+                  }
+                }} className="w-10 h-10 text-center text-sm font-medium px-0 mx-[47px]" />
                 </div>
                 
                 <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPosCart(item.product.id)}>
                   <X size={18} />
                 </Button>
-              </div>
-            })}
+              </div>;
+          })}
           </div>
         </div>
       </div>
       
       <div className="md:col-span-2">
-        <CheckoutForm 
-          cartTotal={posCart.reduce((total, item) => {
-            const itemPrice = temporaryPrices[item.product.id] || item.product.price;
-            return total + (itemPrice * item.quantity);
-          }, 0)} 
-          cartProfit={posCart.reduce((total, item) => {
-            const itemPrice = temporaryPrices[item.product.id] || item.product.price;
-            return total + ((itemPrice - item.product.supplierPrice) * item.quantity);
-          }, 0)}
-          onSubmit={handleSubmit} 
-          isProcessing={isProcessing} 
-        />
+        <CheckoutForm cartTotal={posCart.reduce((total, item) => {
+        const itemPrice = temporaryPrices[item.product.id] || item.product.price;
+        return total + itemPrice * item.quantity;
+      }, 0)} cartProfit={posCart.reduce((total, item) => {
+        const itemPrice = temporaryPrices[item.product.id] || item.product.price;
+        return total + (itemPrice - item.product.supplierPrice) * item.quantity;
+      }, 0)} onSubmit={handleSubmit} isProcessing={isProcessing} />
       </div>
     </div>;
 }
-
 const POS: React.FC = () => {
   const {
     products,
@@ -218,21 +199,18 @@ const POS: React.FC = () => {
       toast.error("Keranjang kosong");
       return;
     }
-
     const productsToProcess = formData.modifiedCart || posCart;
-    
     const transaction = {
       date: new Date(),
       products: productsToProcess,
-      total: productsToProcess.reduce((total, item) => total + (item.product.price * item.quantity), 0),
-      profit: productsToProcess.reduce((total, item) => total + ((item.product.price - item.product.supplierPrice) * item.quantity), 0),
+      total: productsToProcess.reduce((total, item) => total + item.product.price * item.quantity, 0),
+      profit: productsToProcess.reduce((total, item) => total + (item.product.price - item.product.supplierPrice) * item.quantity, 0),
       type: 'sale' as const,
       customerName: formData.customerName,
       paymentMethod: formData.paymentMethod,
       cashAmount: formData.cashAmount,
-      changeAmount: formData.paymentMethod === 'cash' ? Math.max(0, formData.cashAmount - productsToProcess.reduce((total, item) => total + (item.product.price * item.quantity), 0)) : 0
+      changeAmount: formData.paymentMethod === 'cash' ? Math.max(0, formData.cashAmount - productsToProcess.reduce((total, item) => total + item.product.price * item.quantity, 0)) : 0
     };
-    
     const success = addTransaction(transaction);
     if (success) {
       toast.success("Transaksi berhasil!");
@@ -249,7 +227,7 @@ const POS: React.FC = () => {
   };
   return <div className="container animate-slide-up py-[10px] px-[2px]">
       <div className="flex justify-between items-center mb-6">
-        {showCheckout && <Button variant="ghost" size="icon" className="mr-4" onClick={() => setShowCheckout(false)}>
+        {showCheckout && <Button variant="ghost" size="icon" onClick={() => setShowCheckout(false)} className="mr-4">
           <ChevronsLeft size={24} />
         </Button>}
         
@@ -319,5 +297,4 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
-
 export default POS;
