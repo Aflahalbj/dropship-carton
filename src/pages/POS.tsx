@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "sonner";
 import { useAppContext, Product } from "@/context/AppContext";
 import { Input } from "@/components/ui/input";
@@ -28,12 +28,14 @@ function ProductCard({
     }
   }}>
       <div className="h-40 overflow-hidden flex items-center justify-center">
-        <img 
-          src={product.image || defaultImage} 
-          alt={product.name} 
-          onError={e => (e.target as HTMLImageElement).src = defaultImage} 
-          className="w-full h-full object-cover" 
-        />
+        <AspectRatio ratio={1/1} className="w-full">
+          <img 
+            src={product.image || defaultImage} 
+            alt={product.name} 
+            onError={e => (e.target as HTMLImageElement).src = defaultImage} 
+            className="w-full h-full object-cover" 
+          />
+        </AspectRatio>
       </div>
       <div className="p-2 flex-grow px-[10px] py-[10px]">
         <div className="flex justify-between items-start">
