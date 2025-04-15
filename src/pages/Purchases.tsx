@@ -4,6 +4,7 @@ import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Search, Package, Plus, Minus, ShoppingCart, X, Check, ArrowUpDown } from 'lucide-react';
 import { toast } from "sonner";
 import { useLocation } from 'react-router-dom';
@@ -226,13 +227,15 @@ const Purchases = () => {
           toast.success(`${product.name} ditambahkan ke keranjang`);
         }}
       >
-        <div className="h-20 overflow-hidden">
-          <img 
-            src={product.image || defaultImage} 
-            alt={product.name}
-            className="w-full h-full object-cover"
-            onError={(e) => (e.target as HTMLImageElement).src = defaultImage} 
-          />
+        <div className="h-40 overflow-hidden flex items-center justify-center">
+          <AspectRatio ratio={1/1} className="w-full">
+            <img 
+              src={product.image || defaultImage} 
+              alt={product.name}
+              className="w-full h-full object-cover"
+              onError={(e) => (e.target as HTMLImageElement).src = defaultImage} 
+            />
+          </AspectRatio>
         </div>
         <div className="p-2 flex-grow">
           <div className="flex justify-between items-start">
