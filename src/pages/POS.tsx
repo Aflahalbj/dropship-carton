@@ -9,7 +9,6 @@ import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
-
 function ProductCard({
   product
 }: {
@@ -28,13 +27,8 @@ function ProductCard({
     }
   }}>
       <div className="h-40 overflow-hidden flex items-center justify-center">
-        <AspectRatio ratio={1/1} className="w-full">
-          <img 
-            src={product.image || defaultImage} 
-            alt={product.name} 
-            onError={e => (e.target as HTMLImageElement).src = defaultImage} 
-            className="w-full h-full object-cover" 
-          />
+        <AspectRatio ratio={1 / 1} className="w-full">
+          <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full object-cover" />
         </AspectRatio>
       </div>
       <div className="p-2 flex-grow px-[10px] py-[10px]">
@@ -50,7 +44,6 @@ function ProductCard({
       </div>
     </Card>;
 }
-
 function CartView({
   onCheckout
 }: {
@@ -131,7 +124,6 @@ function CartView({
       </div>
     </div>;
 }
-
 const POS: React.FC = () => {
   const {
     products,
@@ -190,7 +182,7 @@ const POS: React.FC = () => {
     }
   };
   const shouldShowCartIcon = posCart.length > 0 && !showCheckout;
-  return <div className="container mx-auto animate-slide-up py-0 px-0">
+  return <div className="container animate-slide-up py-[10px] mx-0 px-[21px]">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Point of Sale</h1>
         
@@ -264,5 +256,4 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
-
 export default POS;
