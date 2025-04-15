@@ -200,10 +200,10 @@ const Expenses = () => {
       </div>
       
       <div className="bg-card border rounded-lg overflow-hidden">
-        <div className="p-4 bg-accent border-b flex justify-between items-center">
-          <h3 className="font-medium">Riwayat Pengeluaran</h3>
+        <div className="p-4 bg-accent border-b">
+          <h3 className="font-medium mb-3">Riwayat Pengeluaran</h3>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button 
               variant="outline" 
               size="sm" 
