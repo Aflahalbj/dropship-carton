@@ -118,9 +118,12 @@ const Expenses = () => {
           <p className="text-muted-foreground">Pantau dan kelola pengeluaran</p>
         </div>
         
-        <Button onClick={() => form.reset()} className="bg-primary text-white flex items-center gap-2">
+        <Button 
+          onClick={() => form.reset()} 
+          className="bg-primary text-white flex items-center justify-center rounded-full w-10 h-10 p-0" 
+          variant="default"
+        >
           <Plus size={18} />
-          Tambah Pengeluaran
         </Button>
       </div>
       
