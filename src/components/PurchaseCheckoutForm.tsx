@@ -73,17 +73,24 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
         />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <TextInput 
-            id="supplierPhone" 
-            label="Nomor Telepon (Opsional)" 
-            placeholder="Contoh: 08123456789" 
-            onChange={setSupplierPhone}
-            error={errors.supplierPhone}
-            leadingIcon={Phone}
-            type="tel"
-            pattern="[0-9]*"
-            className="flex items-center"
-          />
+          <div>
+            <label className="block text-sm font-medium text-muted-foreground mb-1">
+              Nomor Telepon (Opsional)
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                <Phone size={16} />
+              </div>
+              <Input 
+                type="tel" 
+                placeholder="Contoh: 08123456789" 
+                value={supplierPhone}
+                onChange={(e) => setSupplierPhone(e.target.value)}
+                pattern="[0-9]*"
+                className="pl-10"
+              />
+            </div>
+          </div>
           
           <TextInput 
             id="supplierAddress" 
