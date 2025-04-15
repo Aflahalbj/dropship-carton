@@ -192,7 +192,7 @@ const POS: React.FC = () => {
     setShowCheckout(false);
     toast.success("Keranjang dikosongkan");
   };
-  return <div className="container animate-slide-up py-[10px] px-0">
+  return <div className="container animate-slide-up py-[10px] px-[2px]">
       <div className="flex justify-between items-center mb-6">
         {showCheckout && <Button variant="ghost" size="icon" className="mr-4" onClick={() => setShowCheckout(false)}>
           <ChevronsLeft size={24} />
