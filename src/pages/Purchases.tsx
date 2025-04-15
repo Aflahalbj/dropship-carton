@@ -71,7 +71,9 @@ const Purchases = () => {
     const purchaseTotal = purchaseProducts.reduce((total, item) => total + item.product.price * item.quantity, 0);
     
     if (purchaseTotal > capital) {
-      toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${capital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`);
+      toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${capital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`, {
+        duration: 1000
+      });
       return;
     }
     
@@ -91,17 +93,23 @@ const Purchases = () => {
     const success = addTransaction(transaction);
     
     if (success) {
-      toast.success("Pembelian berhasil dilakukan!");
+      toast.success("Pembelian berhasil dilakukan!", {
+        duration: 1000
+      });
       setShowCheckout(false);
     } else {
-      toast.error("Modal tidak mencukupi untuk pembelian ini!");
+      toast.error("Modal tidak mencukupi untuk pembelian ini!", {
+        duration: 1000
+      });
     }
   };
 
   const handleClearCartAndReturn = () => {
     clearPurchasesCart();
     setShowCheckout(false);
-    toast.success("Keranjang dikosongkan");
+    toast.success("Keranjang dikosongkan", {
+        duration: 1000
+      });
   };
 
   const shouldShowCartIcon = purchasesCart.length > 0 && !showCheckout;
@@ -192,7 +200,7 @@ function ProductCard({
   return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={() => {
     onAddToCart(product, 1);
     toast.success(`${product.name} ditambahkan ke keranjang`, {
-      duration: 3000
+      duration: 1000
     });
   }}>
     <div className="h-auto overflow-hidden flex items-center justify-center rounded-none px-0 py-0 mx-0 my-0">
