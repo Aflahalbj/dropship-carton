@@ -11,162 +11,6 @@ import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
 
-function ProductCard({
-  product
-}: {
-  product: Product;
-}) {
-  const {
-    addToPosCart
-  } = useAppContext();
-  const defaultImage = "https://placehold.co/300x150?text=Produk";
-  const handleAddToCart = () => {
-    if (product.stock > 0) {
-      addToPosCart(product, 1);
-      toast.success(`${product.name} ditambahkan ke keranjang`, {
-        duration: 1000
-      });
-    } else {
-      toast.error(`${product.name} stok kosong`, {
-        duration: 1000
-      });
-    }
-  };
-  return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={handleAddToCart}>
-      <div className="h-auto overflow-hidden flex items-center justify-center px-0 py-0 my-0 mx-0">
-        <AspectRatio ratio={1 / 1} className="w-full">
-          <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full object-cover" />
-        </AspectRatio>
-      </div>
-      <div className="p-2 flex-grow px-[10px] py-[10px]">
-        <div className="flex justify-between items-start">
-          <div className="w-full">
-            <h3 className="font-medium text-xs">{product.name}</h3>
-            <p className="text-xs text-muted-foreground">
-              {product.sku} • {product.stock} stok
-            </p>
-            <p className="text-sm font-semibold">Rp{product.price.toLocaleString('id-ID')}</p>
-          </div>
-        </div>
-      </div>
-    </Card>;
-}
-
-function CartView({
-  onCheckout
-}: {
-  onCheckout: (formData: CheckoutFormData) => void;
-}) {
-  const {
-    posCart,
-    removeFromPosCart,
-    updatePosCartItemQuantity,
-    clearPosCart,
-    posCartTotal,
-    posCartProfit
-  } = useAppContext();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
-
-  if (posCart.length === 0) {
-    return <div className="text-center py-10">
-        <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium mb-2">Keranjang Anda kosong</h3>
-        <p className="text-muted-foreground mb-4">Tambahkan produk ke keranjang untuk melakukan penjualan</p>
-      </div>;
-  }
-
-  const handlePriceChange = (productId: string, newPrice: number) => {
-    setTemporaryPrices(prev => ({
-      ...prev,
-      [productId]: newPrice
-    }));
-  };
-
-  const handleSubmit = (formData: CheckoutFormData) => {
-    setIsProcessing(true);
-    const modifiedCart = posCart.map(item => {
-      if (temporaryPrices[item.product.id]) {
-        return {
-          ...item,
-          product: {
-            ...item.product,
-            price: temporaryPrices[item.product.id]
-          }
-        };
-      }
-      return item;
-    });
-    onCheckout({
-      ...formData,
-      modifiedCart
-    });
-  };
-
-  return <div className="animate-slide-up grid gap-6 md:grid-cols-5">
-      <div className="md:col-span-3">
-        <div className="border rounded-lg overflow-hidden">
-          <div className="bg-accent p-3 border-b flex justify-between items-center">
-            <h3 className="font-medium">Item Keranjang</h3>
-            
-          </div>
-          
-          <div className="divide-y">
-            {posCart.map(item => {
-            const discountedPrice = temporaryPrices[item.product.id];
-            return <div key={item.product.id} className="p-4 flex justify-between items-center">
-                <div className="flex-1">
-                  {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
-                      <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
-                    </div>}
-                  <div>
-                    <h4 className="font-medium">{item.product.name}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {item.quantity} × Rp{(discountedPrice || item.product.price).toLocaleString('id-ID')} = Rp{((discountedPrice || item.product.price) * item.quantity).toLocaleString('id-ID')}
-                    </p>
-                    
-                    <CartItemPriceEditor productId={item.product.id} originalPrice={item.product.price} discountedPrice={discountedPrice} onPriceChange={handlePriceChange} />
-                  </div>
-                </div>
-                
-                <div className="w-20">
-                  <Input type="text" placeholder="0" defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} onBlur={e => {
-                  const newValue = e.target.value.trim();
-                  const newQuantity = newValue === "" ? 0 : parseInt(newValue);
-                  if (!isNaN(newQuantity)) {
-                    updatePosCartItemQuantity(item.product.id, newQuantity);
-                  }
-                }} onChange={e => {
-                  const value = e.target.value.replace(/[^0-9]/g, '');
-                  e.target.value = value;
-                }} onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.currentTarget.blur();
-                  }
-                }} className="w-10 h-10 text-center text-sm font-medium px-0 mx-[47px]" />
-                </div>
-                
-                <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPosCart(item.product.id)}>
-                  <X size={18} />
-                </Button>
-              </div>;
-          })}
-          </div>
-        </div>
-      </div>
-      
-      <div className="md:col-span-2">
-        <CheckoutForm cartTotal={posCart.reduce((total, item) => {
-        const itemPrice = temporaryPrices[item.product.id] || item.product.price;
-        return total + itemPrice * item.quantity;
-      }, 0)} cartProfit={posCart.reduce((total, item) => {
-        const itemPrice = temporaryPrices[item.product.id] || item.product.price;
-        return total + (itemPrice - item.product.supplierPrice) * item.quantity;
-      }, 0)} onSubmit={handleSubmit} isProcessing={isProcessing} />
-      </div>
-    </div>;
-}
-
 const POS: React.FC = () => {
   const {
     products,
@@ -211,20 +55,7 @@ const POS: React.FC = () => {
       });
       return;
     }
-    const productsToProcess = formData.modifiedCart || posCart;
-    const transaction = {
-      date: new Date(),
-      products: productsToProcess,
-      total: productsToProcess.reduce((total, item) => total + item.product.price * item.quantity, 0),
-      profit: productsToProcess.reduce((total, item) => total + (item.product.price - item.product.supplierPrice) * item.quantity, 0),
-      type: 'sale' as const,
-      customerName: formData.customerName,
-      customerPhone: formData.customerPhone,
-      customerAddress: formData.customerAddress,
-      paymentMethod: formData.paymentMethod,
-      cashAmount: formData.cashAmount,
-      changeAmount: formData.paymentMethod === 'cash' ? Math.max(0, formData.cashAmount - productsToProcess.reduce((total, item) => total + item.product.price * item.quantity, 0)) : 0
-    };
+
     const success = addTransaction(transaction);
     if (success) {
       toast.success("Transaksi berhasil!", {
@@ -236,6 +67,158 @@ const POS: React.FC = () => {
         duration: 1000
       });
     }
+  };
+
+  const ProductCard = ({ product }: { product: Product }) => {
+    const {
+      addToPosCart
+    } = useAppContext();
+    const defaultImage = "https://placehold.co/300x150?text=Produk";
+    const handleAddToCart = () => {
+      if (product.stock > 0) {
+        addToPosCart(product, 1);
+        toast.success(`${product.name} ditambahkan ke keranjang`, {
+          duration: 1000
+        });
+      } else {
+        toast.error(`${product.name} stok kosong`, {
+          duration: 1000
+        });
+      }
+    };
+    return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={handleAddToCart}>
+        <div className="h-auto overflow-hidden flex items-center justify-center px-0 py-0 my-0 mx-0">
+          <AspectRatio ratio={1 / 1} className="w-full">
+            <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full object-cover" />
+          </AspectRatio>
+        </div>
+        <div className="p-2 flex-grow px-[10px] py-[10px]">
+          <div className="flex justify-between items-start">
+            <div className="w-full">
+              <h3 className="font-medium text-xs">{product.name}</h3>
+              <p className="text-xs text-muted-foreground">
+                {product.sku} • {product.stock} stok
+              </p>
+              <p className="text-sm font-semibold">Rp{product.price.toLocaleString('id-ID')}</p>
+            </div>
+          </div>
+        </div>
+      </Card>;
+  };
+
+  const CartView = ({
+    onCheckout
+  }: {
+    onCheckout: (formData: CheckoutFormData) => void;
+  }) => {
+    const {
+      posCart,
+      removeFromPosCart,
+      updatePosCartItemQuantity,
+      clearPosCart,
+      posCartTotal,
+      posCartProfit
+    } = useAppContext();
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
+
+    if (posCart.length === 0) {
+      return <div className="text-center py-10">
+          <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium mb-2">Keranjang Anda kosong</h3>
+          <p className="text-muted-foreground mb-4">Tambahkan produk ke keranjang untuk melakukan penjualan</p>
+        </div>;
+    }
+
+    const handlePriceChange = (productId: string, newPrice: number) => {
+      setTemporaryPrices(prev => ({
+        ...prev,
+        [productId]: newPrice
+      }));
+    };
+
+    const handleSubmit = (formData: CheckoutFormData) => {
+      setIsProcessing(true);
+      const modifiedCart = posCart.map(item => {
+        if (temporaryPrices[item.product.id]) {
+          return {
+            ...item,
+            product: {
+              ...item.product,
+              price: temporaryPrices[item.product.id]
+            }
+          };
+        }
+        return item;
+      });
+      onCheckout({
+        ...formData,
+        modifiedCart
+      });
+    };
+
+    return <div className="animate-slide-up grid gap-6 md:grid-cols-5">
+        <div className="md:col-span-3">
+          <div className="border rounded-lg overflow-hidden">
+            <div className="bg-accent p-3 border-b flex justify-between items-center">
+              <h3 className="font-medium">Item Keranjang</h3>
+              
+            </div>
+            
+            <div className="divide-y">
+              {posCart.map(item => {
+              const discountedPrice = temporaryPrices[item.product.id];
+              return <div key={item.product.id} className="p-4 flex justify-between items-center">
+                  <div className="flex-1">
+                    {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
+                        <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
+                      </div>}
+                    <div>
+                      <h4 className="font-medium">{item.product.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {item.quantity} × Rp{(discountedPrice || item.product.price).toLocaleString('id-ID')} = Rp{((discountedPrice || item.product.price) * item.quantity).toLocaleString('id-ID')}
+                      </p>
+                      
+                      <CartItemPriceEditor productId={item.product.id} originalPrice={item.product.price} discountedPrice={discountedPrice} onPriceChange={handlePriceChange} />
+                    </div>
+                  </div>
+                  
+                  <div className="w-20">
+                    <Input type="text" placeholder="0" defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} onBlur={e => {
+                    const newValue = e.target.value.trim();
+                    const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                    if (!isNaN(newQuantity)) {
+                      updatePosCartItemQuantity(item.product.id, newQuantity);
+                    }
+                  }} onChange={e => {
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    e.target.value = value;
+                  }} onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur();
+                    }
+                  }} className="w-10 h-10 text-center text-sm font-medium px-0 mx-[47px]" />
+                  </div>
+                  
+                  <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPosCart(item.product.id)}>
+                    <X size={18} />
+                  </Button>
+                </div>;
+            })}
+            </div>
+          </div>
+        </div>
+        
+        <div className="md:col-span-2">
+          <CheckoutForm cartTotal={posCart.reduce((total, item) => {
+          const itemPrice = temporaryPrices[item.product.id] || item.product.price;
+          return total + itemPrice * item.quantity;
+        }, 0)} cartProfit={posCart.reduce((total, item) => {
+          const itemPrice = temporaryPrices[item.product.id] || item.product.price;
+          return total + (itemPrice - item.product.supplierPrice) * item.quantity;
+        }, 0)} onSubmit={handleSubmit} isProcessing={isProcessing} />
+        </div>
+      </div>;
   };
 
   const shouldShowCartIcon = posCart.length > 0 && !showCheckout;

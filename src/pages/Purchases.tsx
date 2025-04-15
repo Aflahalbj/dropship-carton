@@ -56,19 +56,9 @@ const Purchases = () => {
 
   const handlePurchase = () => {
     if (purchasesCart.length === 0) {
-      toast.error("Keranjang kosong");
+      toast.error("Keranjang kosong", { duration: 1000 });
       return;
     }
-    
-    const purchaseProducts = purchasesCart.map(item => ({
-      product: {
-        ...item.product,
-        price: item.product.supplierPrice
-      },
-      quantity: item.quantity
-    }));
-    
-    const purchaseTotal = purchaseProducts.reduce((total, item) => total + item.product.price * item.quantity, 0);
     
     if (purchaseTotal > capital) {
       toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${capital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`, {
@@ -76,19 +66,6 @@ const Purchases = () => {
       });
       return;
     }
-    
-    const transaction = {
-      date: new Date(),
-      products: purchaseProducts,
-      total: purchaseTotal,
-      profit: 0,
-      type: 'purchase' as const,
-      supplierName: '',
-      supplierPhone: '',
-      supplierAddress: '',
-      paymentMethod: 'cash' as const,
-      cashAmount: 0
-    };
     
     const success = addTransaction(transaction);
     
@@ -108,8 +85,8 @@ const Purchases = () => {
     clearPurchasesCart();
     setShowCheckout(false);
     toast.success("Keranjang dikosongkan", {
-        duration: 1000
-      });
+      duration: 1000
+    });
   };
 
   const shouldShowCartIcon = purchasesCart.length > 0 && !showCheckout;
