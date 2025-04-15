@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -62,8 +63,8 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <Toaster 
-            duration={3000}  // Set global default toast duration to 3 seconds
-            position="top-center"  // Optional: set a default position
+            duration={1000}  // Changed to 1 second (1000 milliseconds)
+            position="top-center"
           />
           <AppRoutes />
         </BrowserRouter>

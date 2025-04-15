@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -57,7 +56,6 @@ const POS: React.FC = () => {
       return;
     }
 
-    // Create a transaction object
     const transaction = {
       date: new Date(),
       products: posCart,
