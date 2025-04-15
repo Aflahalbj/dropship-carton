@@ -86,8 +86,8 @@ const Purchases = () => {
   return <div className="container mx-auto animate-slide-up py-[10px] px-[20px]">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-center">Pembelian Persediaan</h2>
-          <p className="text-muted-foreground text-center">Tambah stok barang dari pemasok</p>
+          <h2 className="text-3xl font-bold tracking-tight text-left">Pembelian Persediaan</h2>
+          <p className="text-muted-foreground text-left">Tambah stok barang dari pemasok</p>
         </div>
         
         {purchasesCart.length > 0 && !showCheckout}
@@ -167,7 +167,7 @@ function ProductCard({
     onAddToCart(product, 1);
     toast.success(`${product.name} ditambahkan ke keranjang`, {
       duration: 3000
-     });
+    });
   }}>
     <div className="h-auto overflow-hidden flex items-center justify-center rounded-none px-0 py-0 mx-0 my-0">
       <AspectRatio ratio={1 / 1} className="w-full">
