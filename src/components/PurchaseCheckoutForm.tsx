@@ -51,12 +51,20 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
       
       <div className="flex gap-4">
         <Button 
+          variant="outline" 
+          className="flex-1" 
+          onClick={() => onCheckout()}
+          disabled={isProcessing}
+        >
+          Kosongkan Keranjang
+        </Button>
+        <Button 
           className="flex-1 bg-primary text-white flex items-center justify-center gap-2"
           onClick={handleSubmit}
           disabled={isProcessing || insufficientFunds}
         >
           <Check size={18} />
-          Selesaikan Pembelian Rp{purchaseTotal.toLocaleString('id-ID')}
+          Selesaikan Pembelian
         </Button>
       </div>
     </div>

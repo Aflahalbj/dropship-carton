@@ -10,6 +10,7 @@ import { useLocation } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
+import { PurchaseCheckoutForm } from '@/components/PurchaseCheckoutForm';
 
 const Purchases = () => {
   const {
@@ -222,6 +223,7 @@ function CartView({
   setShowCheckout
 }: CartViewProps) {
   const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (purchasesCart.length === 0) {
     return <div className="text-center py-10">
@@ -245,6 +247,27 @@ function CartView({
     const itemPrice = temporaryPrices[item.product.id] || item.product.supplierPrice;
     return total + itemPrice * item.quantity;
   }, 0);
+
+  const handleCheckout = () => {
+    setIsProcessing(true);
+    
+    const modifiedCart = purchasesCart.map(item => {
+      if (temporaryPrices[item.product.id]) {
+        return {
+          ...item,
+          product: {
+            ...item.product,
+            supplierPrice: temporaryPrices[item.product.id]
+          }
+        };
+      }
+      return item;
+    });
+    
+    onCheckout();
+    
+    setIsProcessing(false);
+  };
 
   return <div className="animate-slide-up">
       <div className="border rounded-lg overflow-hidden mb-6">
@@ -307,78 +330,12 @@ function CartView({
         </div>
       </div>
       
-      <div className="bg-card border rounded-lg p-5">
-        <div className="space-y-3 mb-6">
-          <div className="flex justify-between text-lg font-semibold">
-            <span>Total Pembelian:</span>
-            <span>Rp{purchaseTotal.toLocaleString('id-ID')}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Modal Saat Ini:</span>
-            <span className="font-medium">Rp{capital.toLocaleString('id-ID')}</span>
-          </div>
-          {purchaseTotal > capital && <div className="text-destructive text-sm mt-2">
-              Modal tidak mencukupi untuk pembelian ini!
-            </div>}
-        </div>
-        
-        <div className="flex gap-4">
-          <Button variant="outline" className="flex-1" onClick={() => clearPurchasesCart()}>
-            Kosongkan Keranjang
-          </Button>
-          <Button className="flex-1 bg-primary text-white flex items-center justify-center gap-2" onClick={() => {
-            const modifiedCart = purchasesCart.map(item => {
-              if (temporaryPrices[item.product.id]) {
-                return {
-                  product: {
-                    ...item.product,
-                    supplierPrice: temporaryPrices[item.product.id]
-                  },
-                  quantity: item.quantity
-                };
-              }
-              return item;
-            });
-            
-            const purchaseProducts = modifiedCart.map(item => ({
-              product: {
-                ...item.product,
-                price: item.product.supplierPrice
-              },
-              quantity: item.quantity
-            }));
-            
-            const updatedPurchaseTotal = purchaseProducts.reduce(
-              (total, item) => total + item.product.price * item.quantity, 
-              0
-            );
-            
-            if (updatedPurchaseTotal > capital) {
-              toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${capital.toLocaleString('id-ID')}, Total pembelian: Rp${updatedPurchaseTotal.toLocaleString('id-ID')}`);
-              return;
-            }
-            
-            const transaction = {
-              date: new Date(),
-              products: purchaseProducts,
-              total: updatedPurchaseTotal,
-              profit: 0,
-              type: 'purchase' as const
-            };
-            
-            const success = onCheckout();
-            if (success) {
-              toast.success("Pembelian berhasil dilakukan!");
-              setShowCheckout(false);
-            } else {
-              toast.error("Modal tidak mencukupi untuk pembelian ini!");
-            }
-          }} disabled={purchaseTotal > capital}>
-            <Check size={18} />
-            Selesaikan Pembelian
-          </Button>
-        </div>
-      </div>
+      <PurchaseCheckoutForm 
+        purchaseTotal={purchaseTotal}
+        currentCapital={capital}
+        onCheckout={handleCheckout}
+        isProcessing={isProcessing}
+      />
     </div>;
 }
 
