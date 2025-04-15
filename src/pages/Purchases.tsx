@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product, CartItem } from '../context/AppContext'; // Added CartItem import
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { toast } from "sonner";
 import { useLocation } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import CartItemPriceEditor from '@/components/CartItemPriceEditor';
 
 const Purchases = () => {
   const {
@@ -28,6 +28,7 @@ const Purchases = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
+  const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
     handlePageNavigation(location.pathname);
@@ -220,6 +221,8 @@ function CartView({
   updatePurchasesCartItemQuantity,
   setShowCheckout
 }: CartViewProps) {
+  const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
+
   if (purchasesCart.length === 0) {
     return <div className="text-center py-10">
         <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -230,7 +233,19 @@ function CartView({
         </Button>
       </div>;
   }
-  const purchaseTotal = purchasesCart.reduce((total, item) => total + item.product.supplierPrice * item.quantity, 0);
+
+  const handlePriceChange = (productId: string, newPrice: number) => {
+    setTemporaryPrices(prev => ({
+      ...prev,
+      [productId]: newPrice
+    }));
+  };
+  
+  const purchaseTotal = purchasesCart.reduce((total, item) => {
+    const itemPrice = temporaryPrices[item.product.id] || item.product.supplierPrice;
+    return total + itemPrice * item.quantity;
+  }, 0);
+
   return <div className="animate-slide-up">
       <div className="border rounded-lg overflow-hidden mb-6">
         <div className="bg-accent p-3 border-b flex justify-between items-center">
@@ -241,13 +256,25 @@ function CartView({
         </div>
         
         <div className="divide-y">
-          {purchasesCart.map(item => <div key={item.product.id} className="p-4 flex justify-between items-center">
+          {purchasesCart.map(item => {
+            const discountedPrice = temporaryPrices[item.product.id];
+            
+            return <div key={item.product.id} className="p-4 flex justify-between items-center">
               <div className="flex-1">
                 {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
                     <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
                   </div>}
                 <h4 className="font-medium">{item.product.name}</h4>
-                <p className="text-sm text-muted-foreground">{item.product.sku}</p>
+                <p className="text-sm text-muted-foreground">
+                  {item.quantity} × Rp{(discountedPrice || item.product.supplierPrice).toLocaleString('id-ID')} = Rp{((discountedPrice || item.product.supplierPrice) * item.quantity).toLocaleString('id-ID')}
+                </p>
+                
+                <CartItemPriceEditor 
+                  productId={item.product.id}
+                  originalPrice={item.product.supplierPrice}
+                  discountedPrice={discountedPrice}
+                  onPriceChange={handlePriceChange}
+                />
               </div>
               
               <div className="w-20">
@@ -268,14 +295,15 @@ function CartView({
               </div>
               
               <div className="text-right ml-4 w-24">
-                <div className="font-medium">Rp{(item.product.supplierPrice * item.quantity).toLocaleString('id-ID')}</div>
-                <div className="text-xs text-muted-foreground">Rp{item.product.supplierPrice.toLocaleString('id-ID')} per unit</div>
+                <div className="font-medium">Rp{((discountedPrice || item.product.supplierPrice) * item.quantity).toLocaleString('id-ID')}</div>
+                <div className="text-xs text-muted-foreground">Rp{(discountedPrice || item.product.supplierPrice).toLocaleString('id-ID')} per unit</div>
               </div>
               
               <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPurchasesCart(item.product.id)}>
                 <X size={18} />
               </Button>
-            </div>)}
+            </div>
+          })}
         </div>
       </div>
       
@@ -298,7 +326,54 @@ function CartView({
           <Button variant="outline" className="flex-1" onClick={() => clearPurchasesCart()}>
             Kosongkan Keranjang
           </Button>
-          <Button className="flex-1 bg-primary text-white flex items-center justify-center gap-2" onClick={onCheckout} disabled={purchaseTotal > capital}>
+          <Button className="flex-1 bg-primary text-white flex items-center justify-center gap-2" onClick={() => {
+            const modifiedCart = purchasesCart.map(item => {
+              if (temporaryPrices[item.product.id]) {
+                return {
+                  product: {
+                    ...item.product,
+                    supplierPrice: temporaryPrices[item.product.id]
+                  },
+                  quantity: item.quantity
+                };
+              }
+              return item;
+            });
+            
+            const purchaseProducts = modifiedCart.map(item => ({
+              product: {
+                ...item.product,
+                price: item.product.supplierPrice
+              },
+              quantity: item.quantity
+            }));
+            
+            const updatedPurchaseTotal = purchaseProducts.reduce(
+              (total, item) => total + item.product.price * item.quantity, 
+              0
+            );
+            
+            if (updatedPurchaseTotal > capital) {
+              toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${capital.toLocaleString('id-ID')}, Total pembelian: Rp${updatedPurchaseTotal.toLocaleString('id-ID')}`);
+              return;
+            }
+            
+            const transaction = {
+              date: new Date(),
+              products: purchaseProducts,
+              total: updatedPurchaseTotal,
+              profit: 0,
+              type: 'purchase' as const
+            };
+            
+            const success = onCheckout();
+            if (success) {
+              toast.success("Pembelian berhasil dilakukan!");
+              setShowCheckout(false);
+            } else {
+              toast.error("Modal tidak mencukupi untuk pembelian ini!");
+            }
+          }} disabled={purchaseTotal > capital}>
             <Check size={18} />
             Selesaikan Pembelian
           </Button>
