@@ -53,15 +53,25 @@ const Expenses = () => {
     mode: 'onSubmit' // Only validate on submit
   });
 
-  // Filter expenses
-  const filteredExpenses = expenses.filter(expense => {
-    // Filter by search term
-    const matchesSearch = !searchTerm || expense.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-    // Filter by category
-    const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  }).sort((a, b) => b.date.getTime() - a.date.getTime()); // Sort by date descending
+  // Filter expenses and ensure all date objects are properly instantiated
+  const filteredExpenses = expenses
+    .filter(expense => {
+      // Filter by search term
+      const matchesSearch = !searchTerm || expense.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Filter by category
+      const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    })
+    .map(expense => ({
+      ...expense,
+      // Ensure date is a proper Date object
+      date: expense.date instanceof Date ? expense.date : new Date(expense.date)
+    }))
+    .sort((a, b) => {
+      // Now we can safely use getTime() since we've ensured both are Date objects
+      return b.date.getTime() - a.date.getTime();
+    }); // Sort by date descending
 
   // Form submission
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -104,6 +114,7 @@ const Expenses = () => {
 
   // Calculate total expenses
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  
   return <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -183,7 +194,7 @@ const Expenses = () => {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus className="pointer-events-auto" />
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
@@ -250,7 +261,7 @@ const Expenses = () => {
                   <div>
                     <p className="font-medium">{expense.description}</p>
                     <div className="flex items-center text-xs text-muted-foreground gap-2">
-                      <span>{format(new Date(expense.date), "d MMMM yyyy")}</span>
+                      <span>{format(expense.date, "d MMMM yyyy")}</span>
                       <span className="bg-accent rounded-full px-2 py-0.5">
                         {expense.category}
                       </span>
