@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,6 +7,7 @@ import { useFormValidation } from '@/utils/form-helpers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, User, CreditCard, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAppContext } from '@/context/AppContext';
 
 interface CheckoutFormProps {
   cartTotal: number;
@@ -18,6 +20,7 @@ export interface CheckoutFormData {
   customerName: string;
   paymentMethod: 'cash' | 'transfer';
   cashAmount: number;
+  modifiedCart?: any[]; // Add the missing modifiedCart property
 }
 
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({
@@ -212,3 +215,4 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     </Card>
   );
 };
+
