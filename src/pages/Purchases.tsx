@@ -141,8 +141,8 @@ const Purchases = () => {
             </div>}
         </> : <CartView onCheckout={handlePurchase} />}
       
-      {shouldShowCartIcon && <Button className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary text-white hover:bg-primary/90 transition-all" onClick={() => setShowCheckout(true)}>
-          <div className="relative">
+      {shouldShowCartIcon && <Button onClick={() => setShowCheckout(true)} className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary hover:bg-primary/90 transition-all font-normal text-white px-0 py-0 mx-0 text-base">
+          <div className="relative px-[5px] py-[5px]">
             <ShoppingCart size={24} />
             <span className="absolute -top-2 -right-2 bg-white text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
               {purchasesCart.length}
