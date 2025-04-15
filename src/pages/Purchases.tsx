@@ -83,8 +83,8 @@ const Purchases = () => {
   return <div className="container mx-auto animate-slide-up py-[10px] px-[20px]">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Pembelian Persediaan</h2>
-          <p className="text-muted-foreground">Tambah stok barang dari pemasok</p>
+          <h2 className="text-3xl font-bold tracking-tight text-center">Pembelian Persediaan</h2>
+          <p className="text-muted-foreground text-center">Tambah stok barang dari pemasok</p>
         </div>
         
         {purchasesCart.length > 0 && !showCheckout}
