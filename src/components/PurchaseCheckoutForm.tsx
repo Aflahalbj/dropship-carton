@@ -1,12 +1,11 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Check } from 'lucide-react';
+import { Check, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { useFormValidation } from '@/utils/form-helpers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CurrencyInput, TextInput } from './FormInputs';
-import { CreditCard, Wallet, Phone, MapPin } from 'lucide-react';
+import { CreditCard, Wallet } from 'lucide-react';
 
 interface PurchaseCheckoutFormProps {
   purchaseTotal: number;
@@ -21,10 +20,9 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
   onCheckout,
   isProcessing
 }) => {
-  // Form state
   const [supplierName, setSupplierName] = useState<string>('');
-  const [supplierPhone, setSupplierPhone] = useState<string>(''); // New state for supplier phone
-  const [supplierAddress, setSupplierAddress] = useState<string>(''); // New state for supplier address
+  const [supplierPhone, setSupplierPhone] = useState<string>('');
+  const [supplierAddress, setSupplierAddress] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
   const [cashAmount, setCashAmount] = useState<number>(0);
 
@@ -40,7 +38,6 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
       return;
     }
     
-    // Additional validation for cash payment
     if (paymentMethod === 'cash' && cashAmount < purchaseTotal) {
       setErrors(prev => ({
         ...prev,
@@ -79,9 +76,12 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
           <TextInput 
             id="supplierPhone" 
             label="Nomor Telepon (Opsional)" 
-            placeholder="Nomor telepon supplier" 
+            placeholder="Contoh: 08123456789" 
             onChange={setSupplierPhone}
             error={errors.supplierPhone}
+            leadingIcon={Phone}
+            type="tel"
+            pattern="[0-9]*"
             className="flex items-center"
           />
           

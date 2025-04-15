@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Input } from "@/components/ui/input";
 import { useControlledCurrencyInput, useControlledTextInput } from '@/utils/form-helpers';
+import { LucideIcon } from 'lucide-react';
 
 interface CurrencyInputProps {
   id?: string;
@@ -26,7 +26,6 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({
 }) => {
   const { formattedValue, handleChange, parsedValue } = useControlledCurrencyInput(initialValue);
   
-  // Only trigger onChange when input is complete (on blur)
   const handleBlur = () => {
     if (onChange) {
       onChange(parsedValue);
@@ -62,6 +61,9 @@ interface TextInputProps {
   className?: string;
   disabled?: boolean;
   error?: string;
+  type?: 'text' | 'tel' | 'email';
+  pattern?: string;
+  leadingIcon?: LucideIcon;
   onChange?: (value: string) => void;
 }
 
@@ -73,11 +75,13 @@ export const TextInput: React.FC<TextInputProps> = ({
   className = '',
   disabled = false,
   error,
+  type = 'text',
+  pattern,
+  leadingIcon: LeadingIcon,
   onChange
 }) => {
   const { value, handleChange } = useControlledTextInput(initialValue);
   
-  // Only trigger onChange when input is complete (on blur)
   const handleBlur = () => {
     if (onChange) {
       onChange(value);
@@ -87,15 +91,24 @@ export const TextInput: React.FC<TextInputProps> = ({
   return (
     <div className={`w-full ${className}`}>
       {label && <label className="block text-sm font-medium text-muted-foreground mb-1" htmlFor={id}>{label}</label>}
-      <Input
-        id={id}
-        type="text"
-        value={value}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        placeholder={placeholder}
-        disabled={disabled}
-      />
+      <div className="relative">
+        {LeadingIcon && (
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+            <LeadingIcon size={16} />
+          </div>
+        )}
+        <Input
+          id={id}
+          type={type}
+          value={value}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder={placeholder}
+          disabled={disabled}
+          pattern={pattern}
+          className={`${LeadingIcon ? 'pl-10' : ''}`}
+        />
+      </div>
       {error && <p className="mt-1 text-sm text-destructive">{error}</p>}
     </div>
   );
