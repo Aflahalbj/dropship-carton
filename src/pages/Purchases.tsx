@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Search, Package, Plus, Minus, ShoppingCart, X, Check, ArrowUpDown } from 'lucide-react';
+import { Search, Package, Plus, Minus, ShoppingCart, X, Check, ArrowUpDown, ChevronsLeft, Trash2 } from 'lucide-react';
 import { toast } from "sonner";
 import { useLocation } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
 import { PurchaseCheckoutForm } from '@/components/PurchaseCheckoutForm';
+
 const Purchases = () => {
   const {
     products,
@@ -29,9 +30,11 @@ const Purchases = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
+
   useEffect(() => {
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
+
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortOrder) {
       case "name-asc":
@@ -50,6 +53,7 @@ const Purchases = () => {
         return 0;
     }
   });
+
   const handlePurchase = () => {
     if (purchasesCart.length === 0) {
       toast.error("Keranjang kosong");
@@ -82,19 +86,28 @@ const Purchases = () => {
       toast.error("Modal tidak mencukupi untuk pembelian ini!");
     }
   };
+
+  const handleClearCartAndReturn = () => {
+    clearPurchasesCart();
+    setShowCheckout(false);
+    toast.success("Keranjang dikosongkan");
+  };
+
   const shouldShowCartIcon = purchasesCart.length > 0 && !showCheckout;
-  return <div className="container mx-auto animate-slide-up py-[10px] px-[20px]">
+
+  return <div className="container mx-auto animate-slide-up py-[10px] px-[2px]">
       <div className="flex justify-between items-center mb-6">
-        <div>
+        {showCheckout && <Button variant="ghost" size="icon" onClick={() => setShowCheckout(false)} className="mr-4">
+          <ChevronsLeft size={24} />
+        </Button>}
+        
+        <div className="w-full text-center">
           <h2 className="text-3xl font-bold tracking-tight text-left">Pembelian Persediaan</h2>
           <p className="text-muted-foreground text-left">Tambah stok barang dari pemasok</p>
         </div>
         
-        {purchasesCart.length > 0 && !showCheckout}
-        
-        {showCheckout && <Button variant="outline" className="border-primary text-primary flex items-center gap-2" onClick={() => setShowCheckout(false)}>
-            <X size={18} />
-            Kembali ke Produk
+        {purchasesCart.length > 0 && <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleClearCartAndReturn}>
+            <Trash2 size={20} />
           </Button>}
       </div>
       
@@ -135,7 +148,7 @@ const Purchases = () => {
             </DropdownMenu>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 px-0 mx-0 my-0 py-0">
             {filteredProducts.map(product => <ProductCard key={product.id} product={product} onAddToCart={addToPurchasesCart} />)}
           </div>
           
@@ -154,10 +167,12 @@ const Purchases = () => {
         </Button>}
     </div>;
 };
+
 interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product, quantity: number) => void;
 }
+
 function ProductCard({
   product,
   onAddToCart
@@ -185,6 +200,7 @@ function ProductCard({
     </div>
   </Card>;
 }
+
 interface CartViewProps {
   onCheckout: () => void;
   purchasesCart: CartItem[];
@@ -194,6 +210,7 @@ interface CartViewProps {
   updatePurchasesCartItemQuantity: (productId: string, quantity: number) => void;
   setShowCheckout: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
 function CartView({
   onCheckout,
   purchasesCart,
@@ -205,6 +222,7 @@ function CartView({
 }: CartViewProps) {
   const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+
   if (purchasesCart.length === 0) {
     return <div className="text-center py-10">
         <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -215,16 +233,19 @@ function CartView({
         </Button>
       </div>;
   }
+
   const handlePriceChange = (productId: string, newPrice: number) => {
     setTemporaryPrices(prev => ({
       ...prev,
       [productId]: newPrice
     }));
   };
+
   const purchaseTotal = purchasesCart.reduce((total, item) => {
     const itemPrice = temporaryPrices[item.product.id] || item.product.supplierPrice;
     return total + itemPrice * item.quantity;
   }, 0);
+
   const handleCheckout = () => {
     setIsProcessing(true);
     const modifiedCart = purchasesCart.map(item => {
@@ -242,6 +263,7 @@ function CartView({
     onCheckout();
     setIsProcessing(false);
   };
+
   return <div className="animate-slide-up">
       <div className="border rounded-lg overflow-hidden mb-6">
         <div className="bg-accent p-3 border-b flex justify-between items-center">
@@ -291,4 +313,5 @@ function CartView({
       <PurchaseCheckoutForm purchaseTotal={purchaseTotal} currentCapital={capital} onCheckout={handleCheckout} isProcessing={isProcessing} />
     </div>;
 }
+
 export default Purchases;
