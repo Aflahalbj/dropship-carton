@@ -25,6 +25,7 @@ interface TransactionFilterProps {
   sortField: string;
   sortDirection: 'asc' | 'desc';
   onSortChange: (field: string, direction: 'asc' | 'desc') => void;
+  hideTransactionType?: boolean;
 }
 
 const TransactionFilter: React.FC<TransactionFilterProps> = ({
@@ -34,73 +35,59 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
   onTransactionTypeChange,
   sortField,
   sortDirection,
-  onSortChange
+  onSortChange,
+  hideTransactionType = false
 }) => {
   return (
     <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-      <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-        <Input
-          type="text"
-          placeholder="Cari transaksi..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-      
-      <div className="w-full md:w-40">
-        <Select 
-          value={transactionType}
-          onValueChange={onTransactionTypeChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Semua Transaksi" />
+      <div className="flex flex-1 gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+          <Input
+            type="text"
+            placeholder="Cari produk berdasarkan nama atau SKU..."
+            value={searchTerm}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-10 rounded-full bg-muted/40"
+          />
+        </div>
+        
+        <Select value={sortField + "-" + sortDirection} onValueChange={(value) => {
+          const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
+          onSortChange(field, direction);
+        }}>
+          <SelectTrigger className="w-12 h-12 rounded-full bg-muted/40 border-0 justify-center">
+            <ArrowUpDown className="h-4 w-4" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua Transaksi</SelectItem>
-            <SelectItem value="sale">Penjualan</SelectItem>
-            <SelectItem value="purchase">Pembelian</SelectItem>
-            <SelectItem value="expense">Pengeluaran</SelectItem>
+          <SelectContent align="end">
+            <SelectItem value="date-desc">Tanggal (Terbaru)</SelectItem>
+            <SelectItem value="date-asc">Tanggal (Terlama)</SelectItem>
+            <SelectItem value="amount-desc">Jumlah (Tertinggi)</SelectItem>
+            <SelectItem value="amount-asc">Jumlah (Terendah)</SelectItem>
           </SelectContent>
         </Select>
       </div>
       
-      <div className="w-full md:w-48">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span>Urutkan: {getSortLabel(sortField, sortDirection)}</span>
-              <ArrowUpDown className="h-4 w-4 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => onSortChange('date', 'desc')}>
-              Tanggal (Terbaru)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onSortChange('date', 'asc')}>
-              Tanggal (Terlama)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onSortChange('amount', 'desc')}>
-              Jumlah (Tertinggi)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onSortChange('amount', 'asc')}>
-              Jumlah (Terendah)
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {!hideTransactionType && (
+        <div className="w-full md:w-40">
+          <Select 
+            value={transactionType}
+            onValueChange={onTransactionTypeChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Semua Transaksi" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Transaksi</SelectItem>
+              <SelectItem value="sale">Penjualan</SelectItem>
+              <SelectItem value="purchase">Pembelian</SelectItem>
+              <SelectItem value="expense">Pengeluaran</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };
-
-// Helper function to get sort label
-function getSortLabel(field: string, direction: 'asc' | 'desc'): string {
-  if (field === 'date') {
-    return direction === 'desc' ? 'Terbaru' : 'Terlama';
-  } else {
-    return direction === 'desc' ? 'Tertinggi' : 'Terendah';
-  }
-}
 
 export default TransactionFilter;
