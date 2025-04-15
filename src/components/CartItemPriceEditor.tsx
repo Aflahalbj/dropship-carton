@@ -41,8 +41,8 @@ const CartItemPriceEditor: React.FC<CartItemPriceEditorProps> = ({
   };
 
   return (
-    <div className="flex items-center space-x-2 mt-1">
-      <div className="flex items-center">
+    <div className="flex flex-col space-y-1 mt-1">
+      <div className="flex items-center space-x-2">
         <Checkbox 
           id={`enable-price-change-${productId}`} 
           checked={isEnabled} 
@@ -51,14 +51,14 @@ const CartItemPriceEditor: React.FC<CartItemPriceEditorProps> = ({
         />
         <Label 
           htmlFor={`enable-price-change-${productId}`} 
-          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mr-2"
+          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
           Ubah harga sementara
         </Label>
       </div>
       
       {isEnabled && (
-        <div className="flex items-center">
+        <div className="flex items-center ml-6">
           <span className="text-sm text-muted-foreground mr-1">Rp</span>
           <Input 
             type="text" 
