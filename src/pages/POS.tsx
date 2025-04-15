@@ -95,7 +95,7 @@ function CartView({
           <div className="divide-y">
             {posCart.map(item => <div key={item.product.id} className="p-4 flex justify-between items-center">
                 <div className="flex-1">
-                  <h4 className="font-medium text-lg">Nama item</h4>
+                  <h4 className="font-medium text-lg">{item.product.name}</h4>
                   <p className="text-gray-500">
                     {item.quantity} x Rp {item.product.price.toLocaleString('id-ID')} = Rp {(item.product.price * item.quantity).toLocaleString('id-ID')}
                   </p>
