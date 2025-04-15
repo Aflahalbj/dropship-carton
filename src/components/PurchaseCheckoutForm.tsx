@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Check, Phone } from 'lucide-react';
+import { Check, CreditCard, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useFormValidation } from '@/utils/form-helpers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CurrencyInput, TextInput } from './FormInputs';
-import { CreditCard, Wallet } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 
 interface PurchaseCheckoutFormProps {
@@ -78,19 +77,14 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
             <label className="block text-sm font-medium text-muted-foreground mb-1">
               Nomor Telepon (Opsional)
             </label>
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                <Phone size={16} />
-              </div>
-              <Input 
-                type="tel" 
-                placeholder="Contoh: 08123456789" 
-                value={supplierPhone}
-                onChange={(e) => setSupplierPhone(e.target.value)}
-                pattern="[0-9]*"
-                className="pl-10"
-              />
-            </div>
+            <Input 
+              type="tel" 
+              placeholder="Nomor telepon supplier" 
+              value={supplierPhone}
+              onChange={(e) => setSupplierPhone(e.target.value)}
+              pattern="[0-9]*"
+              className=""
+            />
           </div>
           
           <TextInput 
