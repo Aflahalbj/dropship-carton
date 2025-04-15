@@ -1,7 +1,14 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useAppContext } from "@/context/AppContext";
+import { useAppContext, Product } from "@/context/AppContext";
+import { Input } from "@/components/ui/input";
+import { Search, ArrowUpDown, ShoppingCart, X, Check } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
 
 function ProductCard({
   product
