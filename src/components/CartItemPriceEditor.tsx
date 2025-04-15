@@ -51,7 +51,7 @@ const CartItemPriceEditor: React.FC<CartItemPriceEditorProps> = ({
         />
         <Label 
           htmlFor={`enable-price-change-${productId}`} 
-          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate"
         >
           Ubah harga sementara
         </Label>
