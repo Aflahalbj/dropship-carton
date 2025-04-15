@@ -22,6 +22,7 @@ export interface CheckoutFormData {
   customerAddress: string; // Added customer address
   paymentMethod: 'cash' | 'transfer';
   cashAmount: number;
+  changeAmount: number; // Added changeAmount property
   modifiedCart?: any[]; 
 }
 
@@ -68,10 +69,13 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         customerPhone,
         customerAddress,
         paymentMethod,
-        cashAmount
+        cashAmount,
+        changeAmount // Pass the calculated changeAmount
       });
     } else {
-      toast.error('Mohon lengkapi semua field yang diperlukan');
+      toast.error('Mohon lengkapi semua field yang diperlukan', {
+        duration: 1000
+      });
     }
   };
   const handleQuickAmount = (amount: number) => {
