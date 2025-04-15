@@ -95,14 +95,33 @@ function CartView({
           <div className="divide-y">
             {posCart.map(item => <div key={item.product.id} className="p-4 flex justify-between items-center">
                 <div className="flex-1">
-                  <h4 className="font-medium text-lg">{item.product.name}</h4>
-                  <p className="text-gray-500">
-                    {item.quantity} x Rp {item.product.price.toLocaleString('id-ID')} = Rp {(item.product.price * item.quantity).toLocaleString('id-ID')}
-                  </p>
+                  {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
+                      <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
+                    </div>}
+                  <h4 className="font-medium">{item.product.name}</h4>
+                  <p className="text-sm text-muted-foreground">{item.product.sku}</p>
                 </div>
                 
-                <div className="flex items-center justify-center h-10 w-10 bg-white border rounded-md text-lg font-medium">
-                  {item.quantity}
+                <div className="w-20">
+                  <Input type="text" placeholder="0" className="w-full h-8 text-center text-sm font-medium" defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} onBlur={e => {
+                const newValue = e.target.value.trim();
+                const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                if (!isNaN(newQuantity)) {
+                  updatePosCartItemQuantity(item.product.id, newQuantity);
+                }
+              }} onChange={e => {
+                const value = e.target.value.replace(/[^0-9]/g, '');
+                e.target.value = value;
+              }} onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.currentTarget.blur();
+                }
+              }} />
+                </div>
+                
+                <div className="text-right ml-4 w-24">
+                  <div className="font-medium">Rp{(item.product.price * item.quantity).toLocaleString('id-ID')}</div>
+                  <div className="text-xs text-muted-foreground">Rp{item.product.price.toLocaleString('id-ID')} per unit</div>
                 </div>
                 
                 <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPosCart(item.product.id)}>
