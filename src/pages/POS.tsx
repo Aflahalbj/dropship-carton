@@ -196,7 +196,7 @@ const POS: React.FC = () => {
           <ChevronsLeft size={24} />
         </Button>}
         
-        <h1 className="font-bold text-3xl">Point of Sale</h1>
+        <h1 className="font-bold text-xl text-center w-full">Total Harga</h1>
         
         {posCart.length > 0 && !showCheckout}
       </div>
