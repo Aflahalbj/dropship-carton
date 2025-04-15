@@ -4,11 +4,12 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "sonner";
 import { useAppContext, Product } from "@/context/AppContext";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowUpDown, ShoppingCart, X, Check, ChevronsLeft } from 'lucide-react';
+import { Search, ArrowUpDown, ShoppingCart, X, Check, ChevronsLeft, Trash2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
+
 function ProductCard({
   product
 }: {
@@ -44,6 +45,7 @@ function ProductCard({
       </div>
     </Card>;
 }
+
 function CartView({
   onCheckout
 }: {
@@ -124,13 +126,15 @@ function CartView({
       </div>
     </div>;
 }
+
 const POS: React.FC = () => {
   const {
     products,
     posCart,
     addTransaction,
     posCartTotal,
-    handlePageNavigation
+    handlePageNavigation,
+    clearPosCart
   } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
@@ -139,6 +143,7 @@ const POS: React.FC = () => {
   useEffect(() => {
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
+  
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortOrder) {
       case "name-asc":
@@ -157,6 +162,7 @@ const POS: React.FC = () => {
         return 0;
     }
   });
+  
   const handleCheckout = (formData: CheckoutFormData) => {
     if (posCart.length === 0) {
       toast.error("Keranjang kosong");
@@ -181,7 +187,15 @@ const POS: React.FC = () => {
       toast.error("Transaksi gagal!");
     }
   };
+  
   const shouldShowCartIcon = posCart.length > 0 && !showCheckout;
+  
+  const handleClearCartAndReturn = () => {
+    clearPosCart();
+    setShowCheckout(false);
+    toast.success("Keranjang dikosongkan");
+  };
+  
   return <div className="container animate-slide-up py-[10px] mx-0 px-0">
       <div className="flex justify-between items-center mb-6">
         {showCheckout && <Button variant="ghost" size="icon" className="mr-4" onClick={() => setShowCheckout(false)}>
@@ -192,7 +206,11 @@ const POS: React.FC = () => {
           Rp{posCartTotal().toLocaleString('id-ID')}
         </h1>
         
-        {posCart.length > 0 && !showCheckout}
+        {posCart.length > 0 && 
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleClearCartAndReturn}>
+            <Trash2 size={20} />
+          </Button>
+        }
       </div>
 
       {!showCheckout ? <>
@@ -251,4 +269,5 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
+
 export default POS;
