@@ -24,11 +24,11 @@ function ProductCard({
     if (product.stock > 0) {
       addToPosCart(product, 1);
       toast.success(`${product.name} ditambahkan ke keranjang`, {
-        duration: 2000
+        duration: 1000
       });
     } else {
       toast.error(`${product.name} stok kosong`, {
-        duration: 3000
+        duration: 1000
       });
     }
   };
