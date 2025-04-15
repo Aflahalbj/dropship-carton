@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -12,6 +11,7 @@ import { PurchaseCheckoutForm } from '@/components/PurchaseCheckoutForm';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from '@/components/FormInputs';
+import CartItemPriceEditor from '@/components/CartItemPriceEditor';
 
 const Purchases: React.FC = () => {
   const {
@@ -29,6 +29,7 @@ const Purchases: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   const [showCheckout, setShowCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
 
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortOrder) {
@@ -85,6 +86,7 @@ const Purchases: React.FC = () => {
     setSelectedProducts([]);
     setShowCheckout(false);
     setIsProcessing(false);
+    setTemporaryPrices({});
   };
 
   const handleAddProduct = (product: Product) => {
@@ -107,6 +109,12 @@ const Purchases: React.FC = () => {
 
   const handleRemoveProduct = (productId: string) => {
     setSelectedProducts(selectedProducts.filter(item => item.product.id !== productId));
+    
+    if (temporaryPrices[productId]) {
+      const updatedPrices = { ...temporaryPrices };
+      delete updatedPrices[productId];
+      setTemporaryPrices(updatedPrices);
+    }
   };
 
   const handleUpdateQuantity = (productId: string, quantity: number) => {
@@ -123,6 +131,15 @@ const Purchases: React.FC = () => {
       price
     } : item);
     setSelectedProducts(updatedProducts);
+  };
+
+  const handleTemporaryPriceChange = (productId: string, newPrice: number) => {
+    setTemporaryPrices(prev => ({
+      ...prev,
+      [productId]: newPrice
+    }));
+    
+    handleUpdatePrice(productId, newPrice);
   };
 
   const purchaseTotal = selectedProducts.reduce((total, item) => total + item.quantity * item.price, 0);
@@ -232,55 +249,60 @@ const Purchases: React.FC = () => {
               </div>
               
               <div className="divide-y">
-                {selectedProducts.map(item => (
-                  <div key={item.product.id} className="p-4 flex justify-between items-center">
-                    <div className="flex-1">
-                      {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
-                          <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
-                        </div>}
-                      <div>
-                        <h4 className="font-medium">{item.product.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {item.quantity} × Rp{item.price.toLocaleString('id-ID')} = Rp{(item.price * item.quantity).toLocaleString('id-ID')}
-                        </p>
-                        
-                        <div className="mt-1">
-                          <Label htmlFor={`price-${item.product.id}`} className="text-xs text-muted-foreground">Harga</Label>
-                          <CurrencyInput id={`price-${item.product.id}`} placeholder="Harga" initialValue={item.price.toString()} onChange={val => handleUpdatePrice(item.product.id, val)} className="h-8 text-sm" />
+                {selectedProducts.map(item => {
+                  const tempPrice = temporaryPrices[item.product.id];
+                  return (
+                    <div key={item.product.id} className="p-4 flex justify-between items-center">
+                      <div className="flex-1">
+                        {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
+                            <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
+                          </div>}
+                        <div>
+                          <h4 className="font-medium">{item.product.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {item.quantity} × Rp{item.price.toLocaleString('id-ID')} = Rp{(item.price * item.quantity).toLocaleString('id-ID')}
+                          </p>
+                          
+                          <CartItemPriceEditor 
+                            productId={item.product.id} 
+                            originalPrice={item.product.supplierPrice} 
+                            discountedPrice={tempPrice} 
+                            onPriceChange={handleTemporaryPriceChange} 
+                          />
                         </div>
                       </div>
+                      
+                      <div className="w-20">
+                        <Input 
+                          type="text" 
+                          placeholder="0" 
+                          defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} 
+                          onBlur={e => {
+                            const newValue = e.target.value.trim();
+                            const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                            if (!isNaN(newQuantity) && newQuantity > 0) {
+                              handleUpdateQuantity(item.product.id, newQuantity);
+                            }
+                          }} 
+                          onChange={e => {
+                            const value = e.target.value.replace(/[^0-9]/g, '');
+                            e.target.value = value;
+                          }} 
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.currentTarget.blur();
+                            }
+                          }} 
+                          className="w-10 h-10 text-center text-sm font-medium px-0" 
+                        />
+                      </div>
+                      
+                      <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => handleRemoveProduct(item.product.id)}>
+                        <X size={18} />
+                      </Button>
                     </div>
-                    
-                    <div className="w-20">
-                      <Input 
-                        type="text" 
-                        placeholder="0" 
-                        defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} 
-                        onBlur={e => {
-                          const newValue = e.target.value.trim();
-                          const newQuantity = newValue === "" ? 0 : parseInt(newValue);
-                          if (!isNaN(newQuantity) && newQuantity > 0) {
-                            handleUpdateQuantity(item.product.id, newQuantity);
-                          }
-                        }} 
-                        onChange={e => {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          e.target.value = value;
-                        }} 
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.currentTarget.blur();
-                          }
-                        }} 
-                        className="w-10 h-10 text-center text-sm font-medium px-0" 
-                      />
-                    </div>
-                    
-                    <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => handleRemoveProduct(item.product.id)}>
-                      <X size={18} />
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
                 
                 {selectedProducts.length === 0 && <div className="text-center py-8">
                     <p className="text-muted-foreground">Belum ada produk yang dipilih</p>
