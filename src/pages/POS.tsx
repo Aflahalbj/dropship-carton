@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -198,7 +197,7 @@ const POS: React.FC = () => {
         </Button>}
         
         <h1 className="font-bold text-xl text-center w-full">
-          Total Harga: Rp{posCartTotal().toLocaleString('id-ID')}
+          Rp{posCartTotal().toLocaleString('id-ID')}
         </h1>
         
         {posCart.length > 0 && !showCheckout}
