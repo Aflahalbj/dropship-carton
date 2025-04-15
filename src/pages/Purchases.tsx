@@ -256,9 +256,7 @@ function CartView({
           const discountedPrice = temporaryPrices[item.product.id];
           return <div key={item.product.id} className="p-4 flex justify-between items-center">
               <div className="flex-1">
-                {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
-                    
-                  </div>}
+                {item.product.image}
                 <h4 className="font-medium">{item.product.name}</h4>
                 <p className="text-sm text-muted-foreground">
                   {item.quantity} × Rp{(discountedPrice || item.product.supplierPrice).toLocaleString('id-ID')} = Rp{((discountedPrice || item.product.supplierPrice) * item.quantity).toLocaleString('id-ID')}
