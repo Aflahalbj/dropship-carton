@@ -16,10 +16,8 @@ import { Calendar as CalendarIcon, FileText, Filter, Plus, Trash, Search } from 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-// Define expense categories
 const EXPENSE_CATEGORIES = ['Sewa', 'Utilitas', 'Gaji', 'Pemasaran', 'Perlengkapan', 'Pengiriman', 'Asuransi', 'Pajak', 'Perangkat Lunak', 'Lain-lain'];
 
-// Create form schema
 const formSchema = z.object({
   amount: z.string().min(1, "Jumlah wajib diisi").refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
     message: "Jumlah harus angka positif"
@@ -30,6 +28,7 @@ const formSchema = z.object({
     required_error: "Tanggal wajib diisi"
   })
 });
+
 const Expenses = () => {
   const {
     expenses,
@@ -40,7 +39,6 @@ const Expenses = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Set up form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,43 +47,32 @@ const Expenses = () => {
       description: '',
       date: new Date()
     },
-    mode: 'onSubmit' // Only validate on submit
+    mode: 'onSubmit'
   });
 
-  // Filter expenses and ensure all date objects are properly instantiated
   const filteredExpenses = expenses.filter(expense => {
-    // Filter by search term
     const matchesSearch = !searchTerm || expense.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-    // Filter by category
     const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
     return matchesSearch && matchesCategory;
   }).map(expense => ({
     ...expense,
-    // Ensure date is a proper Date object
     date: expense.date instanceof Date ? expense.date : new Date(expense.date)
   })).sort((a, b) => {
-    // Now we can safely use getTime() since we've ensured both are Date objects
     return b.date.getTime() - a.date.getTime();
-  }); // Sort by date descending
+  });
 
-  // Form submission
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
 
-      // Skip user authentication check for now to fix the foreign key issue
-      // We'll use null for user_id to avoid the foreign key constraint
       const amount = parseFloat(values.amount);
       const newExpense = {
         date: values.date,
         amount,
         category: values.category,
         description: values.description
-        // Don't set user_id if not authenticated
       };
 
-      // Add expense to context/database
       const success = await addExpense(newExpense);
       if (success) {
         form.reset();
@@ -99,7 +86,6 @@ const Expenses = () => {
     }
   };
 
-  // Calculate totals by category
   const expensesByCategory = EXPENSE_CATEGORIES.map(category => {
     const total = expenses.filter(e => e.category === category).reduce((sum, e) => sum + e.amount, 0);
     return {
@@ -108,7 +94,6 @@ const Expenses = () => {
     };
   }).filter(item => item.total > 0).sort((a, b) => b.total - a.total);
 
-  // Calculate total expenses
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   return <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
@@ -116,8 +101,6 @@ const Expenses = () => {
           <h2 className="text-3xl font-bold tracking-tight">Pengeluaran</h2>
           <p className="text-muted-foreground">Pantau dan kelola pengeluaran</p>
         </div>
-        
-        
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -224,7 +207,7 @@ const Expenses = () => {
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[180px] pl-9">
+                <SelectTrigger className="w-[150px] pl-9 text-xs h-9 py-1">
                   <SelectValue placeholder="Semua Kategori" />
                 </SelectTrigger>
                 <SelectContent>
@@ -280,4 +263,5 @@ const Expenses = () => {
       </div>
     </div>;
 };
+
 export default Expenses;
