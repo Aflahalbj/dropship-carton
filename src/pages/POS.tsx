@@ -196,15 +196,16 @@ const POS: React.FC = () => {
     toast.success("Keranjang dikosongkan");
   };
   
-  return <div className="container animate-slide-up py-[10px] mx-0 px-0">
+  return <div className="container animate-slide-up py-[10px] px-0">
       <div className="flex justify-between items-center mb-6">
         {showCheckout && <Button variant="ghost" size="icon" className="mr-4" onClick={() => setShowCheckout(false)}>
           <ChevronsLeft size={24} />
         </Button>}
         
-        <h1 className="text-center w-full text-lg font-normal">
-          Point of Sale
-        </h1>
+        <div className="w-full text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Kasir</h2>
+          <p className="text-muted-foreground">Proses penjualan produk dan kelola transaksi</p>
+        </div>
         
         {posCart.length > 0 && 
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleClearCartAndReturn}>
