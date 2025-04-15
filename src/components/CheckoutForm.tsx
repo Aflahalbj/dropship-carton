@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,21 +7,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Check, User, CreditCard, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppContext } from '@/context/AppContext';
-
 interface CheckoutFormProps {
   cartTotal: number;
   cartProfit: number;
   onSubmit: (formData: CheckoutFormData) => void;
   isProcessing: boolean;
 }
-
 export interface CheckoutFormData {
   customerName: string;
   paymentMethod: 'cash' | 'transfer';
   cashAmount: number;
   modifiedCart?: any[]; // Add the missing modifiedCart property
 }
-
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   cartTotal,
   cartProfit,
@@ -33,21 +29,23 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const [customerName, setCustomerName] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
   const [cashAmount, setCashAmount] = useState<number>(0);
-  
+
   // Form validation
-  const { errors, setErrors, validateForm } = useFormValidation();
-  
+  const {
+    errors,
+    setErrors,
+    validateForm
+  } = useFormValidation();
+
   // Calculated values
   const changeAmount = paymentMethod === 'cash' ? Math.max(0, cashAmount - cartTotal) : 0;
-  
   const handleSubmit = () => {
     // Validate form fields
     const fieldsToValidate: Record<string, any> = {
       cashAmount: paymentMethod === 'cash' ? cashAmount : true
     };
-    
     const isValid = validateForm(fieldsToValidate);
-    
+
     // Additional validation for cash payment
     if (paymentMethod === 'cash' && cashAmount < cartTotal) {
       setErrors(prev => ({
@@ -56,7 +54,6 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       }));
       return;
     }
-    
     if (isValid) {
       onSubmit({
         customerName,
@@ -67,38 +64,23 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       toast.error('Mohon lengkapi semua field yang diperlukan');
     }
   };
-  
   const handleQuickAmount = (amount: number) => {
     setCashAmount(amount);
   };
-  
   const setExactAmount = () => {
     setCashAmount(cartTotal);
   };
-  
-  return (
-    <Card className="p-5">
-      <h3 className="font-medium text-lg mb-4">Informasi Pembayaran</h3>
+  return <Card className="p-5">
+      <h3 className="font-medium text-lg mb-4">Informasi Pelanggan</h3>
       
       <div className="space-y-4">
-        <TextInput
-          id="customerName"
-          label="Nama Pelanggan (Opsional)"
-          placeholder="Nama pelanggan"
-          onChange={setCustomerName}
-          error={errors.customerName}
-        />
+        <TextInput id="customerName" label="Nama Pelanggan (Opsional)" placeholder="Nama pelanggan" onChange={setCustomerName} error={errors.customerName} />
         
         <div>
           <label className="block text-sm font-medium text-muted-foreground mb-1">
             Metode Pembayaran
           </label>
-          <Tabs 
-            defaultValue="cash" 
-            className="w-full" 
-            value={paymentMethod} 
-            onValueChange={(v) => setPaymentMethod(v as 'cash' | 'transfer')}
-          >
+          <Tabs defaultValue="cash" className="w-full" value={paymentMethod} onValueChange={v => setPaymentMethod(v as 'cash' | 'transfer')}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="cash" className="flex items-center gap-1">
                 <Wallet size={16} />
@@ -110,72 +92,34 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
               </TabsTrigger>
             </TabsList>
             <TabsContent value="cash" className="space-y-4 mt-2">
-              <CurrencyInput
-                id="cashAmount"
-                label="Jumlah Uang Tunai"
-                placeholder="Masukkan jumlah uang"
-                onChange={setCashAmount}
-                error={errors.cashAmount}
-              />
+              <CurrencyInput id="cashAmount" label="Jumlah Uang Tunai" placeholder="Masukkan jumlah uang" onChange={setCashAmount} error={errors.cashAmount} />
               
               <div className="grid grid-cols-4 gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleQuickAmount(1000000)}
-                  className="text-xs"
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAmount(1000000)} className="text-xs">
                   1.000.000
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleQuickAmount(5000000)}
-                  className="text-xs"
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAmount(5000000)} className="text-xs">
                   5.000.000
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleQuickAmount(10000000)}
-                  className="text-xs"
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAmount(10000000)} className="text-xs">
                   10.000.000
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleQuickAmount(20000000)}
-                  className="text-xs"
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAmount(20000000)} className="text-xs">
                   20.000.000
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={setExactAmount}
-                  className="col-span-4 mt-1 text-xs"
-                >
+                <Button type="button" variant="outline" size="sm" onClick={setExactAmount} className="col-span-4 mt-1 text-xs">
                   Uang Pas: {cartTotal.toLocaleString('id-ID')}
                 </Button>
               </div>
               
-              {cashAmount > 0 && (
-                <div className="pt-2 border-t">
+              {cashAmount > 0 && <div className="pt-2 border-t">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Kembalian:</span>
                     <span className="font-medium">
                       Rp{changeAmount.toLocaleString('id-ID')}
                     </span>
                   </div>
-                </div>
-              )}
+                </div>}
             </TabsContent>
             <TabsContent value="transfer" className="space-y-4 mt-2">
               <div className="p-2 bg-accent rounded-md text-sm">
@@ -200,19 +144,10 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           </div>
         </div>
         
-        <Button 
-          className="w-full bg-primary text-white flex items-center justify-center gap-2 mt-4"
-          onClick={handleSubmit}
-          disabled={
-            isProcessing || 
-            (paymentMethod === 'cash' && cashAmount < cartTotal)
-          }
-        >
+        <Button className="w-full bg-primary text-white flex items-center justify-center gap-2 mt-4" onClick={handleSubmit} disabled={isProcessing || paymentMethod === 'cash' && cashAmount < cartTotal}>
           <Check size={18} />
           Selesaikan Penjualan
         </Button>
       </div>
-    </Card>
-  );
+    </Card>;
 };
-
