@@ -221,12 +221,7 @@ const Purchases: React.FC = () => {
                 </SelectContent>
               </Select>}
             
-            {selectedSupplier && <div className="flex items-center gap-1 bg-primary/10 rounded-md px-3 py-1 text-sm">
-                
-                <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full" onClick={() => setSelectedSupplier(null)}>
-                  <X size={12} />
-                </Button>
-              </div>}
+            {selectedSupplier}
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 px-0 mx-0 my-0 py-0">
