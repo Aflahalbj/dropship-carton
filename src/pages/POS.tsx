@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -95,8 +96,12 @@ function CartView({
                   {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
                       <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
                     </div>}
-                  <h4 className="font-medium">{item.product.name}</h4>
-                  <p className="text-sm text-muted-foreground">{item.product.sku}</p>
+                  <div>
+                    <h4 className="font-medium">{item.product.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {item.quantity} × Rp{item.product.price.toLocaleString('id-ID')} = Rp{(item.product.price * item.quantity).toLocaleString('id-ID')}
+                    </p>
+                  </div>
                 </div>
                 
                 <div className="w-20">
@@ -114,11 +119,6 @@ function CartView({
                   e.currentTarget.blur();
                 }
               }} />
-                </div>
-                
-                <div className="text-right ml-4 w-24">
-                  <div className="font-medium">Rp{(item.product.price * item.quantity).toLocaleString('id-ID')}</div>
-                  <div className="text-xs text-muted-foreground">Rp{item.product.price.toLocaleString('id-ID')} per unit</div>
                 </div>
                 
                 <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPosCart(item.product.id)}>
