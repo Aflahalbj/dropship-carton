@@ -3,13 +3,6 @@ import React from 'react';
 import { Search, ArrowUpDown } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -39,34 +32,36 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
   hideTransactionType = false
 }) => {
   return (
-    <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-      <div className="flex flex-1 gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-          <Input
-            type="text"
-            placeholder="Cari produk berdasarkan nama atau SKU..."
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 rounded-full bg-muted/40"
-          />
-        </div>
-        
-        <Select value={sortField + "-" + sortDirection} onValueChange={(value) => {
-          const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
-          onSortChange(field, direction);
-        }}>
-          <SelectTrigger className="w-12 h-12 rounded-full bg-muted/40 border-0 justify-center">
-            <ArrowUpDown className="h-4 w-4" />
-          </SelectTrigger>
-          <SelectContent align="end">
-            <SelectItem value="date-desc">Tanggal (Terbaru)</SelectItem>
-            <SelectItem value="date-asc">Tanggal (Terlama)</SelectItem>
-            <SelectItem value="amount-desc">Jumlah (Tertinggi)</SelectItem>
-            <SelectItem value="amount-asc">Jumlah (Terendah)</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="flex flex-1 gap-3 items-center">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+        <Input
+          type="text"
+          placeholder="Cari produk berdasarkan nama atau SKU..."
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-10 rounded-full bg-slate-50 border-0"
+        />
       </div>
+      
+      <Select value={sortField + "-" + sortDirection} onValueChange={(value) => {
+        const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
+        onSortChange(field, direction);
+      }}>
+        <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border-0 justify-center">
+          <ArrowUpDown className="h-4 w-4" />
+        </SelectTrigger>
+        <SelectContent align="end">
+          <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
+          <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
+          <SelectItem value="price-asc">Harga Jual (Terendah)</SelectItem>
+          <SelectItem value="price-desc">Harga Jual (Tertinggi)</SelectItem>
+          <SelectItem value="stock-asc">Stok (Terendah)</SelectItem>
+          <SelectItem value="stock-desc">Stok (Tertinggi)</SelectItem>
+          <SelectItem value="profit-asc">Keuntungan (Terendah)</SelectItem>
+          <SelectItem value="profit-desc">Keuntungan (Tertinggi)</SelectItem>
+        </SelectContent>
+      </Select>
       
       {!hideTransactionType && (
         <div className="w-full md:w-40">

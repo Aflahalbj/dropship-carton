@@ -7,6 +7,7 @@ import { Plus, Search, Edit, Trash, X, Check, Image, Link, ArrowUpDown } from 'l
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import TransactionFilter from '@/components/TransactionFilter';
 
 const Inventory = () => {
   const { products, addProduct, updateProduct, deleteProduct } = useAppContext();
@@ -28,7 +29,13 @@ const Inventory = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   
-  const [sortOrder, setSortOrder] = useState<string>("name-asc");
+  const [sortField, setSortField] = useState<string>("name");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  
+  const handleSortChange = (field: string, direction: 'asc' | 'desc') => {
+    setSortField(field);
+    setSortDirection(direction);
+  };
   
   const filteredProducts = products
     .filter(product => 
@@ -36,7 +43,7 @@ const Inventory = () => {
       product.sku.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      switch (sortOrder) {
+      switch (sortField + '-' + sortDirection) {
         case "name-asc":
           return a.name.localeCompare(b.name);
         case "name-desc":
@@ -196,33 +203,17 @@ const Inventory = () => {
         </div>
       </div>
       
-      <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
-        <div className="relative flex-grow">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-          <Input
-            type="text"
-            placeholder="Cari produk berdasarkan nama atau SKU..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <Select value={sortOrder} onValueChange={setSortOrder}>
-          <SelectTrigger className="w-10 h-10 justify-center">
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
-            <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
-            <SelectItem value="price-asc">Harga Jual (Terendah-Tertinggi)</SelectItem>
-            <SelectItem value="price-desc">Harga Jual (Tertinggi-Terendah)</SelectItem>
-            <SelectItem value="stock-asc">Stok (Terendah-Tertinggi)</SelectItem>
-            <SelectItem value="stock-desc">Stok (Tertinggi-Terendah)</SelectItem>
-            <SelectItem value="profit-asc">Keuntungan (Terendah-Tertinggi)</SelectItem>
-            <SelectItem value="profit-desc">Keuntungan (Tertinggi-Terendah)</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
+        <TransactionFilter 
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          transactionType="all"
+          onTransactionTypeChange={() => {}}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSortChange={handleSortChange}
+          hideTransactionType={true}
+        />
         
         <Button 
           variant="outline"
