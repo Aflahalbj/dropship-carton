@@ -206,7 +206,9 @@ const POS: React.FC = () => {
 
   const handleCheckout = (formData: CheckoutFormData) => {
     if (posCart.length === 0) {
-      toast.error("Keranjang kosong");
+      toast.error("Keranjang kosong", {
+        duration: 1000
+      });
       return;
     }
     const productsToProcess = formData.modifiedCart || posCart;
@@ -225,10 +227,14 @@ const POS: React.FC = () => {
     };
     const success = addTransaction(transaction);
     if (success) {
-      toast.success("Transaksi berhasil!");
+      toast.success("Transaksi berhasil!", {
+        duration: 1000
+      });
       setShowCheckout(false);
     } else {
-      toast.error("Transaksi gagal!");
+      toast.error("Transaksi gagal!", {
+        duration: 1000
+      });
     }
   };
 
@@ -236,7 +242,9 @@ const POS: React.FC = () => {
   const handleClearCartAndReturn = () => {
     clearPosCart();
     setShowCheckout(false);
-    toast.success("Keranjang dikosongkan");
+    toast.success("Keranjang dikosongkan", {
+        duration: 1000
+      });
   };
 
   return <div className="container animate-slide-up py-[10px] px-[2px]">
