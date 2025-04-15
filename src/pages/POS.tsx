@@ -8,6 +8,7 @@ import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
+
 function ProductCard({
   product
 }: {
@@ -25,8 +26,13 @@ function ProductCard({
       toast.error(`${product.name} stok kosong`);
     }
   }}>
-      <div className="h-20 overflow-hidden py-[70px]">
-        <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full " />
+      <div className="h-20 overflow-hidden flex items-center justify-center">
+        <img 
+          src={product.image || defaultImage} 
+          alt={product.name} 
+          onError={e => (e.target as HTMLImageElement).src = defaultImage} 
+          className="w-full h-full object-cover" 
+        />
       </div>
       <div className="p-2 flex-grow px-[10px] py-[10px]">
         <div className="flex justify-between items-start">
@@ -41,6 +47,7 @@ function ProductCard({
       </div>
     </Card>;
 }
+
 function CartView({
   onCheckout
 }: {
@@ -121,6 +128,7 @@ function CartView({
       </div>
     </div>;
 }
+
 const POS: React.FC = () => {
   const {
     products,
@@ -134,11 +142,9 @@ const POS: React.FC = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const location = useLocation();
   useEffect(() => {
-    // Call handlePageNavigation to update the current path
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
-    // Apply sorting
     switch (sortOrder) {
       case "name-asc":
         return a.name.localeCompare(b.name);
@@ -255,4 +261,5 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
+
 export default POS;
