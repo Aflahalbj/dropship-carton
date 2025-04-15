@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -62,8 +61,10 @@ const App = () => (
     <AppProvider>
       <TooltipProvider>
         <BrowserRouter>
-          <Toaster />
-          <Sonner />
+          <Toaster 
+            duration={3000}  // Set global default toast duration to 3 seconds
+            position="top-center"  // Optional: set a default position
+          />
           <AppRoutes />
         </BrowserRouter>
       </TooltipProvider>

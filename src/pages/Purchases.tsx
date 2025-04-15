@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useLocation } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 const Purchases = () => {
   const {
     products,
@@ -26,9 +27,11 @@ const Purchases = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
+
   useEffect(() => {
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
+
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortOrder) {
       case "name-asc":
@@ -47,6 +50,7 @@ const Purchases = () => {
         return 0;
     }
   });
+
   const handlePurchase = () => {
     if (purchasesCart.length === 0) {
       toast.error("Keranjang kosong");
@@ -79,7 +83,9 @@ const Purchases = () => {
       toast.error("Modal tidak mencukupi untuk pembelian ini!");
     }
   };
+
   const shouldShowCartIcon = purchasesCart.length > 0 && !showCheckout;
+
   return <div className="container mx-auto animate-slide-up py-[10px] px-[20px]">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -150,69 +156,74 @@ const Purchases = () => {
           </div>
         </Button>}
     </div>;
-  function ProductCard({
-    product
-  }: {
-    product: Product;
-  }) {
-    const defaultImage = "https://placehold.co/300x150?text=Produk";
-    return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={() => {
-      addToPurchasesCart(product, 1);
-      toast.success(`${product.name} ditambahkan ke keranjang`);
-    }}>
-        <div className="h-auto overflow-hidden flex items-center justify-center rounded-none px-0 py-0 mx-0 my-0">
-          <AspectRatio ratio={1 / 1} className="w-full">
-            <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full object-cover" />
-          </AspectRatio>
+};
+
+function ProductCard({
+  product
+}: {
+  product: Product;
+}) {
+  const defaultImage = "https://placehold.co/300x150?text=Produk";
+  return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={() => {
+    addToPurchasesCart(product, 1);
+    toast.success(`${product.name} ditambahkan ke keranjang`, {
+      duration: 3000
+    });
+  }}>
+    <div className="h-auto overflow-hidden flex items-center justify-center rounded-none px-0 py-0 mx-0 my-0">
+      <AspectRatio ratio={1 / 1} className="w-full">
+        <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full object-cover" />
+      </AspectRatio>
+    </div>
+    <div className="p-2 flex-grow">
+      <div className="flex justify-between items-start">
+        <div className="w-full">
+          <h3 className="font-medium text-xs">{product.name}</h3>
+          <p className="text-xs text-muted-foreground">{product.sku} • {product.stock} stok</p>
+          <p className="text-sm font-semibold">Rp{product.supplierPrice.toLocaleString('id-ID')}</p>
         </div>
-        <div className="p-2 flex-grow">
-          <div className="flex justify-between items-start">
-            <div className="w-full">
-              <h3 className="font-medium text-xs">{product.name}</h3>
-              <p className="text-xs text-muted-foreground">{product.sku} • {product.stock} stok</p>
-              <p className="text-sm font-semibold">Rp{product.supplierPrice.toLocaleString('id-ID')}</p>
-            </div>
-          </div>
-        </div>
-      </Card>;
+      </div>
+    </div>
+  </Card>;
+}
+
+function CartView({
+  onCheckout
+}: {
+  onCheckout: () => void;
+}) {
+  if (purchasesCart.length === 0) {
+    return <div className="text-center py-10">
+        <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium mb-2">Keranjang Anda kosong</h3>
+        <p className="text-muted-foreground mb-4">Tambahkan produk ke keranjang untuk melakukan pembelian</p>
+        <Button onClick={() => setShowCheckout(false)}>
+          Telusuri Produk
+        </Button>
+      </div>;
   }
-  function CartView({
-    onCheckout
-  }: {
-    onCheckout: () => void;
-  }) {
-    if (purchasesCart.length === 0) {
-      return <div className="text-center py-10">
-          <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">Keranjang Anda kosong</h3>
-          <p className="text-muted-foreground mb-4">Tambahkan produk ke keranjang untuk melakukan pembelian</p>
-          <Button onClick={() => setShowCheckout(false)}>
-            Telusuri Produk
+  const purchaseTotal = purchasesCart.reduce((total, item) => total + item.product.supplierPrice * item.quantity, 0);
+  return <div className="animate-slide-up">
+      <div className="border rounded-lg overflow-hidden mb-6">
+        <div className="bg-accent p-3 border-b flex justify-between items-center">
+          <h3 className="font-medium">Item Keranjang</h3>
+          <Button variant="ghost" size="sm" onClick={() => clearPurchasesCart()} className="text-muted-foreground hover:text-destructive">
+            Kosongkan
           </Button>
-        </div>;
-    }
-    const purchaseTotal = purchasesCart.reduce((total, item) => total + item.product.supplierPrice * item.quantity, 0);
-    return <div className="animate-slide-up">
-        <div className="border rounded-lg overflow-hidden mb-6">
-          <div className="bg-accent p-3 border-b flex justify-between items-center">
-            <h3 className="font-medium">Item Keranjang</h3>
-            <Button variant="ghost" size="sm" onClick={() => clearPurchasesCart()} className="text-muted-foreground hover:text-destructive">
-              Kosongkan
-            </Button>
-          </div>
-          
-          <div className="divide-y">
-            {purchasesCart.map(item => <div key={item.product.id} className="p-4 flex justify-between items-center">
-                <div className="flex-1">
-                  {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
-                      <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
-                    </div>}
-                  <h4 className="font-medium">{item.product.name}</h4>
-                  <p className="text-sm text-muted-foreground">{item.product.sku}</p>
-                </div>
-                
-                <div className="w-20">
-                  <Input type="text" placeholder="0" className="w-full h-8 text-center text-sm font-medium" defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} onBlur={e => {
+        </div>
+        
+        <div className="divide-y">
+          {purchasesCart.map(item => <div key={item.product.id} className="p-4 flex justify-between items-center">
+              <div className="flex-1">
+                {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
+                    <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
+                  </div>}
+                <h4 className="font-medium">{item.product.name}</h4>
+                <p className="text-sm text-muted-foreground">{item.product.sku}</p>
+              </div>
+              
+              <div className="w-20">
+                <Input type="text" placeholder="0" className="w-full h-8 text-center text-sm font-medium" defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} onBlur={e => {
                 const newValue = e.target.value.trim();
                 const newQuantity = newValue === "" ? 0 : parseInt(newValue);
                 if (!isNaN(newQuantity)) {
@@ -226,46 +237,46 @@ const Purchases = () => {
                   e.currentTarget.blur();
                 }
               }} />
-                </div>
-                
-                <div className="text-right ml-4 w-24">
-                  <div className="font-medium">Rp{(item.product.supplierPrice * item.quantity).toLocaleString('id-ID')}</div>
-                  <div className="text-xs text-muted-foreground">Rp{item.product.supplierPrice.toLocaleString('id-ID')} per unit</div>
-                </div>
-                
-                <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPurchasesCart(item.product.id)}>
-                  <X size={18} />
-                </Button>
-              </div>)}
+              </div>
+              
+              <div className="text-right ml-4 w-24">
+                <div className="font-medium">Rp{(item.product.supplierPrice * item.quantity).toLocaleString('id-ID')}</div>
+                <div className="text-xs text-muted-foreground">Rp{item.product.supplierPrice.toLocaleString('id-ID')} per unit</div>
+              </div>
+              
+              <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPurchasesCart(item.product.id)}>
+                <X size={18} />
+              </Button>
+            </div>)}
+        </div>
+      </div>
+      
+      <div className="bg-card border rounded-lg p-5">
+        <div className="space-y-3 mb-6">
+          <div className="flex justify-between text-lg font-semibold">
+            <span>Total Pembelian:</span>
+            <span>Rp{purchaseTotal.toLocaleString('id-ID')}</span>
           </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Modal Saat Ini:</span>
+            <span className="font-medium">Rp{capital.toLocaleString('id-ID')}</span>
+          </div>
+          {purchaseTotal > capital && <div className="text-destructive text-sm mt-2">
+              Modal tidak mencukupi untuk pembelian ini!
+            </div>}
         </div>
         
-        <div className="bg-card border rounded-lg p-5">
-          <div className="space-y-3 mb-6">
-            <div className="flex justify-between text-lg font-semibold">
-              <span>Total Pembelian:</span>
-              <span>Rp{purchaseTotal.toLocaleString('id-ID')}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Modal Saat Ini:</span>
-              <span className="font-medium">Rp{capital.toLocaleString('id-ID')}</span>
-            </div>
-            {purchaseTotal > capital && <div className="text-destructive text-sm mt-2">
-                Modal tidak mencukupi untuk pembelian ini!
-              </div>}
-          </div>
-          
-          <div className="flex gap-4">
-            <Button variant="outline" className="flex-1" onClick={() => clearPurchasesCart()}>
-              Kosongkan Keranjang
-            </Button>
-            <Button className="flex-1 bg-primary text-white flex items-center justify-center gap-2" onClick={onCheckout} disabled={purchaseTotal > capital}>
-              <Check size={18} />
-              Selesaikan Pembelian
-            </Button>
-          </div>
+        <div className="flex gap-4">
+          <Button variant="outline" className="flex-1" onClick={() => clearPurchasesCart()}>
+            Kosongkan Keranjang
+          </Button>
+          <Button className="flex-1 bg-primary text-white flex items-center justify-center gap-2" onClick={onCheckout} disabled={purchaseTotal > capital}>
+            <Check size={18} />
+            Selesaikan Pembelian
+          </Button>
         </div>
-      </div>;
-  }
-};
+      </div>
+    </div>;
+}
+
 export default Purchases;

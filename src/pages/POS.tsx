@@ -22,9 +22,13 @@ function ProductCard({
   return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={() => {
     if (product.stock > 0) {
       addToPosCart(product, 1);
-      toast.success(`${product.name} ditambahkan ke keranjang`);
+      toast.success(`${product.name} ditambahkan ke keranjang`, {
+        duration: 3000
+      });
     } else {
-      toast.error(`${product.name} stok kosong`);
+      toast.error(`${product.name} stok kosong`, {
+        duration: 3000
+      });
     }
   }}>
       <div className="h-auto overflow-hidden flex items-center justify-center px-0 py-0 my-0 mx-0">
