@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -207,7 +206,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           }
         >
           <Check size={18} />
-          Selesaikan Penjualan Rp{cartTotal.toLocaleString('id-ID')}
+          Selesaikan Penjualan
         </Button>
       </div>
     </Card>
