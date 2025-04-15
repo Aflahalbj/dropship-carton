@@ -186,13 +186,7 @@ const POS: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="font-bold text-3xl">Point of Sale</h1>
         
-        {posCart.length > 0 && !showCheckout && <Button className="bg-primary text-white flex items-center gap-2" onClick={() => setShowCheckout(true)}>
-            <ShoppingCart size={18} />
-            <span>Checkout</span>
-            <span className="ml-1 bg-white text-primary rounded-full w-6 h-6 flex items-center justify-center text-sm">
-              {posCart.reduce((total, item) => total + item.quantity, 0)}
-            </span>
-          </Button>}
+        {posCart.length > 0 && !showCheckout}
         
         {showCheckout && <Button variant="outline" className="border-primary text-primary flex items-center gap-2" onClick={() => setShowCheckout(false)}>
             <X size={18} />
@@ -204,7 +198,7 @@ const POS: React.FC = () => {
           <div className="mb-6 flex flex-wrap gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-              <Input type="text" placeholder="Cari produk berdasarkan nama atau SKU..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
+              <Input type="text" placeholder="Cari produk berdasarkan nama atau SKU..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 mx-0" />
             </div>
             
             <DropdownMenu>
