@@ -26,7 +26,7 @@ function ProductCard({
       toast.error(`${product.name} stok kosong`);
     }
   }}>
-      <div className="h-40 overflow-hidden flex items-center justify-center">
+      <div className="h-auto overflow-hidden flex items-center justify-center px-0 py-0 my-0 mx-0">
         <AspectRatio ratio={1 / 1} className="w-full">
           <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full object-cover" />
         </AspectRatio>
