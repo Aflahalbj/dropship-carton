@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Check, CreditCard, Wallet } from 'lucide-react';
@@ -34,7 +35,9 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
 
   const handleSubmit = () => {
     if (purchaseTotal > currentCapital) {
-      toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${currentCapital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`);
+      toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${currentCapital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`, {
+        duration: 1000 // Changed to 1 second
+      });
       return;
     }
     
@@ -43,6 +46,9 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
         ...prev,
         cashAmount: 'Jumlah uang tunai tidak mencukupi'
       }));
+      toast.error('Jumlah uang tunai tidak mencukupi', {
+        duration: 1000 // Changed to 1 second
+      });
       return;
     }
     
