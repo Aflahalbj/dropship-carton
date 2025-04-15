@@ -188,7 +188,7 @@ const POS: React.FC = () => {
           <ChevronsLeft size={24} />
         </Button>}
         
-        <h1 className="font-bold text-xl text-center w-full">
+        <h1 className="text-center w-full text-lg font-normal">
           Rp{posCartTotal().toLocaleString('id-ID')}
         </h1>
         
