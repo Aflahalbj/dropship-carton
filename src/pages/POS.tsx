@@ -29,7 +29,7 @@ function ProductCard({ product }: { product: Product }) {
         }
       }}
     >
-      <div className="h-32 overflow-hidden">
+      <div className="h-24 overflow-hidden">
         <img 
           src={product.image || defaultImage} 
           alt={product.name}
@@ -37,14 +37,14 @@ function ProductCard({ product }: { product: Product }) {
           onError={(e) => (e.target as HTMLImageElement).src = defaultImage} 
         />
       </div>
-      <div className="p-4 flex-grow">
+      <div className="p-3 flex-grow">
         <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-medium">{product.name}</h3>
-            <p className="text-sm text-muted-foreground mb-1">
+          <div className="w-full">
+            <h3 className="font-medium text-sm">{product.name}</h3>
+            <p className="text-xs text-muted-foreground mb-1">
               {product.sku} • {product.stock} stok
             </p>
-            <p className="text-lg font-semibold">Rp{product.price.toLocaleString('id-ID')}</p>
+            <p className="text-base font-semibold">Rp{product.price.toLocaleString('id-ID')}</p>
           </div>
         </div>
       </div>
@@ -130,7 +130,7 @@ const POS: React.FC = () => {
         </DropdownMenu>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         {filteredProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

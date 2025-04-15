@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,6 @@ const Purchases = () => {
   const [isCartVisible, setIsCartVisible] = useState(false);
   const [isOnPOSPage, setIsOnPOSPage] = useState(false);
   
-  // Add sort order state
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   
   useEffect(() => {
@@ -54,7 +52,6 @@ const Purchases = () => {
       product.sku.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      // Apply sorting
       switch (sortOrder) {
         case "name-asc":
           return a.name.localeCompare(b.name);
@@ -195,7 +192,7 @@ const Purchases = () => {
             </DropdownMenu>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -238,7 +235,7 @@ const Purchases = () => {
           toast.success(`${product.name} ditambahkan ke keranjang`);
         }}
       >
-        <div className="h-32 overflow-hidden">
+        <div className="h-24 overflow-hidden">
           <img 
             src={product.image || defaultImage} 
             alt={product.name}
@@ -246,21 +243,12 @@ const Purchases = () => {
             onError={(e) => (e.target as HTMLImageElement).src = defaultImage} 
           />
         </div>
-        <div className="p-4 flex-grow">
+        <div className="p-3 flex-grow">
           <div className="flex justify-between items-start">
-            <div>
-              <h3 className="font-medium">{product.name}</h3>
-              <p className="text-sm text-muted-foreground mb-1">{product.sku}</p>
-              <p className="text-lg font-semibold">Rp{product.supplierPrice.toLocaleString('id-ID')}</p>
-            </div>
-            <div className={`rounded-md px-2 py-1 ${
-              product.stock === 0 
-                ? 'bg-red-100 text-red-600'
-                : product.stock <= 5
-                  ? 'bg-amber-100 text-amber-600'
-                  : 'bg-green-100 text-green-600'
-            }`}>
-              <span className="text-sm font-medium">{product.stock} stok</span>
+            <div className="w-full">
+              <h3 className="font-medium text-sm">{product.name}</h3>
+              <p className="text-xs text-muted-foreground mb-1">{product.sku} • {product.stock} stok</p>
+              <p className="text-base font-semibold">Rp{product.supplierPrice.toLocaleString('id-ID')}</p>
             </div>
           </div>
         </div>
