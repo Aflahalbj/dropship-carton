@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -162,10 +163,6 @@ const Purchases: React.FC = () => {
 
   const shouldShowCartIcon = selectedProducts.length > 0 && !showCheckout;
 
-  const renderSelectedSupplier = () => {
-    return null;
-  };
-
   return <div className="container animate-slide-up py-[10px] px-[2px]">
       <div className="flex justify-between items-center mb-6">
         {showCheckout && <Button variant="ghost" size="icon" onClick={() => setShowCheckout(false)} className="mr-4">
@@ -235,38 +232,55 @@ const Purchases: React.FC = () => {
               </div>
               
               <div className="divide-y">
-                {selectedProducts.map(item => <div key={item.product.id} className="p-4 flex justify-between items-center">
+                {selectedProducts.map(item => (
+                  <div key={item.product.id} className="p-4 flex justify-between items-center">
                     <div className="flex-1">
                       {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
                           <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
                         </div>}
                       <div>
                         <h4 className="font-medium">{item.product.name}</h4>
-                        <div className="flex flex-col sm:flex-row sm:gap-4">
-                          <div className="mt-1 sm:mt-0">
-                            <Label htmlFor={`price-${item.product.id}`} className="text-xs text-muted-foreground">Harga</Label>
-                            <CurrencyInput id={`price-${item.product.id}`} placeholder="Harga" initialValue={item.price.toString()} onChange={val => handleUpdatePrice(item.product.id, val)} className="h-8 text-sm" />
-                          </div>
+                        <p className="text-sm text-muted-foreground">
+                          {item.quantity} × Rp{item.price.toLocaleString('id-ID')} = Rp{(item.price * item.quantity).toLocaleString('id-ID')}
+                        </p>
+                        
+                        <div className="mt-1">
+                          <Label htmlFor={`price-${item.product.id}`} className="text-xs text-muted-foreground">Harga</Label>
+                          <CurrencyInput id={`price-${item.product.id}`} placeholder="Harga" initialValue={item.price.toString()} onChange={val => handleUpdatePrice(item.product.id, val)} className="h-8 text-sm" />
                         </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <Label htmlFor={`quantity-${item.product.id}`} className="sr-only">Jumlah</Label>
-                        <Input type="number" id={`quantity-${item.product.id}`} placeholder="0" value={item.quantity} onChange={e => {
-                    const value = parseInt(e.target.value);
-                    if (!isNaN(value) && value > 0) {
-                      handleUpdateQuantity(item.product.id, value);
-                    }
-                  }} className="w-16 h-8 text-sm" />
-                      </div>
-                      
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => handleRemoveProduct(item.product.id)}>
-                        <X size={18} />
-                      </Button>
+                    <div className="w-20">
+                      <Input 
+                        type="text" 
+                        placeholder="0" 
+                        defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} 
+                        onBlur={e => {
+                          const newValue = e.target.value.trim();
+                          const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                          if (!isNaN(newQuantity) && newQuantity > 0) {
+                            handleUpdateQuantity(item.product.id, newQuantity);
+                          }
+                        }} 
+                        onChange={e => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          e.target.value = value;
+                        }} 
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                          }
+                        }} 
+                        className="w-10 h-10 text-center text-sm font-medium px-0" 
+                      />
                     </div>
-                  </div>)}
+                    
+                    <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => handleRemoveProduct(item.product.id)}>
+                      <X size={18} />
+                    </Button>
+                  </div>
+                ))}
                 
                 {selectedProducts.length === 0 && <div className="text-center py-8">
                     <p className="text-muted-foreground">Belum ada produk yang dipilih</p>
