@@ -9,6 +9,8 @@ import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
+import CartItemPriceEditor from '@/components/CartItemPriceEditor';
+
 function ProductCard({
   product
 }: {
@@ -49,6 +51,7 @@ function ProductCard({
       </div>
     </Card>;
 }
+
 function CartView({
   onCheckout
 }: {
@@ -63,6 +66,8 @@ function CartView({
     posCartProfit
   } = useAppContext();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
+
   if (posCart.length === 0) {
     return <div className="text-center py-10">
         <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -70,10 +75,35 @@ function CartView({
         <p className="text-muted-foreground mb-4">Tambahkan produk ke keranjang untuk melakukan penjualan</p>
       </div>;
   }
+
+  const handlePriceChange = (productId: string, newPrice: number) => {
+    setTemporaryPrices(prev => ({
+      ...prev,
+      [productId]: newPrice
+    }));
+  };
+
   const handleSubmit = (formData: CheckoutFormData) => {
     setIsProcessing(true);
-    onCheckout(formData);
+    const modifiedCart = posCart.map(item => {
+      if (temporaryPrices[item.product.id]) {
+        return {
+          ...item,
+          product: {
+            ...item.product,
+            price: temporaryPrices[item.product.id]
+          }
+        };
+      }
+      return item;
+    });
+    
+    onCheckout({
+      ...formData,
+      modifiedCart
+    });
   };
+
   return <div className="animate-slide-up grid gap-6 md:grid-cols-5">
       <div className="md:col-span-3">
         <div className="border rounded-lg overflow-hidden">
@@ -83,7 +113,10 @@ function CartView({
           </div>
           
           <div className="divide-y">
-            {posCart.map(item => <div key={item.product.id} className="p-4 flex justify-between items-center">
+            {posCart.map(item => {
+              const discountedPrice = temporaryPrices[item.product.id];
+              
+              return <div key={item.product.id} className="p-4 flex justify-between items-center">
                 <div className="flex-1">
                   {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
                       <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
@@ -91,8 +124,15 @@ function CartView({
                   <div>
                     <h4 className="font-medium">{item.product.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {item.quantity} × Rp{item.product.price.toLocaleString('id-ID')} = Rp{(item.product.price * item.quantity).toLocaleString('id-ID')}
+                      {item.quantity} × Rp{(discountedPrice || item.product.price).toLocaleString('id-ID')} = Rp{((discountedPrice || item.product.price) * item.quantity).toLocaleString('id-ID')}
                     </p>
+                    
+                    <CartItemPriceEditor 
+                      productId={item.product.id}
+                      originalPrice={item.product.price}
+                      discountedPrice={discountedPrice}
+                      onPriceChange={handlePriceChange}
+                    />
                   </div>
                 </div>
                 
@@ -116,16 +156,29 @@ function CartView({
                 <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => removeFromPosCart(item.product.id)}>
                   <X size={18} />
                 </Button>
-              </div>)}
+              </div>
+            })}
           </div>
         </div>
       </div>
       
       <div className="md:col-span-2">
-        <CheckoutForm cartTotal={posCartTotal()} cartProfit={posCartProfit()} onSubmit={handleSubmit} isProcessing={isProcessing} />
+        <CheckoutForm 
+          cartTotal={posCart.reduce((total, item) => {
+            const itemPrice = temporaryPrices[item.product.id] || item.product.price;
+            return total + (itemPrice * item.quantity);
+          }, 0)} 
+          cartProfit={posCart.reduce((total, item) => {
+            const itemPrice = temporaryPrices[item.product.id] || item.product.price;
+            return total + ((itemPrice - item.product.supplierPrice) * item.quantity);
+          }, 0)}
+          onSubmit={handleSubmit} 
+          isProcessing={isProcessing} 
+        />
       </div>
     </div>;
 }
+
 const POS: React.FC = () => {
   const {
     products,
@@ -165,17 +218,21 @@ const POS: React.FC = () => {
       toast.error("Keranjang kosong");
       return;
     }
+
+    const productsToProcess = formData.modifiedCart || posCart;
+    
     const transaction = {
       date: new Date(),
-      products: posCart,
-      total: posCartTotal(),
-      profit: posCart.reduce((total, item) => total + (item.product.price - item.product.supplierPrice) * item.quantity, 0),
+      products: productsToProcess,
+      total: productsToProcess.reduce((total, item) => total + (item.product.price * item.quantity), 0),
+      profit: productsToProcess.reduce((total, item) => total + ((item.product.price - item.product.supplierPrice) * item.quantity), 0),
       type: 'sale' as const,
       customerName: formData.customerName,
       paymentMethod: formData.paymentMethod,
       cashAmount: formData.cashAmount,
-      changeAmount: formData.paymentMethod === 'cash' ? Math.max(0, formData.cashAmount - posCartTotal()) : 0
+      changeAmount: formData.paymentMethod === 'cash' ? Math.max(0, formData.cashAmount - productsToProcess.reduce((total, item) => total + (item.product.price * item.quantity), 0)) : 0
     };
+    
     const success = addTransaction(transaction);
     if (success) {
       toast.success("Transaksi berhasil!");
@@ -262,4 +319,5 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
+
 export default POS;
