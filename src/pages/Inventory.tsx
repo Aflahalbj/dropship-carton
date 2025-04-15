@@ -3,7 +3,7 @@ import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Plus, Search, Edit, Trash, X, Check, Image, Link } from 'lucide-react';
+import { Plus, Search, Edit, Trash, X, Check, Image, Link, ArrowUpDown } from 'lucide-react';
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -208,13 +208,10 @@ const Inventory = () => {
           />
         </div>
         
-        <div className="w-full md:w-64">
-          <label className="block text-sm font-medium text-muted-foreground mb-1">
-            Urutkan
-          </label>
+        <div className="w-full md:w-48">
           <Select value={sortOrder} onValueChange={setSortOrder}>
-            <SelectTrigger>
-              <SelectValue placeholder="Urutkan berdasarkan" />
+            <SelectTrigger className="w-full justify-center">
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
