@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
+
 function ProductCard({
   product
 }: {
@@ -18,18 +19,27 @@ function ProductCard({
     addToPosCart
   } = useAppContext();
   const defaultImage = "https://placehold.co/300x150?text=Produk";
-  return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={() => {
+  
+  const handleAddToCart = () => {
     if (product.stock > 0) {
       addToPosCart(product, 1);
-      toast.success(`${product.name} ditambahkan ke keranjang`, {
-        duration: 3000
+      toast.success('Bantal ditambahkan ke keranjang', {
+        description: `${product.name} telah berhasil ditambahkan`,
+        duration: 3000,
+        icon: <Check size={20} />,
+        className: 'bg-green-500 text-white'
       });
     } else {
       toast.error(`${product.name} stok kosong`, {
         duration: 3000
       });
     }
-  }}>
+  };
+
+  return <Card 
+    className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" 
+    onClick={handleAddToCart}
+  >
       <div className="h-auto overflow-hidden flex items-center justify-center px-0 py-0 my-0 mx-0">
         <AspectRatio ratio={1 / 1} className="w-full">
           <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full object-cover" />
@@ -48,6 +58,7 @@ function ProductCard({
       </div>
     </Card>;
 }
+
 function CartView({
   onCheckout
 }: {
@@ -126,6 +137,7 @@ function CartView({
       </div>
     </div>;
 }
+
 const POS: React.FC = () => {
   const {
     products,
@@ -262,4 +274,5 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
+
 export default POS;
