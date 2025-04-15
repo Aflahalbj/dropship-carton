@@ -59,6 +59,8 @@ type AppContextType = {
   capital: number;
   products: Product[];
   cart: CartItem[];
+  posCart: CartItem[];
+  purchasesCart: CartItem[];
   transactions: Transaction[];
   expenses: Expense[];
   
@@ -79,6 +81,22 @@ type AppContextType = {
   clearCart: () => void;
   cartTotal: () => number;
   cartProfit: () => number;
+  
+  // POS Cart functions
+  addToPosCart: (product: Product, quantity: number) => void;
+  removeFromPosCart: (productId: string) => void;
+  updatePosCartItemQuantity: (productId: string, quantity: number) => void;
+  clearPosCart: () => void;
+  posCartTotal: () => number;
+  posCartProfit: () => number;
+  
+  // Purchases Cart functions
+  addToPurchasesCart: (product: Product, quantity: number) => void;
+  removeFromPurchasesCart: (productId: string) => void;
+  updatePurchasesCartItemQuantity: (productId: string, quantity: number) => void;
+  clearPurchasesCart: () => void;
+  purchasesCartTotal: () => number;
+  
   handlePageNavigation: (currentPath: string) => void;
   
   // Transaction functions
@@ -121,6 +139,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [capital, setCapital] = useState<number>(0);
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [posCart, setPosCart] = useState<CartItem[]>([]);
+  const [purchasesCart, setPurchasesCart] = useState<CartItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
@@ -140,6 +160,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProducts(getFromLocalStorage("products", []));
     setTransactions(getFromLocalStorage("transactions", []));
     setExpenses(getFromLocalStorage("expenses", []));
+    setPosCart(getFromLocalStorage("posCart", []));
+    setPurchasesCart(getFromLocalStorage("purchasesCart", []));
   }, []);
   
   // Initialize Supabase auth
@@ -235,7 +257,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     saveToLocalStorage("products", products);
     saveToLocalStorage("transactions", transactions);
     saveToLocalStorage("expenses", expenses);
-  }, [capital, products, transactions, expenses]);
+    saveToLocalStorage("posCart", posCart);
+    saveToLocalStorage("purchasesCart", purchasesCart);
+  }, [capital, products, transactions, expenses, posCart, purchasesCart]);
   
   // Auth functions
   const login = async (email: string, password: string): Promise<void> => {
@@ -445,26 +469,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
   
-  // Cart functions
-  const addToCart = (product: Product, quantity: number): void => {
-    const existingItem = cart.find(item => item.product.id === product.id);
+  // POS Cart functions
+  const addToPosCart = (product: Product, quantity: number): void => {
+    const existingItem = posCart.find(item => item.product.id === product.id);
     
     if (existingItem) {
-      updateCartItemQuantity(
+      updatePosCartItemQuantity(
         product.id, 
         existingItem.quantity + quantity
       );
       return;
     }
     
-    setCart(prev => [...prev, { product, quantity }]);
+    setPosCart(prev => [...prev, { product, quantity }]);
   };
   
-  const removeFromCart = (productId: string): void => {
-    setCart(prev => prev.filter(item => item.product.id !== productId));
+  const removeFromPosCart = (productId: string): void => {
+    setPosCart(prev => prev.filter(item => item.product.id !== productId));
   };
   
-  const updateCartItemQuantity = (productId: string, quantity: number): void => {
+  const updatePosCartItemQuantity = (productId: string, quantity: number): void => {
     if (quantity < 0) {
       quantity = 0;
     }
@@ -472,18 +496,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const product = products.find(p => p.id === productId);
     if (!product) return;
     
-    // Check stock only for sales (not for purchases)
-    const isInPOS = window.location.pathname.includes("pos") || window.location.pathname === "/";
-    
-    // For POS (cashier), enforce stock limits
-    if (isInPOS && quantity > product.stock) {
+    // Check stock for sales
+    if (quantity > product.stock) {
       toast.error("Stok tidak mencukupi");
       return;
     }
     
-    // For Purchases, allow any quantity regardless of current stock
-    
-    setCart(prev => 
+    setPosCart(prev => 
       prev.map(item => 
         item.product.id === productId 
           ? { ...item, quantity } 
@@ -492,14 +511,133 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
   
+  const clearPosCart = (): void => {
+    setPosCart([]);
+  };
+  
+  const posCartTotal = (): number => {
+    return posCart.reduce(
+      (total, item) => total + (item.product.price * item.quantity), 
+      0
+    );
+  };
+  
+  const posCartProfit = (): number => {
+    return posCart.reduce(
+      (total, item) => 
+        total + ((item.product.price - item.product.supplierPrice) * item.quantity), 
+      0
+    );
+  };
+  
+  // Purchases Cart functions
+  const addToPurchasesCart = (product: Product, quantity: number): void => {
+    const existingItem = purchasesCart.find(item => item.product.id === product.id);
+    
+    if (existingItem) {
+      updatePurchasesCartItemQuantity(
+        product.id, 
+        existingItem.quantity + quantity
+      );
+      return;
+    }
+    
+    setPurchasesCart(prev => [...prev, { product, quantity }]);
+  };
+  
+  const removeFromPurchasesCart = (productId: string): void => {
+    setPurchasesCart(prev => prev.filter(item => item.product.id !== productId));
+  };
+  
+  const updatePurchasesCartItemQuantity = (productId: string, quantity: number): void => {
+    if (quantity < 0) {
+      quantity = 0;
+    }
+    
+    setPurchasesCart(prev => 
+      prev.map(item => 
+        item.product.id === productId 
+          ? { ...item, quantity } 
+          : item
+      )
+    );
+  };
+  
+  const clearPurchasesCart = (): void => {
+    setPurchasesCart([]);
+  };
+  
+  const purchasesCartTotal = (): number => {
+    return purchasesCart.reduce(
+      (total, item) => total + (item.product.supplierPrice * item.quantity), 
+      0
+    );
+  };
+  
+  // Legacy Cart functions (kept for backward compatibility)
+  const addToCart = (product: Product, quantity: number): void => {
+    // Determine which cart to add to based on the current path
+    const path = window.location.pathname;
+    if (path.includes('/purchases')) {
+      addToPurchasesCart(product, quantity);
+    } else {
+      // Default to POS cart for all other paths
+      addToPosCart(product, quantity);
+    }
+  };
+  
+  const removeFromCart = (productId: string): void => {
+    const path = window.location.pathname;
+    if (path.includes('/purchases')) {
+      removeFromPurchasesCart(productId);
+    } else {
+      removeFromPosCart(productId);
+    }
+  };
+  
+  const updateCartItemQuantity = (productId: string, quantity: number): void => {
+    const path = window.location.pathname;
+    if (path.includes('/purchases')) {
+      updatePurchasesCartItemQuantity(productId, quantity);
+    } else {
+      updatePosCartItemQuantity(productId, quantity);
+    }
+  };
+  
   const clearCart = (): void => {
-    setCart([]);
+    const path = window.location.pathname;
+    if (path.includes('/purchases')) {
+      clearPurchasesCart();
+    } else {
+      clearPosCart();
+    }
+  };
+  
+  const cartTotal = (): number => {
+    const path = window.location.pathname;
+    if (path.includes('/purchases')) {
+      return purchasesCartTotal();
+    } else {
+      return posCartTotal();
+    }
+  };
+  
+  const cartProfit = (): number => {
+    // Only POS cart has profit calculation
+    return posCartProfit();
   };
   
   // Handle navigation between pages
   const handlePageNavigation = (currentPath: string): void => {
     // Update the previous path reference for next comparison
     previousPathRef.current = currentPath;
+    
+    // Update the current cart based on the page
+    if (currentPath.includes('/purchases')) {
+      setCart(purchasesCart);
+    } else {
+      setCart(posCart);
+    }
   };
   
   // Setup navigation event listener
@@ -511,26 +649,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Add event listener for popstate (back/forward navigation)
     window.addEventListener('popstate', handlePathChange);
     
+    // Update cart on first load
+    handlePathChange();
+    
     // Cleanup
     return () => {
       window.removeEventListener('popstate', handlePathChange);
     };
-  }, []);
-  
-  const cartTotal = (): number => {
-    return cart.reduce(
-      (total, item) => total + (item.product.price * item.quantity), 
-      0
-    );
-  };
-  
-  const cartProfit = (): number => {
-    return cart.reduce(
-      (total, item) => 
-        total + ((item.product.price - item.product.supplierPrice) * item.quantity), 
-      0
-    );
-  };
+  }, [posCart, purchasesCart]);
   
   // Transaction functions
   const addTransaction = async (transaction: Omit<Transaction, 'id'>): Promise<boolean> => {
@@ -644,6 +770,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       // Add the sale amount to capital
       await addToCapital(transaction.total);
+      
+      // Clear the POS cart after a successful sale
+      clearPosCart();
     } else if (transaction.type === 'purchase') {
       // For purchases, increase stock and deduct from capital
       
@@ -666,6 +795,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           };
         }
       });
+      
+      // Clear the purchases cart after a successful purchase
+      clearPurchasesCart();
     }
     
     // Update products state
@@ -739,6 +871,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     capital,
     products,
     cart,
+    posCart,
+    purchasesCart,
     transactions,
     expenses,
     
@@ -752,13 +886,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     updateProduct,
     deleteProduct,
     
-    // Cart functions
+    // Legacy Cart functions
     addToCart,
     removeFromCart,
     updateCartItemQuantity,
     clearCart,
     cartTotal,
     cartProfit,
+    
+    // POS Cart functions
+    addToPosCart,
+    removeFromPosCart,
+    updatePosCartItemQuantity,
+    clearPosCart,
+    posCartTotal,
+    posCartProfit,
+    
+    // Purchases Cart functions
+    addToPurchasesCart,
+    removeFromPurchasesCart,
+    updatePurchasesCartItemQuantity,
+    clearPurchasesCart,
+    purchasesCartTotal,
+    
     handlePageNavigation,
     
     // Transaction functions

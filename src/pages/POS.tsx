@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
 
 function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useAppContext();
+  const { addToPosCart } = useAppContext();
   const defaultImage = "https://placehold.co/300x150?text=Produk";
   
   return (
@@ -24,7 +24,7 @@ function ProductCard({ product }: { product: Product }) {
       className="overflow-hidden card-hover h-full flex flex-col cursor-pointer"
       onClick={() => {
         if (product.stock > 0) {
-          addToCart(product, 1);
+          addToPosCart(product, 1);
           toast.success(`${product.name} ditambahkan ke keranjang`);
         } else {
           toast.error(`${product.name} stok kosong`);
@@ -55,10 +55,10 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 function CartView({ onCheckout }: { onCheckout: (formData: CheckoutFormData) => void }) {
-  const { cart, removeFromCart, updateCartItemQuantity, clearCart, cartTotal, cartProfit } = useAppContext();
+  const { posCart, removeFromPosCart, updatePosCartItemQuantity, clearPosCart, posCartTotal, posCartProfit } = useAppContext();
   const [isProcessing, setIsProcessing] = useState(false);
   
-  if (cart.length === 0) {
+  if (posCart.length === 0) {
     return (
       <div className="text-center py-10">
         <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -82,7 +82,7 @@ function CartView({ onCheckout }: { onCheckout: (formData: CheckoutFormData) => 
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => clearCart()} 
+              onClick={() => clearPosCart()} 
               className="text-muted-foreground hover:text-destructive"
             >
               Kosongkan
@@ -90,7 +90,7 @@ function CartView({ onCheckout }: { onCheckout: (formData: CheckoutFormData) => 
           </div>
           
           <div className="divide-y">
-            {cart.map((item) => (
+            {posCart.map((item) => (
               <div key={item.product.id} className="p-4 flex justify-between items-center">
                 <div className="flex-1">
                   {item.product.image && (
@@ -117,7 +117,7 @@ function CartView({ onCheckout }: { onCheckout: (formData: CheckoutFormData) => 
                       const newValue = e.target.value.trim();
                       const newQuantity = newValue === "" ? 0 : parseInt(newValue);
                       if (!isNaN(newQuantity)) {
-                        updateCartItemQuantity(item.product.id, newQuantity);
+                        updatePosCartItemQuantity(item.product.id, newQuantity);
                       }
                     }}
                     onChange={(e) => {
@@ -141,7 +141,7 @@ function CartView({ onCheckout }: { onCheckout: (formData: CheckoutFormData) => 
                   variant="ghost"
                   size="icon"
                   className="ml-2 text-muted-foreground hover:text-destructive"
-                  onClick={() => removeFromCart(item.product.id)}
+                  onClick={() => removeFromPosCart(item.product.id)}
                 >
                   <X size={18} />
                 </Button>
@@ -153,8 +153,8 @@ function CartView({ onCheckout }: { onCheckout: (formData: CheckoutFormData) => 
       
       <div className="md:col-span-2">
         <CheckoutForm
-          cartTotal={cartTotal()}
-          cartProfit={cartProfit()}
+          cartTotal={posCartTotal()}
+          cartProfit={posCartProfit()}
           onSubmit={handleSubmit}
           isProcessing={isProcessing}
         />
@@ -164,7 +164,7 @@ function CartView({ onCheckout }: { onCheckout: (formData: CheckoutFormData) => 
 }
 
 const POS: React.FC = () => {
-  const { products, cart, addTransaction, cartTotal, handlePageNavigation } = useAppContext();
+  const { products, posCart, addTransaction, posCartTotal, handlePageNavigation } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   const [showCheckout, setShowCheckout] = useState(false);
@@ -201,16 +201,16 @@ const POS: React.FC = () => {
     });
   
   const handleCheckout = (formData: CheckoutFormData) => {
-    if (cart.length === 0) {
+    if (posCart.length === 0) {
       toast.error("Keranjang kosong");
       return;
     }
     
     const transaction = {
       date: new Date(),
-      products: cart,
-      total: cartTotal(),
-      profit: cart.reduce(
+      products: posCart,
+      total: posCartTotal(),
+      profit: posCart.reduce(
         (total, item) => total + ((item.product.price - item.product.supplierPrice) * item.quantity),
         0
       ),
@@ -218,7 +218,7 @@ const POS: React.FC = () => {
       customerName: formData.customerName,
       paymentMethod: formData.paymentMethod,
       cashAmount: formData.cashAmount,
-      changeAmount: formData.paymentMethod === 'cash' ? Math.max(0, formData.cashAmount - cartTotal()) : 0
+      changeAmount: formData.paymentMethod === 'cash' ? Math.max(0, formData.cashAmount - posCartTotal()) : 0
     };
     
     const success = addTransaction(transaction);
@@ -231,14 +231,14 @@ const POS: React.FC = () => {
     }
   };
   
-  const shouldShowCartIcon = cart.length > 0 && !showCheckout;
+  const shouldShowCartIcon = posCart.length > 0 && !showCheckout;
 
   return (
-    <div className="container mx-auto p-4 animate-slide-up">
+    <div className="container mx-auto animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Point of Sale</h1>
         
-        {cart.length > 0 && !showCheckout && (
+        {posCart.length > 0 && !showCheckout && (
           <Button
             className="bg-primary text-white flex items-center gap-2"
             onClick={() => setShowCheckout(true)}
@@ -246,7 +246,7 @@ const POS: React.FC = () => {
             <ShoppingCart size={18} />
             <span>Checkout</span>
             <span className="ml-1 bg-white text-primary rounded-full w-6 h-6 flex items-center justify-center text-sm">
-              {cart.reduce((total, item) => total + item.quantity, 0)}
+              {posCart.reduce((total, item) => total + item.quantity, 0)}
             </span>
           </Button>
         )}
@@ -331,7 +331,7 @@ const POS: React.FC = () => {
           <div className="relative">
             <ShoppingCart size={24} />
             <span className="absolute -top-2 -right-2 bg-white text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-              {cart.length}
+              {posCart.length}
             </span>
           </div>
         </Button>

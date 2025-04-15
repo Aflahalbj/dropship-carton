@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -17,12 +18,12 @@ import {
 const Purchases = () => {
   const { 
     products, 
-    cart, 
-    addToCart, 
-    removeFromCart, 
-    updateCartItemQuantity, 
-    clearCart, 
-    cartTotal,
+    purchasesCart,
+    addToPurchasesCart, 
+    removeFromPurchasesCart, 
+    updatePurchasesCartItemQuantity, 
+    clearPurchasesCart, 
+    purchasesCartTotal,
     addTransaction,
     capital,
     handlePageNavigation
@@ -31,18 +32,9 @@ const Purchases = () => {
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
-  const [isCartVisible, setIsCartVisible] = useState(false);
-  const [isOnPOSPage, setIsOnPOSPage] = useState(false);
-  
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   
   useEffect(() => {
-    const isPOS = location.pathname.includes('/pos') || location.pathname === '/';
-    setIsOnPOSPage(isPOS);
-    if (isPOS) {
-      setShowCheckout(false);
-    }
-    
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
   
@@ -71,12 +63,12 @@ const Purchases = () => {
     });
   
   const handlePurchase = () => {
-    if (cart.length === 0) {
+    if (purchasesCart.length === 0) {
       toast.error("Keranjang kosong");
       return;
     }
     
-    const purchaseProducts = cart.map(item => ({
+    const purchaseProducts = purchasesCart.map(item => ({
       product: {
         ...item.product,
         price: item.product.supplierPrice
@@ -106,24 +98,23 @@ const Purchases = () => {
     
     if (success) {
       toast.success("Pembelian berhasil dilakukan!");
-      clearCart();
       setShowCheckout(false);
     } else {
       toast.error("Modal tidak mencukupi untuk pembelian ini!");
     }
   };
   
-  const shouldShowCartIcon = cart.length > 0 && !showCheckout && !isOnPOSPage;
+  const shouldShowCartIcon = purchasesCart.length > 0 && !showCheckout;
   
   return (
-    <div className="animate-slide-up">
+    <div className="container mx-auto animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Pembelian Persediaan</h2>
           <p className="text-muted-foreground">Tambah stok barang dari pemasok</p>
         </div>
         
-        {cart.length > 0 && !showCheckout && !isOnPOSPage && (
+        {purchasesCart.length > 0 && !showCheckout && (
           <Button
             className="bg-primary text-white flex items-center gap-2"
             onClick={() => setShowCheckout(true)}
@@ -131,7 +122,7 @@ const Purchases = () => {
             <ShoppingCart size={18} />
             <span>Checkout</span>
             <span className="ml-1 bg-white text-primary rounded-full w-6 h-6 flex items-center justify-center text-sm">
-              {cart.reduce((total, item) => total + item.quantity, 0)}
+              {purchasesCart.reduce((total, item) => total + item.quantity, 0)}
             </span>
           </Button>
         )}
@@ -216,7 +207,7 @@ const Purchases = () => {
           <div className="relative">
             <ShoppingCart size={24} />
             <span className="absolute -top-2 -right-2 bg-white text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
-              {cart.length}
+              {purchasesCart.length}
             </span>
           </div>
         </Button>
@@ -231,7 +222,7 @@ const Purchases = () => {
       <Card 
         className="overflow-hidden card-hover h-full flex flex-col cursor-pointer"
         onClick={() => {
-          addToCart(product, 1);
+          addToPurchasesCart(product, 1);
           toast.success(`${product.name} ditambahkan ke keranjang`);
         }}
       >
@@ -257,7 +248,7 @@ const Purchases = () => {
   }
   
   function CartView({ onCheckout }: { onCheckout: () => void }) {
-    if (cart.length === 0) {
+    if (purchasesCart.length === 0) {
       return (
         <div className="text-center py-10">
           <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -270,7 +261,7 @@ const Purchases = () => {
       );
     }
     
-    const purchaseTotal = cart.reduce(
+    const purchaseTotal = purchasesCart.reduce(
       (total, item) => total + (item.product.supplierPrice * item.quantity), 
       0
     );
@@ -283,7 +274,7 @@ const Purchases = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => clearCart()} 
+              onClick={() => clearPurchasesCart()} 
               className="text-muted-foreground hover:text-destructive"
             >
               Kosongkan
@@ -291,7 +282,7 @@ const Purchases = () => {
           </div>
           
           <div className="divide-y">
-            {cart.map((item) => (
+            {purchasesCart.map((item) => (
               <div key={item.product.id} className="p-4 flex justify-between items-center">
                 <div className="flex-1">
                   {item.product.image && (
@@ -318,7 +309,7 @@ const Purchases = () => {
                       const newValue = e.target.value.trim();
                       const newQuantity = newValue === "" ? 0 : parseInt(newValue);
                       if (!isNaN(newQuantity)) {
-                        updateCartItemQuantity(item.product.id, newQuantity);
+                        updatePurchasesCartItemQuantity(item.product.id, newQuantity);
                       }
                     }}
                     onChange={(e) => {
@@ -342,7 +333,7 @@ const Purchases = () => {
                   variant="ghost"
                   size="icon"
                   className="ml-2 text-muted-foreground hover:text-destructive"
-                  onClick={() => removeFromCart(item.product.id)}
+                  onClick={() => removeFromPurchasesCart(item.product.id)}
                 >
                   <X size={18} />
                 </Button>
@@ -372,7 +363,7 @@ const Purchases = () => {
             <Button 
               variant="outline"
               className="flex-1"
-              onClick={() => clearCart()}
+              onClick={() => clearPurchasesCart()}
             >
               Kosongkan Keranjang
             </Button>
