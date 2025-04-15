@@ -9,7 +9,6 @@ import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
-
 function ProductCard({
   product
 }: {
@@ -45,7 +44,6 @@ function ProductCard({
       </div>
     </Card>;
 }
-
 function CartView({
   onCheckout
 }: {
@@ -126,7 +124,6 @@ function CartView({
       </div>
     </div>;
 }
-
 const POS: React.FC = () => {
   const {
     products,
@@ -185,14 +182,9 @@ const POS: React.FC = () => {
     }
   };
   const shouldShowCartIcon = posCart.length > 0 && !showCheckout;
-  return <div className="container animate-slide-up py-[10px] mx-0 px-[21px]">
+  return <div className="container animate-slide-up py-[10px] mx-0 px-0">
       <div className="flex justify-between items-center mb-6">
-        {showCheckout && <Button 
-          variant="ghost" 
-          size="icon" 
-          className="mr-4" 
-          onClick={() => setShowCheckout(false)}
-        >
+        {showCheckout && <Button variant="ghost" size="icon" className="mr-4" onClick={() => setShowCheckout(false)}>
           <ChevronsLeft size={24} />
         </Button>}
         
@@ -259,5 +251,4 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
-
 export default POS;
