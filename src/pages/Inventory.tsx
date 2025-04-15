@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext, Product } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,6 @@ const Inventory = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   
-  // Add sort order state
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   
   const filteredProducts = products
@@ -38,7 +36,6 @@ const Inventory = () => {
       product.sku.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
-      // Apply sorting
       switch (sortOrder) {
         case "name-asc":
           return a.name.localeCompare(b.name);
@@ -108,7 +105,6 @@ const Inventory = () => {
       const file = e.target.files[0];
       setImageFile(file);
       
-      // Convert file to data URL for preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, image: reader.result as string }));
@@ -154,7 +150,6 @@ const Inventory = () => {
       return;
     }
     
-    // Default image if none provided
     let imageUrl = formData.image || "https://placehold.co/300x150?text=Produk";
     
     const productData = {
@@ -199,28 +194,18 @@ const Inventory = () => {
           <h2 className="text-3xl font-bold tracking-tight">Manajemen Inventaris</h2>
           <p className="text-muted-foreground">Kelola katalog produk dan tingkat stok Anda</p>
         </div>
-        
-        <Button 
-          className="bg-primary text-white flex items-center gap-2"
-          onClick={() => handleOpenForm()}
-        >
-          <Plus size={18} />
-          Tambah Produk
-        </Button>
       </div>
       
       <div className="flex flex-col md:flex-row md:items-end gap-4 mb-6">
-        <div className="flex-grow">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input
-              type="text"
-              placeholder="Cari produk berdasarkan nama atau SKU..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+        <div className="flex-grow relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+          <Input
+            type="text"
+            placeholder="Cari produk berdasarkan nama atau SKU..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
         
         <div className="w-full md:w-64">
@@ -243,6 +228,15 @@ const Inventory = () => {
             </SelectContent>
           </Select>
         </div>
+        
+        <Button 
+          variant="outline"
+          size="icon"
+          className="w-10 h-10"
+          onClick={() => handleOpenForm()}
+        >
+          <Plus size={20} />
+        </Button>
       </div>
       
       <div className="bg-card border rounded-lg overflow-hidden">
@@ -327,7 +321,6 @@ const Inventory = () => {
         </div>
       </div>
       
-      {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <div className="p-4">
@@ -352,7 +345,6 @@ const Inventory = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Product Form Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <Card className="max-w-lg w-full relative animate-slide-up max-h-[90vh] overflow-y-auto">
