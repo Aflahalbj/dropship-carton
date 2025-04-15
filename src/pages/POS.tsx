@@ -9,7 +9,6 @@ import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
-
 function ProductCard({
   product
 }: {
@@ -49,7 +48,6 @@ function ProductCard({
       </div>
     </Card>;
 }
-
 function CartView({
   onCheckout
 }: {
@@ -130,7 +128,6 @@ function CartView({
       </div>
     </div>;
 }
-
 const POS: React.FC = () => {
   const {
     products,
@@ -147,7 +144,6 @@ const POS: React.FC = () => {
   useEffect(() => {
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
-  
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortOrder) {
       case "name-asc":
@@ -166,7 +162,6 @@ const POS: React.FC = () => {
         return 0;
     }
   });
-  
   const handleCheckout = (formData: CheckoutFormData) => {
     if (posCart.length === 0) {
       toast.error("Keranjang kosong");
@@ -191,15 +186,12 @@ const POS: React.FC = () => {
       toast.error("Transaksi gagal!");
     }
   };
-  
   const shouldShowCartIcon = posCart.length > 0 && !showCheckout;
-  
   const handleClearCartAndReturn = () => {
     clearPosCart();
     setShowCheckout(false);
     toast.success("Keranjang dikosongkan");
   };
-  
   return <div className="container animate-slide-up py-[10px] px-0">
       <div className="flex justify-between items-center mb-6">
         {showCheckout && <Button variant="ghost" size="icon" className="mr-4" onClick={() => setShowCheckout(false)}>
@@ -207,15 +199,13 @@ const POS: React.FC = () => {
         </Button>}
         
         <div className="w-full text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Kasir</h2>
-          <p className="text-muted-foreground">Proses penjualan produk dan kelola transaksi</p>
+          <h2 className="text-3xl font-bold tracking-tight text-left">Kasir</h2>
+          <p className="text-muted-foreground text-left">Proses penjualan produk dan kelola transaksi</p>
         </div>
         
-        {posCart.length > 0 && 
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleClearCartAndReturn}>
+        {posCart.length > 0 && <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleClearCartAndReturn}>
             <Trash2 size={20} />
-          </Button>
-        }
+          </Button>}
       </div>
 
       {!showCheckout ? <>
@@ -274,5 +264,4 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
-
 export default POS;
