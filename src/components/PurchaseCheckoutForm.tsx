@@ -6,6 +6,7 @@ import { useFormValidation } from '@/utils/form-helpers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CurrencyInput, TextInput } from './FormInputs';
 import { CreditCard, Wallet } from 'lucide-react';
+import { Input } from "@/components/ui/input";
 
 interface PurchaseCheckoutFormProps {
   purchaseTotal: number;
