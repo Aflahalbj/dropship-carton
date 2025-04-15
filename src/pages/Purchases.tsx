@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAppContext, Product, CartItem } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -60,12 +61,38 @@ const Purchases = () => {
       return;
     }
     
+    // Calculate the purchase total
+    const purchaseTotal = purchasesCart.reduce((total, item) => {
+      const itemPrice = temporaryPrices[item.product.id] || item.product.supplierPrice;
+      return total + itemPrice * item.quantity;
+    }, 0);
+    
     if (purchaseTotal > capital) {
       toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${capital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`, {
         duration: 1000
       });
       return;
     }
+    
+    // Create transaction object
+    const transaction = {
+      date: new Date(),
+      products: purchasesCart.map(item => {
+        if (temporaryPrices[item.product.id]) {
+          return {
+            ...item,
+            product: {
+              ...item.product,
+              supplierPrice: temporaryPrices[item.product.id]
+            }
+          };
+        }
+        return item;
+      }),
+      total: purchaseTotal,
+      profit: 0, // Purchases don't generate profit
+      type: 'purchase' as const
+    };
     
     const success = addTransaction(transaction);
     

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -55,6 +56,20 @@ const POS: React.FC = () => {
       });
       return;
     }
+
+    // Create a transaction object
+    const transaction = {
+      date: new Date(),
+      products: posCart,
+      total: posCartTotal(),
+      profit: posCart.reduce((total, item) => 
+        total + ((item.product.price - item.product.supplierPrice) * item.quantity), 0),
+      type: 'sale' as const,
+      customerName: formData.customerName,
+      paymentMethod: formData.paymentMethod,
+      cashAmount: formData.cashAmount,
+      changeAmount: formData.changeAmount
+    };
 
     const success = addTransaction(transaction);
     if (success) {
