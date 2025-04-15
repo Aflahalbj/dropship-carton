@@ -1,4 +1,29 @@
 
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ShoppingCart, X } from "lucide-react";
+import CartItemPriceEditor from '@/components/CartItemPriceEditor';
+import { PurchaseCheckoutForm } from '@/components/PurchaseCheckoutForm';
+
+// Define the CartViewProps interface
+interface CartViewProps {
+  onCheckout: () => void;
+  purchasesCart: Array<{
+    product: {
+      id: string;
+      name: string;
+      supplierPrice: number;
+    };
+    quantity: number;
+  }>;
+  capital: number;
+  clearPurchasesCart: () => void;
+  removeFromPurchasesCart: (productId: string) => void;
+  updatePurchasesCartItemQuantity: (productId: string, quantity: number) => void;
+  setShowCheckout: (show: boolean) => void;
+}
+
 function CartView({
   onCheckout,
   purchasesCart,
@@ -107,3 +132,18 @@ function CartView({
       <PurchaseCheckoutForm purchaseTotal={purchaseTotal} currentCapital={capital} onCheckout={handleCheckout} isProcessing={isProcessing} />
     </div>;
 }
+
+// Add a simple Purchases component as the default export
+const Purchases = () => {
+  // You can add the actual implementation here when needed
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-2">Halaman Pembelian</h1>
+      <p className="text-muted-foreground mb-6">Kelola pembelian produk dari supplier</p>
+      {/* Rest of your Purchases component code */}
+    </div>
+  );
+};
+
+export default Purchases;
+
