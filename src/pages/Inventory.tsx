@@ -203,8 +203,8 @@ const Inventory = () => {
         </div>
       </div>
       
-      <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-6">
-        <div className="flex flex-1 gap-3 items-center">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
+        <div className="flex max-w-3xl w-full gap-3 items-center">
           <Select value={sortField + "-" + sortDirection} onValueChange={(value) => {
             const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
             handleSortChange(field, direction);
@@ -231,7 +231,7 @@ const Inventory = () => {
               placeholder="Cari produk berdasarkan nama atau SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 rounded-full bg-slate-50 border-0"
+              className="pl-10 rounded-full bg-white border-slate-200"
             />
           </div>
           
