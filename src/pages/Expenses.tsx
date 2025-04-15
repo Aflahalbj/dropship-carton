@@ -210,7 +210,7 @@ const Expenses = () => {
               className="flex items-center gap-2"
               onClick={() => setCategoryFilter(categoryFilter === 'all' ? EXPENSE_CATEGORIES[0] : 'all')}
             >
-              <FilterIcon size={16} />
+              <Filter size={16} />
               {categoryFilter === 'all' ? 'Semua Kategori' : categoryFilter}
             </Button>
             
