@@ -19,7 +19,6 @@ const Purchases: React.FC = () => {
     addTransaction,
     currentCapital
   } = useAppContext();
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<{
     product: Product;
     quantity: number;
@@ -49,8 +48,39 @@ const Purchases: React.FC = () => {
     }
   });
 
+  const handleCheckout = () => {
+    if (selectedProducts.length === 0) {
+      toast.error("Tidak ada produk yang dipilih", {
+        duration: 1000
+      });
+      return;
+    }
+    setIsProcessing(true);
+    const purchaseTotal = selectedProducts.reduce((total, item) => total + item.quantity * item.price, 0);
+    const transaction = {
+      date: new Date(),
+      supplier: suppliers[0], // Use the first supplier as default
+      products: selectedProducts,
+      total: purchaseTotal,
+      profit: 0,
+      type: 'purchase' as const,
+      paymentMethod: 'cash' as const
+    };
+    const success = addTransaction(transaction);
+    if (success) {
+      toast.success("Pembelian berhasil!", {
+        duration: 1000
+      });
+      resetForm();
+    } else {
+      toast.error("Pembelian gagal!", {
+        duration: 1000
+      });
+      setIsProcessing(false);
+    }
+  };
+
   const resetForm = () => {
-    setSelectedSupplier(null);
     setSelectedProducts([]);
     setShowCheckout(false);
     setIsProcessing(false);
@@ -94,45 +124,6 @@ const Purchases: React.FC = () => {
     setSelectedProducts(updatedProducts);
   };
 
-  const handleCheckout = () => {
-    if (!selectedSupplier) {
-      toast.error("Pilih supplier terlebih dahulu", {
-        duration: 1000
-      });
-      return;
-    }
-    if (selectedProducts.length === 0) {
-      toast.error("Tidak ada produk yang dipilih", {
-        duration: 1000
-      });
-      return;
-    }
-    setIsProcessing(true);
-    const purchaseTotal = selectedProducts.reduce((total, item) => total + item.quantity * item.price, 0);
-    const transaction = {
-      date: new Date(),
-      supplier: selectedSupplier,
-      products: selectedProducts,
-      total: purchaseTotal,
-      profit: 0,
-      // For purchases, profit is 0 as it's a cost
-      type: 'purchase' as const,
-      paymentMethod: 'cash' as const
-    };
-    const success = addTransaction(transaction);
-    if (success) {
-      toast.success("Pembelian berhasil!", {
-        duration: 1000
-      });
-      resetForm();
-    } else {
-      toast.error("Pembelian gagal!", {
-        duration: 1000
-      });
-      setIsProcessing(false);
-    }
-  };
-
   const purchaseTotal = selectedProducts.reduce((total, item) => total + item.quantity * item.price, 0);
 
   const ProductCard = ({
@@ -172,12 +163,7 @@ const Purchases: React.FC = () => {
   const shouldShowCartIcon = selectedProducts.length > 0 && !showCheckout;
 
   const renderSelectedSupplier = () => {
-    if (!selectedSupplier) return null;
-    return (
-      <div className="flex items-center gap-2 px-2 py-1 bg-accent rounded-md text-sm">
-        <span className="font-medium">Supplier: {selectedSupplier.name}</span>
-      </div>
-    );
+    return null;
   };
 
   return <div className="container animate-slide-up py-[10px] px-[2px]">
@@ -232,18 +218,6 @@ const Purchases: React.FC = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             
-            {!selectedSupplier && <Select onValueChange={value => setSelectedSupplier(suppliers.find(s => s.id === value) || null)}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Pilih supplier" />
-                </SelectTrigger>
-                <SelectContent>
-                  {suppliers.map(supplier => (
-                    <SelectItem key={supplier.id} value={supplier.id}>
-                      {supplier.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>}
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 px-0 mx-0 my-0 py-0">
@@ -258,7 +232,6 @@ const Purchases: React.FC = () => {
             <div className="border rounded-lg overflow-hidden">
               <div className="bg-accent p-3 border-b flex justify-between items-center">
                 <h3 className="font-medium">Item Pembelian</h3>
-                {selectedSupplier && <span className="text-sm">Supplier: {selectedSupplier.name}</span>}
               </div>
               
               <div className="divide-y">
