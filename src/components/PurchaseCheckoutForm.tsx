@@ -34,9 +34,7 @@ import React, { useState } from 'react';
  
    const handleSubmit = () => {
      if (purchaseTotal > currentCapital) {
-       toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${currentCapital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`, {
-         duration: 1000 // Changed to 1 second
-       });
+       toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${currentCapital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`);
        return;
      }
  
@@ -45,9 +43,6 @@ import React, { useState } from 'react';
          ...prev,
          cashAmount: 'Jumlah uang tunai tidak mencukupi'
        }));
-       toast.error('Jumlah uang tunai tidak mencukupi', {
-         duration: 1000 // Changed to 1 second
-       });
        return;
      }
  
