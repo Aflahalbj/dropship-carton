@@ -96,7 +96,7 @@ const Purchases = () => {
         
         <div className="w-full text-center">
           <h2 className="text-3xl font-bold tracking-tight text-left">Pembelian</h2>
-          <p className="text-muted-foreground text-left">Tambah stok barang dari pemasok</p>
+          <p className="text-muted-foreground text-left">Tambah stok barang</p>
         </div>
         
         {purchasesCart.length > 0 && <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleClearCartAndReturn}>
