@@ -133,17 +133,165 @@ function CartView({
     </div>;
 }
 
-// Add a simple Purchases component as the default export
 const Purchases = () => {
-  // You can add the actual implementation here when needed
+  // State for purchase cart
+  const [purchasesCart, setPurchasesCart] = useState<Array<{
+    product: { id: string; name: string; supplierPrice: number; };
+    quantity: number;
+  }>>([]);
+  
+  // State to track whether to show checkout
+  const [showCheckout, setShowCheckout] = useState(false);
+  
+  // Mock capital
+  const [capital, setCapital] = useState(5000000);
+  
+  // Function to clear cart
+  const clearPurchasesCart = () => {
+    setPurchasesCart([]);
+  };
+  
+  // Function to remove item from cart
+  const removeFromPurchasesCart = (productId: string) => {
+    setPurchasesCart(prev => prev.filter(item => item.product.id !== productId));
+  };
+  
+  // Function to update item quantity
+  const updatePurchasesCartItemQuantity = (productId: string, quantity: number) => {
+    setPurchasesCart(prev => prev.map(item => 
+      item.product.id === productId ? { ...item, quantity } : item
+    ));
+  };
+  
+  // Function to handle checkout
+  const handleCheckout = () => {
+    // In a real app, you would process the purchase here
+    // For now, we'll just clear the cart
+    clearPurchasesCart();
+    setShowCheckout(false);
+  };
+  
+  // Mock data for product listing
+  const mockProducts = [
+    { id: "prod1", name: "Kemeja Polos", supplierPrice: 55000 },
+    { id: "prod2", name: "Celana Jeans", supplierPrice: 120000 },
+    { id: "prod3", name: "Kaos Oblong", supplierPrice: 35000 },
+    { id: "prod4", name: "Jaket Hoodie", supplierPrice: 150000 },
+    { id: "prod5", name: "Topi Baseball", supplierPrice: 25000 }
+  ];
+  
+  // Function to add product to cart
+  const addToCart = (product: typeof mockProducts[0]) => {
+    setPurchasesCart(prev => {
+      const existingItem = prev.find(item => item.product.id === product.id);
+      if (existingItem) {
+        return prev.map(item => 
+          item.product.id === product.id 
+            ? { ...item, quantity: item.quantity + 1 } 
+            : item
+        );
+      } else {
+        return [...prev, { product, quantity: 1 }];
+      }
+    });
+  };
+  
   return (
-    <div>
+    <div className="py-6">
       <h1 className="text-2xl font-bold mb-2">Halaman Pembelian</h1>
       <p className="text-muted-foreground mb-6">Kelola pembelian produk dari supplier</p>
-      {/* Rest of your Purchases component code */}
+      
+      <div className="grid md:grid-cols-2 gap-6">
+        {showCheckout ? (
+          <CartView 
+            onCheckout={handleCheckout}
+            purchasesCart={purchasesCart}
+            capital={capital}
+            clearPurchasesCart={clearPurchasesCart}
+            removeFromPurchasesCart={removeFromPurchasesCart}
+            updatePurchasesCartItemQuantity={updatePurchasesCartItemQuantity}
+            setShowCheckout={setShowCheckout}
+          />
+        ) : (
+          <div className="space-y-6">
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-accent p-3 border-b">
+                <h3 className="font-medium">Produk Supplier</h3>
+              </div>
+              <div className="divide-y">
+                {mockProducts.map(product => (
+                  <div key={product.id} className="p-4 flex justify-between items-center">
+                    <div>
+                      <h4 className="font-medium">{product.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Rp{product.supplierPrice.toLocaleString('id-ID')}
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => addToCart(product)}
+                    >
+                      + Tambahkan
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <div className="border rounded-lg overflow-hidden">
+          <div className="bg-accent p-3 border-b flex justify-between items-center">
+            <h3 className="font-medium">Keranjang Pembelian</h3>
+            {purchasesCart.length > 0 && !showCheckout && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowCheckout(true)}
+              >
+                Checkout
+              </Button>
+            )}
+          </div>
+          
+          <div className="p-4">
+            {purchasesCart.length === 0 ? (
+              <div className="text-center py-10">
+                <ShoppingCart size={36} className="mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">Belum ada produk di keranjang</p>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {purchasesCart.map(item => (
+                  <div key={item.product.id} className="py-2 flex justify-between items-center">
+                    <div>
+                      <h4 className="font-medium">{item.product.name}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {item.quantity} × Rp{item.product.supplierPrice.toLocaleString('id-ID')}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium">
+                        Rp{(item.quantity * item.product.supplierPrice).toLocaleString('id-ID')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                
+                <div className="py-2 pt-4 flex justify-between items-center">
+                  <h4 className="font-medium">Total</h4>
+                  <p className="font-bold">
+                    Rp{purchasesCart.reduce((total, item) => total + (item.quantity * item.product.supplierPrice), 0).toLocaleString('id-ID')}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default Purchases;
-
