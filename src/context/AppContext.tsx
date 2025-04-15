@@ -116,6 +116,9 @@ type AppContextType = {
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<boolean>;
 };
 
+// Create the context
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
 // Auth helper functions
 const saveToLocalStorage = (key: string, value: any) => {
   try {
@@ -252,16 +255,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           }));
           setProducts(formattedProducts);
         }
-        
-        const { data: suppliersData, error: suppliersError } = await supabase
-          .from('suppliers')
-          .select('*');
-        
-        if (suppliersError) {
-          console.error("Error loading suppliers:", suppliersError);
-        } else if (suppliersData) {
-          setSuppliers(suppliersData);
-        }
       }
     };
     
@@ -329,12 +322,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
     
     setCapital(newAmount);
-    toast.success(`Rp${amount.toLocaleString('id-ID')} ditambahkan ke modal`);
+    toast.success(`Rp${amount.toLocaleString('id-ID')} ditambahkan ke modal`, {
+      duration: 1000
+    });
   };
   
   const subtractFromCapital = async (amount: number): Promise<boolean> => {
     if (amount > capital) {
-      toast.error("Modal tidak mencukupi");
+      toast.error("Modal tidak mencukupi", {
+        duration: 1000
+      });
       return false;
     }
     
@@ -349,7 +346,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       if (error) {
         console.error("Error updating capital:", error);
-        toast.error("Gagal memperbarui modal");
+        toast.error("Gagal memperbarui modal", {
+          duration: 1000
+        });
         return false;
       }
     }
@@ -375,7 +374,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       if (error) {
         console.error("Error adding product:", error);
-        toast.error(`Gagal menambahkan produk: ${error.message}`);
+        toast.error(`Gagal menambahkan produk: ${error.message}`, {
+          duration: 1000
+        });
         return;
       }
       
@@ -391,7 +392,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
         
         setProducts(prev => [...prev, newProduct]);
-        toast.success(`Produk ditambahkan: ${product.name}`);
+        toast.success(`Produk ditambahkan: ${product.name}`, {
+          duration: 1000
+        });
         return;
       }
     }
@@ -402,7 +405,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     
     setProducts(prev => [...prev, newProduct]);
-    toast.success(`Produk ditambahkan: ${product.name}`);
+    toast.success(`Produk ditambahkan: ${product.name}`, {
+      duration: 1000
+    });
   };
   
   const updateProduct = async (product: Product): Promise<void> => {
@@ -422,7 +427,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       if (error) {
         console.error("Error updating product:", error);
-        toast.error(`Gagal memperbarui produk: ${error.message}`);
+        toast.error(`Gagal memperbarui produk: ${error.message}`, {
+          duration: 1000
+        });
         return;
       }
     }
@@ -430,7 +437,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProducts(prev => 
       prev.map(p => p.id === product.id ? product : p)
     );
-    toast.success(`Produk diperbarui: ${product.name}`);
+    toast.success(`Produk diperbarui: ${product.name}`, {
+      duration: 1000
+    });
   };
   
   const deleteProduct = async (id: string): Promise<void> => {
@@ -443,12 +452,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       if (checkError) {
         console.error("Error checking product usage:", checkError);
-        toast.error(`Gagal memeriksa produk: ${checkError.message}`);
+        toast.error(`Gagal memeriksa produk: ${checkError.message}`, {
+          duration: 1000
+        });
         return;
       }
       
       if (transactionItems && transactionItems.length > 0) {
-        toast.error("Produk tidak dapat dihapus karena sudah digunakan dalam transaksi");
+        toast.error("Produk tidak dapat dihapus karena sudah digunakan dalam transaksi", {
+          duration: 1000
+        });
         return;
       }
       
@@ -460,7 +473,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         if (error) {
           console.error("Error deleting product:", error);
-          toast.error(`Gagal menghapus produk: ${error.message}`);
+          toast.error(`Gagal menghapus produk: ${error.message}`, {
+            duration: 1000
+          });
           return;
         }
       }
@@ -469,7 +484,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       toast.success("Produk dihapus");
     } catch (error) {
       console.error("Error in deleteProduct:", error);
-      toast.error("Gagal menghapus produk: Terjadi kesalahan");
+      toast.error("Gagal menghapus produk: Terjadi kesalahan", {
+        duration: 1000
+      });
     }
   };
   
@@ -501,7 +518,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!product) return;
     
     if (quantity > product.stock) {
-      toast.error("Stok tidak mencukupi");
+      toast.error("Stok tidak mencukupi", {
+        duration: 1000
+      });
       return;
     }
     
@@ -666,7 +685,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       if (transactionError) {
         console.error("Error adding transaction:", transactionError);
-        toast.error(`Gagal menambahkan transaksi: ${transactionError.message}`);
+        toast.error(`Gagal menambahkan transaksi: ${transactionError.message}`, {
+          duration: 1000
+        });
         return false;
       }
       
@@ -686,7 +707,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         if (itemsError) {
           console.error("Error adding transaction items:", itemsError);
-          toast.error(`Gagal menambahkan item transaksi: ${itemsError.message}`);
+          toast.error(`Gagal menambahkan item transaksi: ${itemsError.message}`, {
+            duration: 1000
+          });
           return false;
         }
         
@@ -704,7 +727,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             
             if (stockError) {
               console.error("Error updating product stock:", stockError);
-              toast.error(`Gagal memperbarui stok produk: ${stockError.message}`);
+              toast.error(`Gagal memperbarui stok produk: ${stockError.message}`, {
+                duration: 1000
+              });
               continue;
             }
           }
@@ -735,7 +760,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
       
       if (hasInsufficientStock) {
-        toast.error("Stok tidak mencukupi untuk beberapa barang");
+        toast.error("Stok tidak mencukupi untuk beberapa barang", {
+          duration: 1000
+        });
         return false;
       }
       
@@ -802,7 +829,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       
       if (error) {
         console.error("Error adding expense:", error);
-        toast.error(`Gagal menambahkan pengeluaran: ${error.message}`);
+        toast.error(`Gagal menambahkan pengeluaran: ${error.message}`, {
+          duration: 1000
+        });
         return false;
       }
       
@@ -816,7 +845,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
         
         setExpenses(prev => [...prev, newExpense]);
-        toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`);
+        toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`, {
+          duration: 1000
+        });
         return true;
       }
     }
@@ -827,13 +858,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     
     setExpenses(prev => [...prev, newExpense]);
-    toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`);
+    toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`, {
+      duration: 1000
+    });
     return true;
   };
   
   const currentCapital = capital;
   
-  const value = {
+  const value: AppContextType = {
     isAuthenticated,
     currentUser,
     login,
