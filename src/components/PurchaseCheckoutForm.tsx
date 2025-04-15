@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -56,7 +56,7 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
           disabled={isProcessing || insufficientFunds}
         >
           <Check size={18} />
-          Selesaikan Pembelian
+          Selesaikan Pembelian Rp{purchaseTotal.toLocaleString('id-ID')}
         </Button>
       </div>
     </div>
