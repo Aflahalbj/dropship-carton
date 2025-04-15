@@ -11,6 +11,7 @@ import { PurchaseCheckoutForm } from '@/components/PurchaseCheckoutForm';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from '@/components/FormInputs';
+
 const Purchases: React.FC = () => {
   const {
     products,
@@ -28,6 +29,7 @@ const Purchases: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   const [showCheckout, setShowCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortOrder) {
       case "name-asc":
@@ -46,12 +48,14 @@ const Purchases: React.FC = () => {
         return 0;
     }
   });
+
   const resetForm = () => {
     setSelectedSupplier(null);
     setSelectedProducts([]);
     setShowCheckout(false);
     setIsProcessing(false);
   };
+
   const handleAddProduct = (product: Product) => {
     const existingProductIndex = selectedProducts.findIndex(item => item.product.id === product.id);
     if (existingProductIndex > -1) {
@@ -69,9 +73,11 @@ const Purchases: React.FC = () => {
       duration: 1000
     });
   };
+
   const handleRemoveProduct = (productId: string) => {
     setSelectedProducts(selectedProducts.filter(item => item.product.id !== productId));
   };
+
   const handleUpdateQuantity = (productId: string, quantity: number) => {
     const updatedProducts = selectedProducts.map(item => item.product.id === productId ? {
       ...item,
@@ -79,6 +85,7 @@ const Purchases: React.FC = () => {
     } : item);
     setSelectedProducts(updatedProducts);
   };
+
   const handleUpdatePrice = (productId: string, price: number) => {
     const updatedProducts = selectedProducts.map(item => item.product.id === productId ? {
       ...item,
@@ -86,6 +93,7 @@ const Purchases: React.FC = () => {
     } : item);
     setSelectedProducts(updatedProducts);
   };
+
   const handleCheckout = () => {
     if (!selectedSupplier) {
       toast.error("Pilih supplier terlebih dahulu", {
@@ -124,7 +132,9 @@ const Purchases: React.FC = () => {
       setIsProcessing(false);
     }
   };
+
   const purchaseTotal = selectedProducts.reduce((total, item) => total + item.quantity * item.price, 0);
+
   const ProductCard = ({
     product
   }: {
@@ -150,6 +160,7 @@ const Purchases: React.FC = () => {
         </div>
       </Card>;
   };
+
   const handleClearCartAndReturn = () => {
     setSelectedProducts([]);
     setShowCheckout(false);
@@ -157,7 +168,18 @@ const Purchases: React.FC = () => {
       duration: 1000
     });
   };
+
   const shouldShowCartIcon = selectedProducts.length > 0 && !showCheckout;
+
+  const renderSelectedSupplier = () => {
+    if (!selectedSupplier) return null;
+    return (
+      <div className="flex items-center gap-2 px-2 py-1 bg-accent rounded-md text-sm">
+        <span className="font-medium">Supplier: {selectedSupplier.name}</span>
+      </div>
+    );
+  };
+
   return <div className="container animate-slide-up py-[10px] px-[2px]">
       <div className="flex justify-between items-center mb-6">
         {showCheckout && <Button variant="ghost" size="icon" onClick={() => setShowCheckout(false)} className="mr-4">
@@ -210,18 +232,22 @@ const Purchases: React.FC = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             
-            {!selectedSupplier && <Select onValueChange={value => setSelectedSupplier(suppliers.find(s => s.id === value) || null)}>
+            {!selectedSupplier ? (
+              <Select onValueChange={value => setSelectedSupplier(suppliers.find(s => s.id === value) || null)}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Pilih supplier" />
                 </SelectTrigger>
                 <SelectContent>
-                  {suppliers.map(supplier => <SelectItem key={supplier.id} value={supplier.id}>
+                  {suppliers.map(supplier => (
+                    <SelectItem key={supplier.id} value={supplier.id}>
                       {supplier.name}
-                    </SelectItem>)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
-              </Select>}
-            
-            {selectedSupplier}
+              </Select>
+            ) : (
+              renderSelectedSupplier()
+            )}
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 px-0 mx-0 my-0 py-0">
@@ -295,4 +321,5 @@ const Purchases: React.FC = () => {
         </Button>}
     </div>;
 };
+
 export default Purchases;
