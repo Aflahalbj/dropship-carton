@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAppContext, Product, CartItem } from '../context/AppContext'; // Added CartItem import
+import { useAppContext, Product, CartItem } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -80,7 +80,12 @@ const Purchases = () => {
       products: purchaseProducts,
       total: purchaseTotal,
       profit: 0,
-      type: 'purchase' as const
+      type: 'purchase' as const,
+      supplierName: '',
+      supplierPhone: '',
+      supplierAddress: '',
+      paymentMethod: 'cash' as const,
+      cashAmount: 0
     };
     
     const success = addTransaction(transaction);
@@ -228,6 +233,11 @@ function CartView({
 }: CartViewProps) {
   const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [supplierName, setSupplierName] = useState<string>('');
+  const [supplierPhone, setSupplierPhone] = useState<string>('');
+  const [supplierAddress, setSupplierAddress] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
+  const [cashAmount, setCashAmount] = useState<number>(0);
 
   if (purchasesCart.length === 0) {
     return <div className="text-center py-10">
@@ -266,6 +276,7 @@ function CartView({
       }
       return item;
     });
+    
     onCheckout();
     setIsProcessing(false);
   };
@@ -314,7 +325,12 @@ function CartView({
         })}
         </div>
       </div>
-      <PurchaseCheckoutForm purchaseTotal={purchaseTotal} currentCapital={capital} onCheckout={handleCheckout} isProcessing={isProcessing} />
+      <PurchaseCheckoutForm 
+        purchaseTotal={purchaseTotal} 
+        currentCapital={capital} 
+        onCheckout={handleCheckout} 
+        isProcessing={isProcessing} 
+      />
     </div>;
 }
 

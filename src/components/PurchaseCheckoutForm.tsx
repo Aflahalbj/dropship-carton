@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useFormValidation } from '@/utils/form-helpers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CurrencyInput, TextInput } from './FormInputs';
-import { CreditCard, Wallet } from 'lucide-react';
+import { CreditCard, Wallet, Phone, MapPin } from 'lucide-react';
 
 interface PurchaseCheckoutFormProps {
   purchaseTotal: number;
@@ -23,6 +23,8 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
 }) => {
   // Form state
   const [supplierName, setSupplierName] = useState<string>('');
+  const [supplierPhone, setSupplierPhone] = useState<string>(''); // New state for supplier phone
+  const [supplierAddress, setSupplierAddress] = useState<string>(''); // New state for supplier address
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
   const [cashAmount, setCashAmount] = useState<number>(0);
 
@@ -72,6 +74,25 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
           onChange={setSupplierName} 
           error={errors.supplierName} 
         />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TextInput 
+            id="supplierPhone" 
+            label="Nomor Telepon (Opsional)" 
+            placeholder="Nomor telepon supplier" 
+            onChange={setSupplierPhone}
+            error={errors.supplierPhone}
+            className="flex items-center"
+          />
+          
+          <TextInput 
+            id="supplierAddress" 
+            label="Alamat (Opsional)" 
+            placeholder="Alamat supplier" 
+            onChange={setSupplierAddress}
+            error={errors.supplierAddress}
+          />
+        </div>
         
         <div>
           <label className="block text-sm font-medium text-muted-foreground mb-1">

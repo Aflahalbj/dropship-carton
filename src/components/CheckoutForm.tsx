@@ -1,24 +1,30 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CurrencyInput, TextInput } from './FormInputs';
 import { useFormValidation } from '@/utils/form-helpers';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, User, CreditCard, Wallet } from 'lucide-react';
+import { Check, CreditCard, Wallet, Phone, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAppContext } from '@/context/AppContext';
+
 interface CheckoutFormProps {
   cartTotal: number;
   cartProfit: number;
   onSubmit: (formData: CheckoutFormData) => void;
   isProcessing: boolean;
 }
+
 export interface CheckoutFormData {
   customerName: string;
+  customerPhone: string; // Added customer phone
+  customerAddress: string; // Added customer address
   paymentMethod: 'cash' | 'transfer';
   cashAmount: number;
-  modifiedCart?: any[]; // Add the missing modifiedCart property
+  modifiedCart?: any[]; 
 }
+
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   cartTotal,
   cartProfit,
@@ -27,6 +33,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 }) => {
   // Form state
   const [customerName, setCustomerName] = useState<string>('');
+  const [customerPhone, setCustomerPhone] = useState<string>(''); // New state for customer phone
+  const [customerAddress, setCustomerAddress] = useState<string>(''); // New state for customer address
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
   const [cashAmount, setCashAmount] = useState<number>(0);
 
@@ -57,6 +65,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     if (isValid) {
       onSubmit({
         customerName,
+        customerPhone,
+        customerAddress,
         paymentMethod,
         cashAmount
       });
@@ -74,7 +84,31 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       <h3 className="font-medium text-lg mb-4">Informasi Pelanggan</h3>
       
       <div className="space-y-4">
-        <TextInput id="customerName" label="Nama Pelanggan (Opsional)" placeholder="Nama pelanggan" onChange={setCustomerName} error={errors.customerName} />
+        <TextInput 
+          id="customerName" 
+          label="Nama Pelanggan (Opsional)" 
+          placeholder="Nama pelanggan" 
+          onChange={setCustomerName} 
+          error={errors.customerName} 
+        />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TextInput 
+            id="customerPhone" 
+            label="Nomor Telepon (Opsional)" 
+            placeholder="Nomor telepon pelanggan" 
+            onChange={setCustomerPhone}
+            error={errors.customerPhone}
+          />
+          
+          <TextInput 
+            id="customerAddress" 
+            label="Alamat (Opsional)" 
+            placeholder="Alamat pelanggan" 
+            onChange={setCustomerAddress}
+            error={errors.customerAddress}
+          />
+        </div>
         
         <div>
           <label className="block text-sm font-medium text-muted-foreground mb-1">
