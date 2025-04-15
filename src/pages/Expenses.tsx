@@ -30,7 +30,6 @@ const formSchema = z.object({
     required_error: "Tanggal wajib diisi"
   })
 });
-
 const Expenses = () => {
   const {
     expenses,
@@ -54,24 +53,21 @@ const Expenses = () => {
   });
 
   // Filter expenses and ensure all date objects are properly instantiated
-  const filteredExpenses = expenses
-    .filter(expense => {
-      // Filter by search term
-      const matchesSearch = !searchTerm || expense.description.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Filter by category
-      const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
-      return matchesSearch && matchesCategory;
-    })
-    .map(expense => ({
-      ...expense,
-      // Ensure date is a proper Date object
-      date: expense.date instanceof Date ? expense.date : new Date(expense.date)
-    }))
-    .sort((a, b) => {
-      // Now we can safely use getTime() since we've ensured both are Date objects
-      return b.date.getTime() - a.date.getTime();
-    }); // Sort by date descending
+  const filteredExpenses = expenses.filter(expense => {
+    // Filter by search term
+    const matchesSearch = !searchTerm || expense.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Filter by category
+    const matchesCategory = categoryFilter === 'all' || expense.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  }).map(expense => ({
+    ...expense,
+    // Ensure date is a proper Date object
+    date: expense.date instanceof Date ? expense.date : new Date(expense.date)
+  })).sort((a, b) => {
+    // Now we can safely use getTime() since we've ensured both are Date objects
+    return b.date.getTime() - a.date.getTime();
+  }); // Sort by date descending
 
   // Form submission
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -85,7 +81,7 @@ const Expenses = () => {
         date: values.date,
         amount,
         category: values.category,
-        description: values.description,
+        description: values.description
         // Don't set user_id if not authenticated
       };
 
@@ -114,7 +110,6 @@ const Expenses = () => {
 
   // Calculate total expenses
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  
   return <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -122,13 +117,7 @@ const Expenses = () => {
           <p className="text-muted-foreground">Pantau dan kelola pengeluaran</p>
         </div>
         
-        <Button 
-          onClick={() => form.reset()} 
-          className="bg-primary text-white flex items-center justify-center rounded-full w-10 h-10 p-0" 
-          variant="default"
-        >
-          <Plus size={18} />
-        </Button>
+        
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
