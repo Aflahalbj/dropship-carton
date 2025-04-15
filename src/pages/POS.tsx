@@ -1,13 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { useAppContext, Product } from "@/context/AppContext";
-import { Input } from "@/components/ui/input";
-import { Search, ArrowUpDown, ShoppingCart, X, Check } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
+import { useAppContext } from "@/context/AppContext";
 
 function ProductCard({
   product
@@ -26,7 +20,7 @@ function ProductCard({
       toast.error(`${product.name} stok kosong`);
     }
   }}>
-      <div className="h-20 overflow-hidden flex items-center justify-center">
+      <div className="h-40 overflow-hidden flex items-center justify-center">
         <img 
           src={product.image || defaultImage} 
           alt={product.name} 
