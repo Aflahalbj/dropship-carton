@@ -207,7 +207,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
           }
         >
           <Check size={18} />
-          Selesaikan Penjualan
+          Selesaikan Penjualan Rp{cartTotal.toLocaleString('id-ID')}
         </Button>
       </div>
     </Card>
