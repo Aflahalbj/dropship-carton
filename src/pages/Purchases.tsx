@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Input } from "@/components/ui/input";
@@ -232,8 +232,7 @@ const Purchases: React.FC = () => {
               </DropdownMenuContent>
             </DropdownMenu>
             
-            {!selectedSupplier ? (
-              <Select onValueChange={value => setSelectedSupplier(suppliers.find(s => s.id === value) || null)}>
+            {!selectedSupplier && <Select onValueChange={value => setSelectedSupplier(suppliers.find(s => s.id === value) || null)}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Pilih supplier" />
                 </SelectTrigger>
@@ -244,10 +243,7 @@ const Purchases: React.FC = () => {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
-            ) : (
-              renderSelectedSupplier()
-            )}
+              </Select>}
           </div>
           
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 px-0 mx-0 my-0 py-0">
