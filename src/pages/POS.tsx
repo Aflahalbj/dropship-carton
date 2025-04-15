@@ -4,7 +4,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "sonner";
 import { useAppContext, Product } from "@/context/AppContext";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowUpDown, ShoppingCart, X, Check } from 'lucide-react';
+import { Search, ArrowUpDown, ShoppingCart, X, Check, ChevronLeft } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
@@ -189,7 +189,7 @@ const POS: React.FC = () => {
         {posCart.length > 0 && !showCheckout}
         
         {showCheckout && <Button variant="outline" className="border-primary text-primary flex items-center gap-2" onClick={() => setShowCheckout(false)}>
-            <X size={18} />
+            <ChevronLeft size={18} />
             Kembali ke Produk
           </Button>}
       </div>
