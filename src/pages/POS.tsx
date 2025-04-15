@@ -4,11 +4,12 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "sonner";
 import { useAppContext, Product } from "@/context/AppContext";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowUpDown, ShoppingCart, X, Check, ChevronLeft } from 'lucide-react';
+import { Search, ArrowUpDown, ShoppingCart, X, Check, ChevronsLeft } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
+
 function ProductCard({
   product
 }: {
@@ -44,6 +45,7 @@ function ProductCard({
       </div>
     </Card>;
 }
+
 function CartView({
   onCheckout
 }: {
@@ -124,6 +126,7 @@ function CartView({
       </div>
     </div>;
 }
+
 const POS: React.FC = () => {
   const {
     products,
@@ -184,14 +187,18 @@ const POS: React.FC = () => {
   const shouldShowCartIcon = posCart.length > 0 && !showCheckout;
   return <div className="container animate-slide-up py-[10px] mx-0 px-[21px]">
       <div className="flex justify-between items-center mb-6">
+        {showCheckout && <Button 
+          variant="ghost" 
+          size="icon" 
+          className="mr-4" 
+          onClick={() => setShowCheckout(false)}
+        >
+          <ChevronsLeft size={24} />
+        </Button>}
+        
         <h1 className="font-bold text-3xl">Point of Sale</h1>
         
         {posCart.length > 0 && !showCheckout}
-        
-        {showCheckout && <Button variant="outline" className="border-primary text-primary flex items-center gap-2" onClick={() => setShowCheckout(false)}>
-            <ChevronLeft size={18} />
-            Kembali ke Produk
-          </Button>}
       </div>
 
       {!showCheckout ? <>
@@ -250,4 +257,5 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
+
 export default POS;
