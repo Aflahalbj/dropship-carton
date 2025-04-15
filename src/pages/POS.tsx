@@ -200,7 +200,7 @@ const POS: React.FC = () => {
         
         <div className="w-full text-center">
           <h2 className="text-3xl font-bold tracking-tight text-left">Kasir</h2>
-          <p className="text-muted-foreground text-left">Proses penjualan produk dan kelola transaksi</p>
+          <p className="text-muted-foreground text-left">Proses penjualan produk</p>
         </div>
         
         {posCart.length > 0 && <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleClearCartAndReturn}>
