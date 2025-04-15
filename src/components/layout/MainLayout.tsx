@@ -37,7 +37,7 @@ export const MainLayout = () => {
         </header>
         
         <main className="flex-1 overflow-auto">
-          <div className="container mx-auto animate-fade-in py-0 px-[20px]">
+          <div className="container mx-auto animate-fade-in px-[20px] py-[10px]">
             <Outlet />
           </div>
         </main>
