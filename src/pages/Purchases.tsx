@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
 import { PurchaseCheckoutForm } from '@/components/PurchaseCheckoutForm';
+
 const Purchases = () => {
   const {
     products,
@@ -29,9 +30,11 @@ const Purchases = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
+
   useEffect(() => {
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
+
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortOrder) {
       case "name-asc":
@@ -50,11 +53,13 @@ const Purchases = () => {
         return 0;
     }
   });
+
   const handlePurchase = () => {
     if (purchasesCart.length === 0) {
       toast.error("Keranjang kosong");
       return;
     }
+    
     const purchaseProducts = purchasesCart.map(item => ({
       product: {
         ...item.product,
@@ -62,11 +67,14 @@ const Purchases = () => {
       },
       quantity: item.quantity
     }));
+    
     const purchaseTotal = purchaseProducts.reduce((total, item) => total + item.product.price * item.quantity, 0);
+    
     if (purchaseTotal > capital) {
       toast.error(`Modal tidak mencukupi untuk pembelian ini! Modal saat ini: Rp${capital.toLocaleString('id-ID')}, Total pembelian: Rp${purchaseTotal.toLocaleString('id-ID')}`);
       return;
     }
+    
     const transaction = {
       date: new Date(),
       products: purchaseProducts,
@@ -74,7 +82,9 @@ const Purchases = () => {
       profit: 0,
       type: 'purchase' as const
     };
+    
     const success = addTransaction(transaction);
+    
     if (success) {
       toast.success("Pembelian berhasil dilakukan!");
       setShowCheckout(false);
@@ -82,12 +92,15 @@ const Purchases = () => {
       toast.error("Modal tidak mencukupi untuk pembelian ini!");
     }
   };
+
   const handleClearCartAndReturn = () => {
     clearPurchasesCart();
     setShowCheckout(false);
     toast.success("Keranjang dikosongkan");
   };
+
   const shouldShowCartIcon = purchasesCart.length > 0 && !showCheckout;
+
   return <div className="container mx-auto animate-slide-up py-[10px] px-[2px]">
       <div className="flex justify-between items-center mb-6">
         {showCheckout && <Button variant="ghost" size="icon" onClick={() => setShowCheckout(false)} className="mr-4">
@@ -160,10 +173,12 @@ const Purchases = () => {
         </Button>}
     </div>;
 };
+
 interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product, quantity: number) => void;
 }
+
 function ProductCard({
   product,
   onAddToCart
@@ -191,6 +206,7 @@ function ProductCard({
     </div>
   </Card>;
 }
+
 interface CartViewProps {
   onCheckout: () => void;
   purchasesCart: CartItem[];
@@ -200,6 +216,7 @@ interface CartViewProps {
   updatePurchasesCartItemQuantity: (productId: string, quantity: number) => void;
   setShowCheckout: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
 function CartView({
   onCheckout,
   purchasesCart,
@@ -211,6 +228,7 @@ function CartView({
 }: CartViewProps) {
   const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+
   if (purchasesCart.length === 0) {
     return <div className="text-center py-10">
         <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -221,16 +239,19 @@ function CartView({
         </Button>
       </div>;
   }
+
   const handlePriceChange = (productId: string, newPrice: number) => {
     setTemporaryPrices(prev => ({
       ...prev,
       [productId]: newPrice
     }));
   };
+
   const purchaseTotal = purchasesCart.reduce((total, item) => {
     const itemPrice = temporaryPrices[item.product.id] || item.product.supplierPrice;
     return total + itemPrice * item.quantity;
   }, 0);
+
   const handleCheckout = () => {
     setIsProcessing(true);
     const modifiedCart = purchasesCart.map(item => {
@@ -248,6 +269,7 @@ function CartView({
     onCheckout();
     setIsProcessing(false);
   };
+
   return <div className="animate-slide-up">
       <div className="border rounded-lg overflow-hidden mb-6">
         <div className="bg-accent p-3 border-b flex justify-between items-center">
@@ -295,4 +317,5 @@ function CartView({
       <PurchaseCheckoutForm purchaseTotal={purchaseTotal} currentCapital={capital} onCheckout={handleCheckout} isProcessing={isProcessing} />
     </div>;
 }
+
 export default Purchases;
