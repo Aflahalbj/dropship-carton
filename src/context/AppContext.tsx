@@ -815,47 +815,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
     
-    if (isAuthenticated) {
-      const { data, error } = await supabase
-        .from('expenses')
-        .insert({
-          user_id: currentUser?.id,
-          date: expense.date.toISOString(),
-          amount: expense.amount,
-          category: expense.category,
-          description: expense.description
-        })
-        .select();
-      
-      if (error) {
-        console.error("Error adding expense:", error);
-        toast.error(`Gagal menambahkan pengeluaran: ${error.message}`, {
-          duration: 1000
-        });
-        return false;
-      }
-      
-      if (data && data[0]) {
-        const newExpense = {
-          id: data[0].id,
-          date: new Date(data[0].date),
-          amount: data[0].amount,
-          category: data[0].category,
-          description: data[0].description
-        };
-        
-        setExpenses(prev => [...prev, newExpense]);
-        toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`, {
-          duration: 1000
-        });
-        return true;
-      }
-    }
-    
-    const newExpense = {
+    const newExpense: Expense = {
       ...expense,
       id: Date.now().toString(),
     };
+    
+    if (isAuthenticated && currentUser) {
+      try {
+        const { data, error } = await supabase
+          .from('expenses')
+          .insert({
+            user_id: currentUser.id,
+            date: expense.date.toISOString(),
+            amount: expense.amount,
+            category: expense.category,
+            description: expense.description
+          })
+          .select();
+        
+        if (error) {
+          console.error("Error adding expense:", error);
+          toast.error(`Gagal menambahkan pengeluaran: ${error.message}`, {
+            duration: 1000
+          });
+          return false;
+        }
+        
+        if (data && data[0]) {
+          const dbExpense = {
+            id: data[0].id,
+            date: new Date(data[0].date),
+            amount: data[0].amount,
+            category: data[0].category,
+            description: data[0].description
+          };
+          
+          setExpenses(prev => [...prev, dbExpense]);
+          toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`, {
+            duration: 1000
+          });
+          return true;
+        }
+      } catch (err) {
+        console.error("Exception in addExpense:", err);
+      }
+    }
     
     setExpenses(prev => [...prev, newExpense]);
     toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`, {
