@@ -105,12 +105,7 @@ const Transactions = () => {
       }} />
         
         <Tabs defaultValue="all" value={transactionType} onValueChange={setTransactionType}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="all">Semua</TabsTrigger>
-            <TabsTrigger value="sale">Penjualan</TabsTrigger>
-            <TabsTrigger value="purchase">Pembelian</TabsTrigger>
-            
-          </TabsList>
+          
           
           <TabsContent value="all" className="space-y-0">
             {renderTransactionsTable(filteredTransactions)}
