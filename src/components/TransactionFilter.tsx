@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, ArrowUpDown } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TransactionFilterProps {
   searchTerm: string;
@@ -34,24 +40,21 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
 }) => {
   return (
     <div className="flex flex-1 gap-3 items-center">
-      <Select value={sortField + "-" + sortDirection} onValueChange={(value) => {
-        const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
-        onSortChange(field, direction);
-      }}>
-        <Button variant="ghost" size="icon" className="w-12 h-12 rounded-lg bg-slate-50">
-          <Filter className="h-4 w-4" />
-        </Button>
-        <SelectContent align="end">
-          <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
-          <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
-          <SelectItem value="price-asc">Harga Jual (Terendah)</SelectItem>
-          <SelectItem value="price-desc">Harga Jual (Tertinggi)</SelectItem>
-          <SelectItem value="stock-asc">Stok (Terendah)</SelectItem>
-          <SelectItem value="stock-desc">Stok (Tertinggi)</SelectItem>
-          <SelectItem value="profit-asc">Keuntungan (Terendah)</SelectItem>
-          <SelectItem value="profit-desc">Keuntungan (Tertinggi)</SelectItem>
-        </SelectContent>
-      </Select>
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="w-12 h-12 rounded-lg bg-slate-50"
+        onClick={() => {
+          // Toggle sort direction or change sort field
+          if (sortField === 'date') {
+            onSortChange('date', sortDirection === 'asc' ? 'desc' : 'asc');
+          } else {
+            onSortChange('date', 'desc');
+          }
+        }}
+      >
+        <ArrowUpDown className="h-4 w-4" />
+      </Button>
       
       <div className="relative flex-[3]">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
@@ -65,36 +68,27 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
       </div>
       
       {!hideTransactionType && (
-        <Button 
-          variant="ghost" 
-          className="rounded-lg bg-slate-50 w-12 h-12 p-0 flex items-center justify-center"
-          onClick={(e) => {
-            // Find the next select element and click it to open the dropdown
-            const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-            if (nextElement) {
-              const selectTrigger = nextElement.querySelector('[role="combobox"]') as HTMLElement;
-              if (selectTrigger) {
-                selectTrigger.click();
-              }
-            }
-          }}
-        >
-          <Filter className="h-4 w-4" />
-          <Select 
-            value={transactionType}
-            onValueChange={onTransactionTypeChange}
-          >
-            <SelectTrigger className="hidden">
-              <SelectValue placeholder="Semua Transaksi" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value="all">Semua Transaksi</SelectItem>
-              <SelectItem value="sale">Penjualan</SelectItem>
-              <SelectItem value="purchase">Pembelian</SelectItem>
-              <SelectItem value="expense">Pengeluaran</SelectItem>
-            </SelectContent>
-          </Select>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="rounded-lg bg-slate-50 w-12 h-12 p-0 flex items-center justify-center"
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('all')}>
+              Semua Transaksi
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('sale')}>
+              Penjualan
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('purchase')}>
+              Pembelian
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
     </div>
   );
