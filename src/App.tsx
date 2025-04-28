@@ -1,3 +1,4 @@
+
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,7 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Sales from "./pages/Sales";
 import Settings from "./pages/Settings";
+import Auth from "./pages/Auth";
 import { ensureAnonymousUser } from "./integrations/supabase/client";
 
 // Create a client
