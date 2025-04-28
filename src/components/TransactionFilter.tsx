@@ -65,22 +65,36 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
       </div>
       
       {!hideTransactionType && (
-        <div className="w-full md:w-40">
+        <Button 
+          variant="ghost" 
+          className="rounded-lg bg-slate-50 w-12 h-12 p-0 flex items-center justify-center"
+          onClick={(e) => {
+            // Find the next select element and click it to open the dropdown
+            const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+            if (nextElement) {
+              const selectTrigger = nextElement.querySelector('[role="combobox"]') as HTMLElement;
+              if (selectTrigger) {
+                selectTrigger.click();
+              }
+            }
+          }}
+        >
+          <Filter className="h-4 w-4" />
           <Select 
             value={transactionType}
             onValueChange={onTransactionTypeChange}
           >
-            <SelectTrigger>
+            <SelectTrigger className="hidden">
               <SelectValue placeholder="Semua Transaksi" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent align="end">
               <SelectItem value="all">Semua Transaksi</SelectItem>
               <SelectItem value="sale">Penjualan</SelectItem>
               <SelectItem value="purchase">Pembelian</SelectItem>
               <SelectItem value="expense">Pengeluaran</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </Button>
       )}
     </div>
   );
