@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import Sales from "./pages/Sales";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import { ensureAnonymousUser } from "./integrations/supabase/client";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -35,6 +36,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Separate the routes component to avoid React hook issues
 const AppRoutes = () => {
+  // Initialize anonymous authentication on app start
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        await ensureAnonymousUser();
+      } catch (error) {
+        console.error("Failed to initialize anonymous authentication:", error);
+      }
+    };
+    
+    initAuth();
+  }, []);
+  
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />

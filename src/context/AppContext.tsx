@@ -180,10 +180,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPurchasesCart(getFromLocalStorage("purchasesCart", []));
   }, []);
   
-  // Initialize Supabase auth
+  // Initialize Supabase auth with anonymous auth fallback
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+    const initializeAuth = async () => {
+      // Ensure there's always a session, even if anonymous
+      await ensureAnonymousUser();
+      
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (event, session) => {
+          setSession(session);
+          if (session?.user) {
+            const user: AppUser = {
+              id: session.user.id,
+              email: session.user.email || '',
+              name: session.user.user_metadata.name || ''
+            };
+            setCurrentUser(user);
+            setIsAuthenticated(true);
+            saveToLocalStorage("currentUser", user);
+          } else {
+            // If session is lost, create a new anonymous session
+            ensureAnonymousUser();
+          }
+        }
+      );
+      
+      supabase.auth.getSession().then(({ data: { session } }) => {
         setSession(session);
         if (session?.user) {
           const user: AppUser = {
@@ -194,31 +216,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setCurrentUser(user);
           setIsAuthenticated(true);
           saveToLocalStorage("currentUser", user);
-        } else {
-          setCurrentUser(null);
-          setIsAuthenticated(false);
-          localStorage.removeItem("currentUser");
         }
-      }
-    );
-    
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        const user: AppUser = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata.name || ''
-        };
-        setCurrentUser(user);
-        setIsAuthenticated(true);
-        saveToLocalStorage("currentUser", user);
-      }
-    });
-    
-    return () => {
-      subscription.unsubscribe();
+      });
+      
+      return () => {
+        subscription.unsubscribe();
+      };
     };
+    
+    initializeAuth();
   }, []);
   
   // Load initial data from Supabase when authenticated
@@ -301,6 +307,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   const logout = async (): Promise<void> => {
     await supabase.auth.signOut();
+    // Create a new anonymous session immediately after logout
+    setTimeout(() => ensureAnonymousUser(), 100);
   };
   
   // Capital functions
@@ -734,13 +742,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             }
           }
         }
-        
-        if (transaction.type === 'sale') {
-          await addToCapital(transaction.total);
-        } else {
-          const success = await subtractFromCapital(transaction.total);
-          if (!success) return false;
-        }
       }
     }
     
@@ -810,18 +811,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const addExpense = async (expense: Omit<Expense, 'id'>): Promise<boolean> => {
-    const success = await subtractFromCapital(expense.amount);
-    if (!success) {
-      return false;
-    }
-    
-    const newExpense: Expense = {
-      ...expense,
-      id: Date.now().toString(),
-    };
-    
-    if (isAuthenticated && currentUser) {
-      try {
+    try {
+      const success = await subtractFromCapital(expense.amount);
+      if (!success) {
+        return false;
+      }
+      
+      const newExpense: Expense = {
+        ...expense,
+        id: Date.now().toString(),
+      };
+      
+      if (isAuthenticated && currentUser) {
+        // Ensure we have a session
+        await ensureAnonymousUser();
+        
         const { data, error } = await supabase
           .from('expenses')
           .insert({
@@ -856,16 +860,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           });
           return true;
         }
-      } catch (err) {
-        console.error("Exception in addExpense:", err);
+      } else {
+        setExpenses(prev => [...prev, newExpense]);
+        toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`, {
+          duration: 1000
+        });
+        return true;
       }
+      
+      return false;
+    } catch (err) {
+      console.error("Exception in addExpense:", err);
+      toast.error(`Terjadi kesalahan: ${err.message || 'Tidak diketahui'}`);
+      return false;
     }
-    
-    setExpenses(prev => [...prev, newExpense]);
-    toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`, {
-      duration: 1000
-    });
-    return true;
   };
   
   const currentCapital = capital;
