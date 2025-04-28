@@ -7,7 +7,9 @@ import { Plus, Search, Edit, Trash, X, Check, Image, Link, ArrowUpDown } from 'l
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import TransactionFilter from '@/components/TransactionFilter';
+
 const Inventory = () => {
   const {
     products,
@@ -32,10 +34,12 @@ const Inventory = () => {
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [sortField, setSortField] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   const handleSortChange = (field: string, direction: 'asc' | 'desc') => {
     setSortField(field);
     setSortDirection(direction);
   };
+
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortField + '-' + sortDirection) {
       case "name-asc":
@@ -58,6 +62,7 @@ const Inventory = () => {
         return 0;
     }
   });
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -71,6 +76,7 @@ const Inventory = () => {
     setImageFile(null);
     setEditingProduct(null);
   };
+
   const handleOpenForm = (product?: any) => {
     if (product) {
       setEditingProduct(product);
@@ -88,10 +94,12 @@ const Inventory = () => {
     }
     setShowForm(true);
   };
+
   const handleCloseForm = () => {
     setShowForm(false);
     resetForm();
   };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
       name,
@@ -102,6 +110,7 @@ const Inventory = () => {
       [name]: value
     }));
   };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -116,6 +125,7 @@ const Inventory = () => {
       reader.readAsDataURL(file);
     }
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.sku) {
@@ -164,10 +174,12 @@ const Inventory = () => {
     }
     handleCloseForm();
   };
+
   const confirmDeleteProduct = (id: string) => {
     setProductToDelete(id);
     setIsDeleteDialogOpen(true);
   };
+
   const handleDeleteProduct = () => {
     if (productToDelete) {
       deleteProduct(productToDelete);
@@ -176,6 +188,7 @@ const Inventory = () => {
       toast.success("Produk berhasil dihapus");
     }
   };
+
   return <div className="animate-slide-up py-[5px] px-[15px]">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -188,7 +201,8 @@ const Inventory = () => {
         <div className="flex max-w-3xl w-full gap-3 items-center">
           <Select value={sortField + "-" + sortDirection} onValueChange={value => {
           const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
-          handleSortChange(field, direction);
+          setSortField(field);
+          setSortDirection(direction);
         }}>
             <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border-0 justify-center">
               <ArrowUpDown className="h-4 w-4" />
@@ -217,41 +231,47 @@ const Inventory = () => {
       </div>
       
       <div className="bg-card border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-accent">
-                <th className="text-left py-3 px-4 font-medium">Produk</th>
-                <th className="text-left py-3 px-4 font-medium">SKU</th>
-                <th className="text-right py-3 px-4 font-medium">Harga Jual</th>
-                <th className="text-right py-3 px-4 font-medium">Harga Supplier</th>
-                <th className="text-right py-3 px-4 font-medium">Keuntungan</th>
-                <th className="text-right py-3 px-4 font-medium">Stok</th>
-                <th className="text-right py-3 px-4 font-medium">Tindakan</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {filteredProducts.map(product => <tr key={product.id} className="hover:bg-accent/30 transition-colors">
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded bg-accent overflow-hidden flex-shrink-0">
-                        <img src={product.image || "https://placehold.co/300x150?text=Produk"} alt={product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50%]">Produk</TableHead>
+              <TableHead className="w-[30%]">Harga</TableHead>
+              <TableHead className="w-[20%] text-right">Tindakan</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredProducts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="py-6 text-center text-muted-foreground">
+                  Tidak ada produk ditemukan
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredProducts.map(product => (
+                <TableRow key={product.id}>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="font-medium">{product.name}</div>
+                      <div className="text-sm text-muted-foreground">{product.sku}</div>
+                      <div className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
+                        product.stock === 0 ? 'bg-red-50 text-red-600' : 
+                        product.stock <= 5 ? 'bg-amber-50 text-amber-600' : 
+                        'bg-green-50 text-green-600'
+                      }`}>
+                        Stok: {product.stock}
                       </div>
-                      <span>{product.name}</span>
                     </div>
-                  </td>
-                  <td className="py-3 px-4 text-muted-foreground">{product.sku}</td>
-                  <td className="py-3 px-4 text-right">Rp{product.price.toLocaleString('id-ID')}</td>
-                  <td className="py-3 px-4 text-right">Rp{product.supplierPrice.toLocaleString('id-ID')}</td>
-                  <td className="py-3 px-4 text-right text-primary">
-                    Rp{(product.price - product.supplierPrice).toLocaleString('id-ID')}
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <span className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${product.stock === 0 ? 'bg-red-50 text-red-600' : product.stock <= 5 ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600'}`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div>Rp{product.price.toLocaleString('id-ID')}</div>
+                      <div className="text-sm text-muted-foreground">Rp{product.supplierPrice.toLocaleString('id-ID')}</div>
+                      <div className="text-sm font-medium text-primary">
+                        +Rp{(product.price - product.supplierPrice).toLocaleString('id-ID')}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleOpenForm(product)}>
                         <Edit size={16} />
@@ -260,17 +280,12 @@ const Inventory = () => {
                         <Trash size={16} />
                       </Button>
                     </div>
-                  </td>
-                </tr>)}
-              
-              {filteredProducts.length === 0 && <tr>
-                  <td colSpan={7} className="py-6 text-center text-muted-foreground">
-                    Tidak ada produk ditemukan
-                  </td>
-                </tr>}
-            </tbody>
-          </table>
-        </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
       
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -398,4 +413,5 @@ const Inventory = () => {
         </div>}
     </div>;
 };
+
 export default Inventory;
