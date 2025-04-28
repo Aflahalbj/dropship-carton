@@ -139,7 +139,7 @@ const getFromLocalStorage = (key: string, defaultValue: any = null) => {
 };
 
 // Provider component
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   // Auth state
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
@@ -183,45 +183,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Initialize Supabase auth with anonymous auth fallback
   useEffect(() => {
     const initializeAuth = async () => {
-      // Ensure there's always a session, even if anonymous
-      await ensureAnonymousUser();
-      
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (event, session) => {
+      try {
+        // Ensure there's always a session, even if anonymous
+        await ensureAnonymousUser().catch(err => {
+          console.error("Anonymous auth failed:", err.message);
+        });
+        
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (event, session) => {
+            setSession(session);
+            if (session?.user) {
+              const user: AppUser = {
+                id: session.user.id,
+                email: session.user.email || '',
+                name: session.user.user_metadata?.name || ''
+              };
+              setCurrentUser(user);
+              setIsAuthenticated(true);
+              saveToLocalStorage("currentUser", user);
+            } else {
+              // If session is lost, create a new anonymous session
+              ensureAnonymousUser().catch(err => {
+                console.error("Anonymous auth failed:", err.message);
+              });
+            }
+          }
+        );
+        
+        supabase.auth.getSession().then(({ data: { session } }) => {
           setSession(session);
           if (session?.user) {
             const user: AppUser = {
               id: session.user.id,
               email: session.user.email || '',
-              name: session.user.user_metadata.name || ''
+              name: session.user.user_metadata?.name || ''
             };
             setCurrentUser(user);
             setIsAuthenticated(true);
             saveToLocalStorage("currentUser", user);
-          } else {
-            // If session is lost, create a new anonymous session
-            ensureAnonymousUser();
           }
-        }
-      );
-      
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session);
-        if (session?.user) {
-          const user: AppUser = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata.name || ''
-          };
-          setCurrentUser(user);
-          setIsAuthenticated(true);
-          saveToLocalStorage("currentUser", user);
-        }
-      });
-      
-      return () => {
-        subscription.unsubscribe();
-      };
+        });
+        
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error("Error in initializing auth:", error);
+      }
     };
     
     initializeAuth();
@@ -231,35 +239,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const loadInitialData = async () => {
       if (isAuthenticated && currentUser) {
-        const { data: capitalData, error: capitalError } = await supabase
-          .from('capital')
-          .select('*')
-          .limit(1)
-          .single();
-        
-        if (capitalError) {
-          console.error("Error loading capital:", capitalError);
-        } else if (capitalData) {
-          setCapital(capitalData.amount);
-        }
-        
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*');
-        
-        if (productsError) {
-          console.error("Error loading products:", productsError);
-        } else if (productsData) {
-          const formattedProducts = productsData.map(p => ({
-            id: p.id,
-            name: p.name,
-            sku: p.sku,
-            price: p.price,
-            supplierPrice: p.supplier_price,
-            stock: p.stock,
-            image: p.image
-          }));
-          setProducts(formattedProducts);
+        try {
+          const { data: capitalData, error: capitalError } = await supabase
+            .from('capital')
+            .select('*')
+            .limit(1)
+            .maybeSingle();
+          
+          if (capitalError) {
+            console.error("Error loading capital:", capitalError);
+          } else if (capitalData) {
+            setCapital(capitalData.amount);
+          }
+          
+          const { data: productsData, error: productsError } = await supabase
+            .from('products')
+            .select('*');
+          
+          if (productsError) {
+            console.error("Error loading products:", productsError);
+          } else if (productsData) {
+            const formattedProducts = productsData.map(p => ({
+              id: p.id,
+              name: p.name,
+              sku: p.sku,
+              price: p.price,
+              supplierPrice: p.supplier_price,
+              stock: p.stock,
+              image: p.image
+            }));
+            setProducts(formattedProducts);
+          }
+        } catch (error) {
+          console.error("Error in loadInitialData:", error);
         }
       }
     };
@@ -308,7 +320,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const logout = async (): Promise<void> => {
     await supabase.auth.signOut();
     // Create a new anonymous session immediately after logout
-    setTimeout(() => ensureAnonymousUser(), 100);
+    setTimeout(() => ensureAnonymousUser().catch(err => {
+      console.error("Anonymous auth failed:", err.message);
+    }), 100);
   };
   
   // Capital functions
@@ -316,15 +330,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newAmount = capital + amount;
     
     if (isAuthenticated) {
-      const { data, error } = await supabase
-        .from('capital')
-        .update({ amount: newAmount })
-        .eq('id', (await supabase.from('capital').select('id').limit(1).single()).data?.id)
-        .select();
-      
-      if (error) {
-        console.error("Error updating capital:", error);
-        toast.error("Gagal memperbarui modal");
+      try {
+        const { data: capitalData, error: capitalCheckError } = await supabase
+          .from('capital')
+          .select('id')
+          .limit(1)
+          .maybeSingle();
+        
+        if (capitalCheckError) {
+          console.error("Error checking capital:", capitalCheckError);
+          toast.error("Failed to check capital record");
+          return;
+        }
+        
+        let updateError;
+        
+        if (capitalData?.id) {
+          // Update existing capital record
+          const { error } = await supabase
+            .from('capital')
+            .update({ amount: newAmount })
+            .eq('id', capitalData.id);
+            
+          updateError = error;
+        } else {
+          // Create new capital record
+          const { error } = await supabase
+            .from('capital')
+            .insert({ amount: newAmount });
+            
+          updateError = error;
+        }
+        
+        if (updateError) {
+          console.error("Error updating capital:", updateError);
+          toast.error("Failed to update capital");
+          return;
+        }
+      } catch (error) {
+        console.error("Error in addToCapital:", error);
+        toast.error("An error occurred while updating capital");
         return;
       }
     }
@@ -346,17 +391,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const newAmount = capital - amount;
     
     if (isAuthenticated) {
-      const { data, error } = await supabase
-        .from('capital')
-        .update({ amount: newAmount })
-        .eq('id', (await supabase.from('capital').select('id').limit(1).single()).data?.id)
-        .select();
-      
-      if (error) {
-        console.error("Error updating capital:", error);
-        toast.error("Gagal memperbarui modal", {
-          duration: 1000
-        });
+      try {
+        const { data: capitalData, error: capitalCheckError } = await supabase
+          .from('capital')
+          .select('id')
+          .limit(1)
+          .maybeSingle();
+        
+        if (capitalCheckError) {
+          console.error("Error checking capital:", capitalCheckError);
+          toast.error("Failed to check capital record");
+          return false;
+        }
+        
+        let updateError;
+        
+        if (capitalData?.id) {
+          // Update existing capital record
+          const { error } = await supabase
+            .from('capital')
+            .update({ amount: newAmount })
+            .eq('id', capitalData.id);
+            
+          updateError = error;
+        } else {
+          // Create new capital record
+          const { error } = await supabase
+            .from('capital')
+            .insert({ amount: newAmount });
+            
+          updateError = error;
+        }
+        
+        if (updateError) {
+          console.error("Error updating capital:", updateError);
+          toast.error("Failed to update capital");
+          return false;
+        }
+      } catch (error) {
+        console.error("Error in subtractFromCapital:", error);
+        toast.error("An error occurred while updating capital");
         return false;
       }
     }
@@ -680,68 +754,74 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   
   const addTransaction = async (transaction: Omit<Transaction, 'id'>): Promise<boolean> => {
     if (isAuthenticated) {
-      const { data: transactionData, error: transactionError } = await supabase
-        .from('transactions')
-        .insert({
-          user_id: currentUser?.id,
-          date: transaction.date.toISOString(),
-          total: transaction.total,
-          profit: transaction.profit,
-          type: transaction.type
-        })
-        .select();
-      
-      if (transactionError) {
-        console.error("Error adding transaction:", transactionError);
-        toast.error(`Gagal menambahkan transaksi: ${transactionError.message}`, {
-          duration: 1000
-        });
-        return false;
-      }
-      
-      if (transactionData && transactionData[0]) {
-        const transactionId = transactionData[0].id;
+      try {
+        const { data: transactionData, error: transactionError } = await supabase
+          .from('transactions')
+          .insert({
+            user_id: currentUser?.id,
+            date: transaction.date.toISOString(),
+            total: transaction.total,
+            profit: transaction.profit,
+            type: transaction.type
+          })
+          .select();
         
-        const transactionItems = transaction.products.map(item => ({
-          transaction_id: transactionId,
-          product_id: item.product.id,
-          quantity: item.quantity,
-          price: transaction.type === 'sale' ? item.product.price : item.product.supplierPrice
-        }));
-        
-        const { error: itemsError } = await supabase
-          .from('transaction_items')
-          .insert(transactionItems);
-        
-        if (itemsError) {
-          console.error("Error adding transaction items:", itemsError);
-          toast.error(`Gagal menambahkan item transaksi: ${itemsError.message}`, {
+        if (transactionError) {
+          console.error("Error adding transaction:", transactionError);
+          toast.error(`Gagal menambahkan transaksi: ${transactionError.message}`, {
             duration: 1000
           });
           return false;
         }
         
-        for (const item of transaction.products) {
-          const product = products.find(p => p.id === item.product.id);
-          if (product) {
-            const newStock = transaction.type === 'sale' 
-              ? product.stock - item.quantity 
-              : product.stock + item.quantity;
-            
-            const { error: stockError } = await supabase
-              .from('products')
-              .update({ stock: newStock })
-              .eq('id', product.id);
-            
-            if (stockError) {
-              console.error("Error updating product stock:", stockError);
-              toast.error(`Gagal memperbarui stok produk: ${stockError.message}`, {
-                duration: 1000
-              });
-              continue;
+        if (transactionData && transactionData[0]) {
+          const transactionId = transactionData[0].id;
+          
+          const transactionItems = transaction.products.map(item => ({
+            transaction_id: transactionId,
+            product_id: item.product.id,
+            quantity: item.quantity,
+            price: transaction.type === 'sale' ? item.product.price : item.product.supplierPrice
+          }));
+          
+          const { error: itemsError } = await supabase
+            .from('transaction_items')
+            .insert(transactionItems);
+          
+          if (itemsError) {
+            console.error("Error adding transaction items:", itemsError);
+            toast.error(`Gagal menambahkan item transaksi: ${itemsError.message}`, {
+              duration: 1000
+            });
+            return false;
+          }
+          
+          for (const item of transaction.products) {
+            const product = products.find(p => p.id === item.product.id);
+            if (product) {
+              const newStock = transaction.type === 'sale' 
+                ? product.stock - item.quantity 
+                : product.stock + item.quantity;
+              
+              const { error: stockError } = await supabase
+                .from('products')
+                .update({ stock: newStock })
+                .eq('id', product.id);
+              
+              if (stockError) {
+                console.error("Error updating product stock:", stockError);
+                toast.error(`Gagal memperbarui stok produk: ${stockError.message}`, {
+                  duration: 1000
+                });
+                continue;
+              }
             }
           }
         }
+      } catch (error) {
+        console.error("Error in addTransaction:", error);
+        toast.error("An error occurred while adding transaction");
+        return false;
       }
     }
     
@@ -823,42 +903,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
       
       if (isAuthenticated && currentUser) {
-        // Ensure we have a session
-        await ensureAnonymousUser();
-        
-        const { data, error } = await supabase
-          .from('expenses')
-          .insert({
-            user_id: currentUser.id,
-            date: expense.date.toISOString(),
-            amount: expense.amount,
-            category: expense.category,
-            description: expense.description
-          })
-          .select();
-        
-        if (error) {
-          console.error("Error adding expense:", error);
-          toast.error(`Gagal menambahkan pengeluaran: ${error.message}`, {
-            duration: 1000
+        try {
+          // Ensure we have a session
+          await ensureAnonymousUser().catch(err => {
+            console.error("Anonymous auth failed:", err.message);
           });
-          return false;
-        }
-        
-        if (data && data[0]) {
-          const dbExpense = {
-            id: data[0].id,
-            date: new Date(data[0].date),
-            amount: data[0].amount,
-            category: data[0].category,
-            description: data[0].description
-          };
           
-          setExpenses(prev => [...prev, dbExpense]);
-          toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`, {
-            duration: 1000
-          });
-          return true;
+          const { data, error } = await supabase
+            .from('expenses')
+            .insert({
+              user_id: currentUser.id,
+              date: expense.date.toISOString(),
+              amount: expense.amount,
+              category: expense.category,
+              description: expense.description
+            })
+            .select();
+          
+          if (error) {
+            console.error("Error adding expense:", error);
+            toast.error(`Gagal menambahkan pengeluaran: ${error.message}`, {
+              duration: 1000
+            });
+            return false;
+          }
+          
+          if (data && data[0]) {
+            const dbExpense = {
+              id: data[0].id,
+              date: new Date(data[0].date),
+              amount: data[0].amount,
+              category: data[0].category,
+              description: data[0].description
+            };
+            
+            setExpenses(prev => [...prev, dbExpense]);
+            toast.success(`Pengeluaran dicatat: Rp${expense.amount.toLocaleString('id-ID')}`, {
+              duration: 1000
+            });
+            return true;
+          }
+        } catch (error) {
+          console.error("Error in Supabase expense creation:", error);
+          toast.error("Error creating expense in database");
+          return false;
         }
       } else {
         setExpenses(prev => [...prev, newExpense]);
@@ -869,7 +957,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       
       return false;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Exception in addExpense:", err);
       toast.error(`Terjadi kesalahan: ${err.message || 'Tidak diketahui'}`);
       return false;
