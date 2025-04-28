@@ -8,7 +8,9 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import TransactionFilter from '@/components/TransactionFilter';
+
 const Inventory = () => {
   const {
     products,
@@ -33,10 +35,12 @@ const Inventory = () => {
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [sortField, setSortField] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   const handleSortChange = (field: string, direction: 'asc' | 'desc') => {
     setSortField(field);
     setSortDirection(direction);
   };
+
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortField + '-' + sortDirection) {
       case "name-asc":
@@ -59,6 +63,7 @@ const Inventory = () => {
         return 0;
     }
   });
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -72,6 +77,7 @@ const Inventory = () => {
     setImageFile(null);
     setEditingProduct(null);
   };
+
   const handleOpenForm = (product?: any) => {
     if (product) {
       setEditingProduct(product);
@@ -89,10 +95,12 @@ const Inventory = () => {
     }
     setShowForm(true);
   };
+
   const handleCloseForm = () => {
     setShowForm(false);
     resetForm();
   };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
       name,
@@ -103,6 +111,7 @@ const Inventory = () => {
       [name]: value
     }));
   };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -117,6 +126,7 @@ const Inventory = () => {
       reader.readAsDataURL(file);
     }
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.sku) {
@@ -165,10 +175,12 @@ const Inventory = () => {
     }
     handleCloseForm();
   };
+
   const confirmDeleteProduct = (id: string) => {
     setProductToDelete(id);
     setIsDeleteDialogOpen(true);
   };
+
   const handleDeleteProduct = () => {
     if (productToDelete) {
       deleteProduct(productToDelete);
@@ -177,7 +189,8 @@ const Inventory = () => {
       toast.success("Produk berhasil dihapus");
     }
   };
-  return <div className="container px-0">
+
+  return <div className="container py-4 px-4 mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Manajemen Inventaris</h2>
@@ -192,7 +205,7 @@ const Inventory = () => {
           setSortField(field);
           setSortDirection(direction);
         }}>
-            <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border-2 border-slate-200">
+            <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200">
               <ArrowUpDown className="h-4 w-4" />
             </SelectTrigger>
             <SelectContent align="end">
@@ -232,14 +245,22 @@ const Inventory = () => {
                   Tidak ada produk ditemukan
                 </TableCell>
               </TableRow> : filteredProducts.map(product => <TableRow key={product.id} className="cursor-pointer" onClick={() => handleOpenForm(product)}>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="font-medium text-xs">{product.name}</div>
-                      <div className="text-xs text-muted-foreground">{product.sku}</div>
-                      <div className="text-xs text-muted-foreground">Stok: {product.stock}</div>
+                  <TableCell className="py-2">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-10 h-10 border">
+                        {product.image ? 
+                          <AvatarImage src={product.image} alt={product.name} /> :
+                          <AvatarFallback aria-label={product.name} />
+                        }
+                      </Avatar>
+                      <div className="space-y-1">
+                        <div className="font-medium text-xs">{product.name}</div>
+                        <div className="text-xs text-muted-foreground">{product.sku}</div>
+                        <div className="text-xs text-muted-foreground">Stok: {product.stock}</div>
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-2">
                     <div className="space-y-1">
                       <div className="text-xs">Jual: Rp{product.price.toLocaleString('id-ID')}</div>
                       <div className="text-xs">Beli: Rp{product.supplierPrice.toLocaleString('id-ID')}</div>
@@ -382,4 +403,5 @@ const Inventory = () => {
         </div>}
     </div>;
 };
+
 export default Inventory;
