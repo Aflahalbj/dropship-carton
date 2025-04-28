@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import TransactionFilter from '@/components/TransactionFilter';
-
 const Inventory = () => {
   const {
     products,
@@ -34,12 +33,10 @@ const Inventory = () => {
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
   const [sortField, setSortField] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-
   const handleSortChange = (field: string, direction: 'asc' | 'desc') => {
     setSortField(field);
     setSortDirection(direction);
   };
-
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortField + '-' + sortDirection) {
       case "name-asc":
@@ -62,7 +59,6 @@ const Inventory = () => {
         return 0;
     }
   });
-
   const resetForm = () => {
     setFormData({
       name: '',
@@ -76,7 +72,6 @@ const Inventory = () => {
     setImageFile(null);
     setEditingProduct(null);
   };
-
   const handleOpenForm = (product?: any) => {
     if (product) {
       setEditingProduct(product);
@@ -94,12 +89,10 @@ const Inventory = () => {
     }
     setShowForm(true);
   };
-
   const handleCloseForm = () => {
     setShowForm(false);
     resetForm();
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const {
       name,
@@ -110,7 +103,6 @@ const Inventory = () => {
       [name]: value
     }));
   };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -125,7 +117,6 @@ const Inventory = () => {
       reader.readAsDataURL(file);
     }
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.sku) {
@@ -174,12 +165,10 @@ const Inventory = () => {
     }
     handleCloseForm();
   };
-
   const confirmDeleteProduct = (id: string) => {
     setProductToDelete(id);
     setIsDeleteDialogOpen(true);
   };
-
   const handleDeleteProduct = () => {
     if (productToDelete) {
       deleteProduct(productToDelete);
@@ -188,8 +177,7 @@ const Inventory = () => {
       toast.success("Produk berhasil dihapus");
     }
   };
-
-  return <div className="container py-4 px-4 mx-auto">
+  return <div className="container px-0">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Manajemen Inventaris</h2>
@@ -239,15 +227,11 @@ const Inventory = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.length === 0 ? (
-              <TableRow>
+            {filteredProducts.length === 0 ? <TableRow>
                 <TableCell colSpan={2} className="py-6 text-center text-muted-foreground">
                   Tidak ada produk ditemukan
                 </TableCell>
-              </TableRow>
-            ) : (
-              filteredProducts.map(product => (
-                <TableRow key={product.id} className="cursor-pointer" onClick={() => handleOpenForm(product)}>
+              </TableRow> : filteredProducts.map(product => <TableRow key={product.id} className="cursor-pointer" onClick={() => handleOpenForm(product)}>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="font-medium text-xs">{product.name}</div>
@@ -262,9 +246,7 @@ const Inventory = () => {
                       <div className="text-xs font-medium">Untung: Rp{(product.price - product.supplierPrice).toLocaleString('id-ID')}</div>
                     </div>
                   </TableCell>
-                </TableRow>
-              ))
-            )}
+                </TableRow>)}
           </TableBody>
         </Table>
       </div>
@@ -380,11 +362,9 @@ const Inventory = () => {
                 </div>
                 
                 <div className="flex justify-between gap-3 pt-2">
-                  {editingProduct && (
-                    <Button type="button" variant="destructive" size="icon" onClick={() => confirmDeleteProduct(editingProduct.id)}>
+                  {editingProduct && <Button type="button" variant="destructive" size="icon" onClick={() => confirmDeleteProduct(editingProduct.id)}>
                       <Trash size={16} />
-                    </Button>
-                  )}
+                    </Button>}
                   
                   <div className="flex gap-3 ml-auto">
                     <Button type="button" variant="outline" onClick={handleCloseForm}>
@@ -402,5 +382,4 @@ const Inventory = () => {
         </div>}
     </div>;
 };
-
 export default Inventory;
