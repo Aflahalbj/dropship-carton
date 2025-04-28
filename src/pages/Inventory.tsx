@@ -189,7 +189,7 @@ const Inventory = () => {
     }
   };
 
-  return <div className="animate-slide-up py-[5px] px-[15px]">
+  return <div className="container py-4 px-4 mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Manajemen Inventaris</h2>
@@ -204,7 +204,7 @@ const Inventory = () => {
           setSortField(field);
           setSortDirection(direction);
         }}>
-            <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200">
+            <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border-2 border-slate-200">
               <ArrowUpDown className="h-4 w-4" />
             </SelectTrigger>
             <SelectContent align="end">
