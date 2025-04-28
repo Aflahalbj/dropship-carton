@@ -12,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from '@/components/FormInputs';
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
-
 const Purchases: React.FC = () => {
   const {
     products,
@@ -30,7 +29,6 @@ const Purchases: React.FC = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
-
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortOrder) {
       case "name-asc":
@@ -49,7 +47,6 @@ const Purchases: React.FC = () => {
         return 0;
     }
   });
-
   const handleCheckout = () => {
     if (selectedProducts.length === 0) {
       toast.error("Tidak ada produk yang dipilih", {
@@ -61,7 +58,8 @@ const Purchases: React.FC = () => {
     const purchaseTotal = selectedProducts.reduce((total, item) => total + item.quantity * item.price, 0);
     const transaction = {
       date: new Date(),
-      supplier: suppliers[0], // Use the first supplier as default
+      supplier: suppliers[0],
+      // Use the first supplier as default
       products: selectedProducts,
       total: purchaseTotal,
       profit: 0,
@@ -81,14 +79,12 @@ const Purchases: React.FC = () => {
       setIsProcessing(false);
     }
   };
-
   const resetForm = () => {
     setSelectedProducts([]);
     setShowCheckout(false);
     setIsProcessing(false);
     setTemporaryPrices({});
   };
-
   const handleAddProduct = (product: Product) => {
     const existingProductIndex = selectedProducts.findIndex(item => item.product.id === product.id);
     if (existingProductIndex > -1) {
@@ -106,17 +102,16 @@ const Purchases: React.FC = () => {
       duration: 1000
     });
   };
-
   const handleRemoveProduct = (productId: string) => {
     setSelectedProducts(selectedProducts.filter(item => item.product.id !== productId));
-    
     if (temporaryPrices[productId]) {
-      const updatedPrices = { ...temporaryPrices };
+      const updatedPrices = {
+        ...temporaryPrices
+      };
       delete updatedPrices[productId];
       setTemporaryPrices(updatedPrices);
     }
   };
-
   const handleUpdateQuantity = (productId: string, quantity: number) => {
     const updatedProducts = selectedProducts.map(item => item.product.id === productId ? {
       ...item,
@@ -124,7 +119,6 @@ const Purchases: React.FC = () => {
     } : item);
     setSelectedProducts(updatedProducts);
   };
-
   const handleUpdatePrice = (productId: string, price: number) => {
     const updatedProducts = selectedProducts.map(item => item.product.id === productId ? {
       ...item,
@@ -132,18 +126,14 @@ const Purchases: React.FC = () => {
     } : item);
     setSelectedProducts(updatedProducts);
   };
-
   const handleTemporaryPriceChange = (productId: string, newPrice: number) => {
     setTemporaryPrices(prev => ({
       ...prev,
       [productId]: newPrice
     }));
-    
     handleUpdatePrice(productId, newPrice);
   };
-
   const purchaseTotal = selectedProducts.reduce((total, item) => total + item.quantity * item.price, 0);
-
   const ProductCard = ({
     product
   }: {
@@ -169,7 +159,6 @@ const Purchases: React.FC = () => {
         </div>
       </Card>;
   };
-
   const handleClearCartAndReturn = () => {
     setSelectedProducts([]);
     setShowCheckout(false);
@@ -177,10 +166,8 @@ const Purchases: React.FC = () => {
       duration: 1000
     });
   };
-
   const shouldShowCartIcon = selectedProducts.length > 0 && !showCheckout;
-
-  return <div className="container animate-slide-up py-[10px] px-[2px]">
+  return <div className="container animate-slide-up py-[10px] px-[20px]">
       <div className="flex justify-between items-center mb-6">
         {showCheckout && <Button variant="ghost" size="icon" onClick={() => setShowCheckout(false)} className="mr-4">
             <ChevronsLeft size={24} />
@@ -250,9 +237,8 @@ const Purchases: React.FC = () => {
               
               <div className="divide-y">
                 {selectedProducts.map(item => {
-                  const tempPrice = temporaryPrices[item.product.id];
-                  return (
-                    <div key={item.product.id} className="p-4 flex justify-between items-center">
+              const tempPrice = temporaryPrices[item.product.id];
+              return <div key={item.product.id} className="p-4 flex justify-between items-center">
                       <div className="flex-1">
                         {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
                             <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
@@ -263,46 +249,32 @@ const Purchases: React.FC = () => {
                             {item.quantity} × Rp{item.price.toLocaleString('id-ID')} = Rp{(item.price * item.quantity).toLocaleString('id-ID')}
                           </p>
                           
-                          <CartItemPriceEditor 
-                            productId={item.product.id} 
-                            originalPrice={item.product.supplierPrice} 
-                            discountedPrice={tempPrice} 
-                            onPriceChange={handleTemporaryPriceChange} 
-                          />
+                          <CartItemPriceEditor productId={item.product.id} originalPrice={item.product.supplierPrice} discountedPrice={tempPrice} onPriceChange={handleTemporaryPriceChange} />
                         </div>
                       </div>
                       
                       <div className="w-20">
-                        <Input 
-                          type="text" 
-                          placeholder="0" 
-                          defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} 
-                          onBlur={e => {
-                            const newValue = e.target.value.trim();
-                            const newQuantity = newValue === "" ? 0 : parseInt(newValue);
-                            if (!isNaN(newQuantity) && newQuantity > 0) {
-                              handleUpdateQuantity(item.product.id, newQuantity);
-                            }
-                          }} 
-                          onChange={e => {
-                            const value = e.target.value.replace(/[^0-9]/g, '');
-                            e.target.value = value;
-                          }} 
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              e.currentTarget.blur();
-                            }
-                          }} 
-                          className="w-10 h-10 text-center text-sm font-medium px-0" 
-                        />
+                        <Input type="text" placeholder="0" defaultValue={item.quantity > 0 ? item.quantity.toString() : ""} onBlur={e => {
+                    const newValue = e.target.value.trim();
+                    const newQuantity = newValue === "" ? 0 : parseInt(newValue);
+                    if (!isNaN(newQuantity) && newQuantity > 0) {
+                      handleUpdateQuantity(item.product.id, newQuantity);
+                    }
+                  }} onChange={e => {
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    e.target.value = value;
+                  }} onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur();
+                    }
+                  }} className="w-10 h-10 text-center text-sm font-medium px-0" />
                       </div>
                       
                       <Button variant="ghost" size="icon" className="ml-2 text-muted-foreground hover:text-destructive" onClick={() => handleRemoveProduct(item.product.id)}>
                         <X size={18} />
                       </Button>
-                    </div>
-                  );
-                })}
+                    </div>;
+            })}
                 
                 {selectedProducts.length === 0 && <div className="text-center py-8">
                     <p className="text-muted-foreground">Belum ada produk yang dipilih</p>
@@ -326,5 +298,4 @@ const Purchases: React.FC = () => {
         </Button>}
     </div>;
 };
-
 export default Purchases;
