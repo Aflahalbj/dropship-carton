@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -234,51 +235,32 @@ const Inventory = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[50%]">Produk</TableHead>
-              <TableHead className="w-[30%]">Harga</TableHead>
-              <TableHead className="w-[20%] text-right">Tindakan</TableHead>
+              <TableHead className="w-[65%]">Produk</TableHead>
+              <TableHead className="w-[35%]">Informasi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="py-6 text-center text-muted-foreground">
+                <TableCell colSpan={2} className="py-6 text-center text-muted-foreground">
                   Tidak ada produk ditemukan
                 </TableCell>
               </TableRow>
             ) : (
               filteredProducts.map(product => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} className="cursor-pointer" onClick={() => handleOpenForm(product)}>
                   <TableCell>
                     <div className="space-y-1">
                       <div className="font-medium">{product.name}</div>
                       <div className="text-sm text-muted-foreground">{product.sku}</div>
-                      <div className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
-                        product.stock === 0 ? 'bg-red-50 text-red-600' : 
-                        product.stock <= 5 ? 'bg-amber-50 text-amber-600' : 
-                        'bg-green-50 text-green-600'
-                      }`}>
-                        Stok: {product.stock}
-                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <div>Rp{product.price.toLocaleString('id-ID')}</div>
-                      <div className="text-sm text-muted-foreground">Rp{product.supplierPrice.toLocaleString('id-ID')}</div>
-                      <div className="text-sm font-medium text-primary">
-                        +Rp{(product.price - product.supplierPrice).toLocaleString('id-ID')}
+                      <div className="font-medium">Stok {product.stock}</div>
+                      <div className="text-sm">
+                        Rp{product.price.toLocaleString('id-ID')} - Rp{product.supplierPrice.toLocaleString('id-ID')}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleOpenForm(product)}>
-                        <Edit size={16} />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => confirmDeleteProduct(product.id)}>
-                        <Trash size={16} />
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -398,14 +380,23 @@ const Inventory = () => {
                     </div>}
                 </div>
                 
-                <div className="flex justify-end gap-3 pt-2">
-                  <Button type="button" variant="outline" onClick={handleCloseForm}>
-                    Batal
-                  </Button>
-                  <Button type="submit" className="bg-primary text-white flex items-center gap-2">
-                    <Check size={18} />
-                    {editingProduct ? 'Perbarui Produk' : 'Tambah Produk'}
-                  </Button>
+                <div className="flex justify-between gap-3 pt-2">
+                  {editingProduct && (
+                    <Button type="button" variant="destructive" onClick={() => confirmDeleteProduct(editingProduct.id)}>
+                      <Trash size={16} />
+                      Hapus Produk
+                    </Button>
+                  )}
+                  
+                  <div className="flex gap-3 ml-auto">
+                    <Button type="button" variant="outline" onClick={handleCloseForm}>
+                      Batal
+                    </Button>
+                    <Button type="submit" className="bg-primary text-white flex items-center gap-2">
+                      <Check size={18} />
+                      {editingProduct ? 'Perbarui Produk' : 'Tambah Produk'}
+                    </Button>
+                  </div>
                 </div>
               </form>
             </div>
