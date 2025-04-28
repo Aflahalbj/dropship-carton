@@ -1,7 +1,5 @@
-
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
@@ -16,7 +14,6 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Sales from "./pages/Sales";
 import Settings from "./pages/Settings";
-import Auth from "./pages/Auth";
 import { ensureAnonymousUser } from "./integrations/supabase/client";
 
 // Create a client
@@ -77,7 +74,7 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <Toaster 
-            duration={1000}  // Changed to 1 second (1000 milliseconds)
+            duration={1000}
             position="top-center"
           />
           <AppRoutes />
