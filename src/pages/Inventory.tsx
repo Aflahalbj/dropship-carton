@@ -260,7 +260,7 @@ const Inventory = () => {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="py-2">
+                  <TableCell>
                     <div className="space-y-1">
                       <div className="text-xs">Jual: Rp{product.price.toLocaleString('id-ID')}</div>
                       <div className="text-xs">Beli: Rp{product.supplierPrice.toLocaleString('id-ID')}</div>
