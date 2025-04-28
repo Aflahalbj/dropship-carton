@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Search, ArrowUpDown } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -37,9 +38,9 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
         const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
         onSortChange(field, direction);
       }}>
-        <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border-0 justify-center">
-          <ArrowUpDown className="h-4 w-4" />
-        </SelectTrigger>
+        <Button variant="ghost" size="icon" className="w-12 h-12 rounded-lg bg-slate-50">
+          <Filter className="h-4 w-4" />
+        </Button>
         <SelectContent align="end">
           <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
           <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
@@ -52,7 +53,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
         </SelectContent>
       </Select>
       
-      <div className="relative flex-1">
+      <div className="relative flex-[3]">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
         <Input
           type="text"
