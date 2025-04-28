@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -204,7 +205,7 @@ const Inventory = () => {
           setSortField(field);
           setSortDirection(direction);
         }}>
-            <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border-0 justify-center">
+            <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200">
               <ArrowUpDown className="h-4 w-4" />
             </SelectTrigger>
             <SelectContent align="end">
@@ -250,14 +251,14 @@ const Inventory = () => {
                 <TableRow key={product.id} className="cursor-pointer" onClick={() => handleOpenForm(product)}>
                   <TableCell>
                     <div className="space-y-1">
-                      <div className="font-medium">{product.name}</div>
-                      <div className="text-sm text-muted-foreground">{product.sku}</div>
+                      <div className="font-medium text-sm">{product.name}</div>
+                      <div className="text-xs text-muted-foreground">{product.sku}</div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <div className="font-medium">Stok {product.stock}</div>
-                      <div className="text-sm">
+                      <div className="font-medium text-sm">Stok {product.stock}</div>
+                      <div className="text-xs">
                         Rp{product.price.toLocaleString('id-ID')} - Rp{product.supplierPrice.toLocaleString('id-ID')}
                       </div>
                     </div>
