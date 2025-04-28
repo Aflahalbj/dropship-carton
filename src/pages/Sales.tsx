@@ -20,7 +20,7 @@ const Transactions = () => {
   } = useAppContext();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<'date' | 'amount'>('date');
+  const [sortField, setSortField] = useState<'date' | 'amount' | 'name' | 'price' | 'stock'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [transactionType, setTransactionType] = useState('all');
   const receiptRef = useRef<HTMLDivElement>(null);
@@ -55,10 +55,21 @@ const Transactions = () => {
     return transaction.id?.toString().toLowerCase().includes(searchLower) || 
            customerName && customerName.toLowerCase().includes(searchLower);
   }).sort((a, b) => {
-    if (sortField === 'date') {
-      return sortDirection === 'asc' ? new Date(a.date).getTime() - new Date(b.date).getTime() : new Date(b.date).getTime() - new Date(a.date).getTime();
-    } else {
-      return sortDirection === 'asc' ? a.amount - b.amount : b.amount - a.amount;
+    switch(sortField) {
+      case 'date':
+        return sortDirection === 'asc' ? new Date(a.date).getTime() - new Date(b.date).getTime() : new Date(b.date).getTime() - new Date(a.date).getTime();
+      case 'amount':
+        return sortDirection === 'asc' ? a.amount - b.amount : b.amount - a.amount;
+      case 'name':
+        const nameA = 'customerName' in a ? a.customerName || '' : '';
+        const nameB = 'customerName' in b ? b.customerName || '' : '';
+        return sortDirection === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+      case 'price':
+        return sortDirection === 'asc' ? a.amount - b.amount : b.amount - a.amount;
+      case 'stock':
+        return 0;
+      default:
+        return 0;
     }
   });
   
@@ -104,7 +115,7 @@ const Transactions = () => {
           sortField={sortField} 
           sortDirection={sortDirection} 
           onSortChange={(field, direction) => {
-            setSortField(field as 'date' | 'amount');
+            setSortField(field as 'date' | 'amount' | 'name' | 'price' | 'stock');
             setSortDirection(direction);
           }} 
         />
@@ -150,17 +161,22 @@ const Transactions = () => {
             <tr className="border-b">
               <th className="text-left py-3 px-4 font-medium">ID</th>
               <th className="text-left py-3 px-4 font-medium">Tipe</th>
-              <th className="text-left py-3 px-4 font-medium">Detail</th>
+              <th className="text-left py-3 px-4 font-medium cursor-pointer" onClick={() => toggleSort('name')}>
+                <div className="flex items-center">
+                  Detail
+                  {sortField === 'name' && (sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />)}
+                </div>
+              </th>
               <th className="text-left py-3 px-4 font-medium cursor-pointer" onClick={() => toggleSort('date')}>
                 <div className="flex items-center">
                   Tanggal
                   {sortField === 'date' && (sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />)}
                 </div>
               </th>
-              <th className="text-left py-3 px-4 font-medium cursor-pointer" onClick={() => toggleSort('amount')}>
+              <th className="text-left py-3 px-4 font-medium cursor-pointer" onClick={() => toggleSort('price')}>
                 <div className="flex items-center">
                   Jumlah
-                  {sortField === 'amount' && (sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />)}
+                  {sortField === 'price' && (sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />)}
                 </div>
               </th>
               <th className="text-right py-3 px-4 font-medium">Aksi</th>
@@ -221,7 +237,7 @@ const Transactions = () => {
       </div>;
   }
   
-  function toggleSort(field: 'date' | 'amount') {
+  function toggleSort(field: 'date' | 'amount' | 'name' | 'price' | 'stock') {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
