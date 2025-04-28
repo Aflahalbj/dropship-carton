@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
@@ -382,9 +381,8 @@ const Inventory = () => {
                 
                 <div className="flex justify-between gap-3 pt-2">
                   {editingProduct && (
-                    <Button type="button" variant="destructive" onClick={() => confirmDeleteProduct(editingProduct.id)}>
+                    <Button type="button" variant="destructive" size="icon" onClick={() => confirmDeleteProduct(editingProduct.id)}>
                       <Trash size={16} />
-                      Hapus Produk
                     </Button>
                   )}
                   
