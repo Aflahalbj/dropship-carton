@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Card } from "@/components/ui/card";
@@ -12,6 +13,14 @@ import { BluetoothPrinter, printReceipt } from '@/components/BluetoothPrinter';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import TransactionFilter from '@/components/TransactionFilter';
 import { useReactToPrint } from 'react-to-print';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const Transactions = () => {
   const {
@@ -155,86 +164,92 @@ const Transactions = () => {
         </div>;
     }
     
-    return <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b">
-              <th className="text-left py-3 px-4 font-medium">ID</th>
-              <th className="text-left py-3 px-4 font-medium">Tipe</th>
-              <th className="text-left py-3 px-4 font-medium cursor-pointer" onClick={() => toggleSort('name')}>
-                <div className="flex items-center">
-                  Detail
-                  {sortField === 'name' && (sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />)}
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[40%]">Produk</TableHead>
+            <TableHead className="w-[40%]">Harga</TableHead>
+            <TableHead className="w-[20%] text-right">Tindakan</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {transactions.map((transaction) => (
+            <TableRow key={`${transaction.transactionType}-${transaction.id}`}>
+              <TableCell className="align-top">
+                <div className="flex flex-col">
+                  <span className="font-medium">{transaction.customerName || "Pelanggan"}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {transaction.id?.toString().substring(0, 8)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {format(new Date(transaction.date), 'dd MMM yyyy', { locale: id })}
+                  </span>
                 </div>
-              </th>
-              <th className="text-left py-3 px-4 font-medium cursor-pointer" onClick={() => toggleSort('date')}>
-                <div className="flex items-center">
-                  Tanggal
-                  {sortField === 'date' && (sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />)}
-                </div>
-              </th>
-              <th className="text-left py-3 px-4 font-medium cursor-pointer" onClick={() => toggleSort('price')}>
-                <div className="flex items-center">
-                  Jumlah
-                  {sortField === 'price' && (sortDirection === 'asc' ? <ArrowUp size={14} className="ml-1" /> : <ArrowDown size={14} className="ml-1" />)}
-                </div>
-              </th>
-              <th className="text-right py-3 px-4 font-medium">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.map(transaction => <tr key={`${transaction.transactionType}-${transaction.id}`} className="border-b hover:bg-accent/50">
-                <td className="py-3 px-4">{transaction.id?.toString().substring(0, 8)}</td>
-                <td className="py-3 px-4">
-                  <span className={`px-2 py-1 rounded-full text-xs ${getTransactionTypeBadgeClasses(transaction.transactionType)}`}>
+              </TableCell>
+              <TableCell className="align-top">
+                <div className="flex flex-col">
+                  <span className="font-medium">Rp{transaction.amount.toLocaleString('id-ID')}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {transaction.products?.length || 0} item
+                  </span>
+                  <span className={`text-sm ${transaction.transactionType === 'sale' ? 'text-green-600' : 'text-blue-600'}`}>
                     {getTransactionTypeLabel(transaction.transactionType)}
                   </span>
-                </td>
-                <td className="py-3 px-4">
-                  {'customerName' in transaction ? transaction.customerName : "Pelanggan"}
-                </td>
-                <td className="py-3 px-4">
-                  {format(new Date(transaction.date), 'dd MMM yyyy, HH:mm', {
-                locale: id
-              })}
-                </td>
-                <td className="py-3 px-4 font-medium">
-                  Rp{transaction.amount.toLocaleString('id-ID')}
-                </td>
-                <td className="py-3 px-4 text-right">
-                  {transaction.transactionType === 'sale' && <>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="sm" onClick={() => setSelectedTransaction(transaction)}>
-                            Lihat
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-h-[90vh] overflow-auto">
-                          <Receipt items={transaction.products} total={transaction.amount} date={new Date(transaction.date)} transactionId={transaction.id || ""} paymentMethod={transaction.paymentMethod || "cash"} customerName={transaction.customerName || "Pelanggan"} cashAmount={transaction.cashAmount} changeAmount={transaction.changeAmount} />
-                          <div className="flex justify-end gap-2 mt-4">
-                            <Button variant="outline" size="sm" onClick={() => {
-                        setSelectedTransaction(transaction);
-                        setTimeout(handlePrint, 100);
-                      }}>
-                              <PrinterIcon className="w-4 h-4 mr-2" />
-                              Cetak (Browser)
-                            </Button>
-                            <Button variant="default" size="sm" onClick={() => {
-                        setSelectedTransaction(transaction);
-                        handleBluetoothPrint();
-                      }}>
-                              <PrinterIcon className="w-4 h-4 mr-2" />
-                              Cetak Thermal
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </>}
-                </td>
-              </tr>)}
-          </tbody>
-        </table>
-      </div>;
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                {transaction.transactionType === 'sale' && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedTransaction(transaction)}>
+                        Lihat
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-h-[90vh] overflow-auto">
+                      <Receipt 
+                        items={transaction.products} 
+                        total={transaction.amount} 
+                        date={new Date(transaction.date)} 
+                        transactionId={transaction.id || ""} 
+                        paymentMethod={transaction.paymentMethod || "cash"} 
+                        customerName={transaction.customerName || "Pelanggan"} 
+                        cashAmount={transaction.cashAmount} 
+                        changeAmount={transaction.changeAmount} 
+                      />
+                      <div className="flex justify-end gap-2 mt-4">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            setSelectedTransaction(transaction);
+                            setTimeout(handlePrint, 100);
+                          }}
+                        >
+                          <PrinterIcon className="w-4 h-4 mr-2" />
+                          Cetak (Browser)
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm" 
+                          onClick={() => {
+                            setSelectedTransaction(transaction);
+                            handleBluetoothPrint();
+                          }}
+                        >
+                          <PrinterIcon className="w-4 h-4 mr-2" />
+                          Cetak Thermal
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    );
   }
   
   function toggleSort(field: 'date' | 'amount' | 'name' | 'price' | 'stock') {
