@@ -10,7 +10,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
-
 const POS: React.FC = () => {
   const {
     products,
@@ -24,11 +23,9 @@ const POS: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<string>("name-asc");
   const [showCheckout, setShowCheckout] = useState(false);
   const location = useLocation();
-
   useEffect(() => {
     handlePageNavigation(location.pathname);
   }, [location, handlePageNavigation]);
-
   const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchTerm.toLowerCase()) || product.sku.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => {
     switch (sortOrder) {
       case "name-asc":
@@ -47,7 +44,6 @@ const POS: React.FC = () => {
         return 0;
     }
   });
-
   const handleCheckout = (formData: CheckoutFormData) => {
     if (posCart.length === 0) {
       toast.error("Keranjang kosong", {
@@ -55,20 +51,17 @@ const POS: React.FC = () => {
       });
       return;
     }
-
     const transaction = {
       date: new Date(),
       products: posCart,
       total: posCartTotal(),
-      profit: posCart.reduce((total, item) => 
-        total + ((item.product.price - item.product.supplierPrice) * item.quantity), 0),
+      profit: posCart.reduce((total, item) => total + (item.product.price - item.product.supplierPrice) * item.quantity, 0),
       type: 'sale' as const,
       customerName: formData.customerName,
       paymentMethod: formData.paymentMethod,
       cashAmount: formData.cashAmount,
       changeAmount: formData.changeAmount
     };
-
     const success = addTransaction(transaction);
     if (success) {
       toast.success("Transaksi berhasil!", {
@@ -81,8 +74,11 @@ const POS: React.FC = () => {
       });
     }
   };
-
-  const ProductCard = ({ product }: { product: Product }) => {
+  const ProductCard = ({
+    product
+  }: {
+    product: Product;
+  }) => {
     const {
       addToPosCart
     } = useAppContext();
@@ -118,7 +114,6 @@ const POS: React.FC = () => {
         </div>
       </Card>;
   };
-
   const CartView = ({
     onCheckout
   }: {
@@ -134,7 +129,6 @@ const POS: React.FC = () => {
     } = useAppContext();
     const [isProcessing, setIsProcessing] = useState(false);
     const [temporaryPrices, setTemporaryPrices] = useState<Record<string, number>>({});
-
     if (posCart.length === 0) {
       return <div className="text-center py-10">
           <ShoppingCart size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -142,14 +136,12 @@ const POS: React.FC = () => {
           <p className="text-muted-foreground mb-4">Tambahkan produk ke keranjang untuk melakukan penjualan</p>
         </div>;
     }
-
     const handlePriceChange = (productId: string, newPrice: number) => {
       setTemporaryPrices(prev => ({
         ...prev,
         [productId]: newPrice
       }));
     };
-
     const handleSubmit = (formData: CheckoutFormData) => {
       setIsProcessing(true);
       const modifiedCart = posCart.map(item => {
@@ -169,7 +161,6 @@ const POS: React.FC = () => {
         modifiedCart
       });
     };
-
     return <div className="animate-slide-up grid gap-6 md:grid-cols-5">
         <div className="md:col-span-3">
           <div className="border rounded-lg overflow-hidden">
@@ -233,17 +224,15 @@ const POS: React.FC = () => {
         </div>
       </div>;
   };
-
   const shouldShowCartIcon = posCart.length > 0 && !showCheckout;
   const handleClearCartAndReturn = () => {
     clearPosCart();
     setShowCheckout(false);
     toast.success("Keranjang dikosongkan", {
-        duration: 1000
-      });
+      duration: 1000
+    });
   };
-
-  return <div className="container animate-slide-up py-[10px] px-[2px]">
+  return <div className="container animate-slide-up px-0 py-0">
       <div className="flex justify-between items-center mb-6">
         {showCheckout && <Button variant="ghost" size="icon" onClick={() => setShowCheckout(false)} className="mr-4">
           <ChevronsLeft size={24} />
@@ -315,5 +304,4 @@ const POS: React.FC = () => {
         </Button>}
     </div>;
 };
-
 export default POS;
