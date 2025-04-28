@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Plus, Search, Edit, Trash, X, Check, Image, Link, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, Trash, X, Check, Image, Link, ArrowUpDown } from 'lucide-react';
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -235,8 +234,8 @@ const Inventory = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[65%]">Produk</TableHead>
-              <TableHead className="w-[35%]">Informasi</TableHead>
+              <TableHead className="w-[50%]">Produk</TableHead>
+              <TableHead className="w-[50%]">Harga</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -251,16 +250,16 @@ const Inventory = () => {
                 <TableRow key={product.id} className="cursor-pointer" onClick={() => handleOpenForm(product)}>
                   <TableCell>
                     <div className="space-y-1">
-                      <div className="font-medium text-sm">{product.name}</div>
+                      <div className="font-medium text-xs">{product.name}</div>
                       <div className="text-xs text-muted-foreground">{product.sku}</div>
+                      <div className="text-xs">Stok: {product.stock}</div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <div className="font-medium text-sm">Stok {product.stock}</div>
-                      <div className="text-xs">
-                        Rp{product.price.toLocaleString('id-ID')} - Rp{product.supplierPrice.toLocaleString('id-ID')}
-                      </div>
+                      <div className="text-xs">Jual: Rp{product.price.toLocaleString('id-ID')}</div>
+                      <div className="text-xs text-muted-foreground">Beli: Rp{product.supplierPrice.toLocaleString('id-ID')}</div>
+                      <div className="text-xs font-medium">Untung: Rp{(product.price - product.supplierPrice).toLocaleString('id-ID')}</div>
                     </div>
                   </TableCell>
                 </TableRow>
