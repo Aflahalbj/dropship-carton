@@ -14,6 +14,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import TransactionFilter from '@/components/TransactionFilter';
 import { useReactToPrint } from 'react-to-print';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 const Transactions = () => {
   const {
     transactions,
@@ -27,6 +28,7 @@ const Transactions = () => {
   const receiptRef = useRef<HTMLDivElement>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const handlePrint = useReactToPrint({
     documentTitle: 'Struk Penjualan',
     contentRef: receiptRef,
@@ -34,15 +36,18 @@ const Transactions = () => {
       console.log('Print job completed');
     }
   });
+
   const handleBluetoothPrint = async () => {
     if (!selectedTransaction) return;
     await printReceipt(selectedTransaction.products, selectedTransaction.total, selectedTransaction.paymentMethod || 'cash', selectedTransaction.customerName, selectedTransaction.cashAmount, selectedTransaction.changeAmount, selectedTransaction.id || "", new Date(selectedTransaction.date));
   };
+
   const allTransactions = [...transactions.map(t => ({
     ...t,
     transactionType: t.type,
     amount: t.total
   }))];
+
   const filteredTransactions = allTransactions.filter(transaction => {
     if (transactionType !== 'all' && transaction.transactionType !== transactionType) {
       return false;
@@ -68,6 +73,7 @@ const Transactions = () => {
         return 0;
     }
   });
+
   if (allTransactions.length === 0) {
     return <div className="animate-slide-up">
         <div className="flex justify-between items-center mb-6">
@@ -89,6 +95,7 @@ const Transactions = () => {
         </div>
       </div>;
   }
+
   return <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -150,6 +157,7 @@ const Transactions = () => {
         {selectedTransaction && <Receipt ref={receiptRef} items={selectedTransaction.products || []} total={selectedTransaction.amount || 0} date={new Date(selectedTransaction.date)} transactionId={selectedTransaction.id || ""} paymentMethod={selectedTransaction.paymentMethod || "cash"} customerName={selectedTransaction.customerName || "Pelanggan"} cashAmount={selectedTransaction.cashAmount} changeAmount={selectedTransaction.changeAmount} />}
       </div>
     </div>;
+
   function renderTransactionsTable(transactions: any[]) {
     if (transactions.length === 0) {
       return <div className="text-center py-8">
@@ -168,11 +176,13 @@ const Transactions = () => {
                 <TableCell className="p-4 bg-white">
                   <div className="flex flex-col space-y-1">
                     <div className="font-medium">
-                      {transaction.products && transaction.products.length > 0 ? transaction.products.map((item: any, index: number) => 
-                        <span key={index}>
-                          {item.product.name}{index < transaction.products.length - 1 ? ", " : ""}
+                      {transaction.products && transaction.products.length > 0 ? 
+                        <span>
+                          {transaction.products.map((item: any, index: number) => 
+                            `${item.product.name}${index < transaction.products.length - 1 ? ", " : ""}`
+                          ).join('')}
                         </span>
-                      ) : "Produk"}
+                      : "Produk"}
                     </div>
                     <div className="text-sm text-muted-foreground flex justify-between">
                       <span>{transaction.id?.toString().substring(0, 8)}</span>
@@ -185,7 +195,7 @@ const Transactions = () => {
                       <span className="font-medium">Rp{transaction.amount.toLocaleString('id-ID')}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm">
                         {transaction.customerPhone || "-"}
                       </span>
                       <span className="text-sm text-green-600">
@@ -193,7 +203,7 @@ const Transactions = () => {
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm">
                         {transaction.customerAddress || "-"}
                       </span>
                       <span className={`text-sm px-2 py-0.5 rounded-full ${transaction.transactionType === 'sale' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
@@ -207,6 +217,7 @@ const Transactions = () => {
         </Table>
       </div>;
   }
+
   function toggleSort(field: 'date' | 'amount' | 'name' | 'price' | 'stock') {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -215,6 +226,7 @@ const Transactions = () => {
       setSortDirection('desc');
     }
   }
+
   function getTransactionTypeBadgeClasses(type: string) {
     switch (type) {
       case 'sale':
@@ -225,6 +237,7 @@ const Transactions = () => {
         return 'bg-gray-100 text-gray-800';
     }
   }
+
   function getTransactionTypeLabel(type: string) {
     switch (type) {
       case 'sale':
@@ -236,4 +249,5 @@ const Transactions = () => {
     }
   }
 };
+
 export default Transactions;
