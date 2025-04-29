@@ -90,7 +90,7 @@ const Transactions = () => {
   return <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Transaksii</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Transaksi</h2>
           <p className="text-muted-foreground">Riwayat transaksi penjualan dan pembelian</p>
         </div>
         <div className="flex items-center gap-2">
