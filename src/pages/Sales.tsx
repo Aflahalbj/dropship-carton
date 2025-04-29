@@ -204,9 +204,9 @@ const Transactions = () => {
                     <div className="font-medium">
                       {transaction.products && transaction.products.length > 0 
                         ? transaction.products.map((item: any, index: number) => (
-                            <div key={index}>
-                              {item.product.name}{index < transaction.products.length - 1 ? "," : ""} 
-                            </div>
+                            <span key={index}>
+                              {item.product.name}{index < transaction.products.length - 1 ? ", " : ""}
+                            </span>
                           )) 
                         : "Produk"}
                     </div>
