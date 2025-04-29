@@ -23,7 +23,7 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => {
+>(({ className, src, ...props }, ref) => {
   const location = useLocation();
   const isInventoryPage = location.pathname === "/inventory";
   
@@ -32,9 +32,15 @@ const AvatarImage = React.forwardRef<
     return null;
   }
   
+  // Don't render the image component if there's no valid src
+  if (!src) {
+    return null;
+  }
+  
   return (
     <AvatarPrimitive.Image
       ref={ref}
+      src={src}
       className={cn("aspect-square h-full w-full", className)}
       {...props}
     />
