@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Filter, ArrowUpDown, Calendar } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,7 +45,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
             size="icon" 
             className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
           >
-            <ArrowUpDown className="h-4 w-4" />
+            <Filter className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
@@ -115,34 +115,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
         </DropdownMenu>
       )}
       
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant="outline"
-            size="icon"
-            className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
-          >
-            <Calendar className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onTimePeriodChange('all')}>
-            Semua
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onTimePeriodChange('today')}>
-            Hari Ini
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onTimePeriodChange('week')}>
-            Minggu Ini
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onTimePeriodChange('month')}>
-            Bulan Ini
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onTimePeriodChange('year')}>
-            Tahun Ini
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* Removed the duplicate Calendar button that was here */}
     </div>
   );
 };

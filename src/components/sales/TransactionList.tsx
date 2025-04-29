@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Table, TableBody } from "@/components/ui/table";
+import { Table, TableBody, TableHeader, TableRow, TableHead } from "@/components/ui/table";
 import TransactionItem from './TransactionItem';
 
 interface TransactionListProps {
@@ -32,6 +32,11 @@ const TransactionList: React.FC<TransactionListProps> = ({
   return (
     <div className="rounded-lg overflow-hidden border">
       <Table>
+        <TableHeader className="bg-gray-50">
+          <TableRow>
+            <TableHead className="font-medium text-gray-700">Riwayat Transaksi</TableHead>
+          </TableRow>
+        </TableHeader>
         <TableBody>
           {transactions.map((transaction) => (
             <TransactionItem 
