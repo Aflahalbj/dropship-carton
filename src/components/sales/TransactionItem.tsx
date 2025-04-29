@@ -18,10 +18,10 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
   return (
     <TableRow 
       key={`${transaction.transactionType}-${transaction.id}`} 
-      className="cursor-pointer hover:bg-accent hover:bg-opacity-80 transition-colors duration-200" 
       onClick={onClick}
     >
-      <TableCell className="p-4 bg-white">
+      <TableCell className="p-4 bg-white hover:bg-gray-100 cursor-pointer transition-colors duration-200" 
+        onClick={onClick}>
         <div className="flex flex-col space-y-1">
           <div className="font-medium">
             {transaction.products && transaction.products.length > 0 ? 
