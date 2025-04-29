@@ -2,6 +2,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { CartItem } from '../context/AppContext';
+import { Store } from 'lucide-react';
 
 interface ReceiptProps {
   items: CartItem[];
@@ -17,68 +18,98 @@ interface ReceiptProps {
 const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
   ({ items, total, date, transactionId, paymentMethod, customerName, cashAmount, changeAmount }, ref) => {
     return (
-      <div ref={ref} className="p-4 max-w-md mx-auto bg-white text-black print:shadow-none">
-        <div className="text-center mb-4">
-          <h2 className="text-xl font-bold">Struk Penjualan</h2>
-          <p className="text-sm">{format(date, "d MMMM yyyy 'pukul' HH:mm")}</p>
-          {transactionId && (
-            <p className="text-xs text-gray-500">Transaksi #{transactionId.slice(-6)}</p>
-          )}
-        </div>
+      <div ref={ref} className="p-4 max-w-md mx-auto bg-white text-black print:shadow-none relative">
+        {/* Wavy border at the top */}
+        <div className="absolute top-0 left-0 right-0 h-4 bg-white" style={{
+          clipPath: "url(#wave-top)"
+        }}></div>
+
+        {/* SVG Definitions for wavy borders */}
+        <svg width="0" height="0" className="absolute">
+          <defs>
+            <clipPath id="wave-top" clipPathUnits="objectBoundingBox">
+              <path d="M0,1 L0,0 L1,0 L1,1 C0.95,0.8 0.9,0.6 0.85,0.8 C0.8,1 0.75,0.8 0.7,0.6 C0.65,0.4 0.6,0.6 0.55,0.8 C0.5,1 0.45,0.8 0.4,0.6 C0.35,0.4 0.3,0.6 0.25,0.8 C0.2,1 0.15,0.8 0.1,0.6 C0.05,0.4 0,0.6 0,1 Z" />
+            </clipPath>
+            <clipPath id="wave-bottom" clipPathUnits="objectBoundingBox">
+              <path d="M0,0 L0,1 L1,1 L1,0 C0.95,0.2 0.9,0.4 0.85,0.2 C0.8,0 0.75,0.2 0.7,0.4 C0.65,0.6 0.6,0.4 0.55,0.2 C0.5,0 0.45,0.2 0.4,0.4 C0.35,0.6 0.3,0.4 0.25,0.2 C0.2,0 0.15,0.2 0.1,0.4 C0.05,0.6 0,0.4 0,0 Z" />
+            </clipPath>
+          </defs>
+        </svg>
         
-        {customerName && (
-          <div className="mb-3">
-            <p className="text-sm"><span className="font-medium">Pelanggan:</span> {customerName}</p>
-          </div>
-        )}
-        
-        <div className="border-t border-b border-gray-200 py-2 mb-4">
-          <div className="flex font-medium text-sm mb-1">
-            <span className="flex-1">Item</span>
-            <span className="w-16 text-right">Harga</span>
-            <span className="w-12 text-center">Jml</span>
-            <span className="w-20 text-right">Total</span>
+        <div className="mt-2 bg-white pt-4 pb-4 border border-white">
+          {/* Store Logo */}
+          <div className="flex justify-center mb-2">
+            <Store className="w-16 h-16" />
           </div>
           
-          {items.map((item, index) => (
-            <div key={index} className="flex text-sm py-1">
-              <span className="flex-1">{item.product.name}</span>
-              <span className="w-16 text-right">Rp{item.product.price.toLocaleString('id-ID')}</span>
-              <span className="w-12 text-center">{item.quantity}</span>
-              <span className="w-20 text-right">Rp{(item.product.price * item.quantity).toLocaleString('id-ID')}</span>
-            </div>
-          ))}
-        </div>
-        
-        <div className="flex justify-between text-sm mb-1">
-          <span>Subtotal:</span>
-          <span>Rp{total.toLocaleString('id-ID')}</span>
-        </div>
-        
-        <div className="flex justify-between font-bold text-lg mt-2">
-          <span>Total:</span>
-          <span>Rp{total.toLocaleString('id-ID')}</span>
-        </div>
-        
-        {paymentMethod && (
-          <div className="mt-3 pt-2 border-t border-gray-200">
-            <p className="text-sm"><span className="font-medium">Metode Pembayaran:</span> {paymentMethod === 'cash' ? 'Tunai' : 'Transfer'}</p>
+          {/* Store Info */}
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold">TOKO ABDULLAH</h2>
+            <p className="text-sm">TANGERANG</p>
+            <p className="text-sm mb-4">083880863610</p>
             
-            {paymentMethod === 'cash' && cashAmount !== undefined && (
-              <>
-                <p className="text-sm"><span className="font-medium">Jumlah Tunai:</span> Rp{cashAmount.toLocaleString('id-ID')}</p>
-                {changeAmount !== undefined && changeAmount > 0 && (
-                  <p className="text-sm"><span className="font-medium">Kembalian:</span> Rp{changeAmount.toLocaleString('id-ID')}</p>
-                )}
-              </>
+            {customerName && (
+              <p className="text-left text-sm font-semibold">Tuan/Bos: {customerName}</p>
             )}
           </div>
-        )}
-        
-        <div className="mt-8 text-center text-xs text-gray-500">
-          <p>Terima kasih atas pembelian Anda!</p>
-          <p>Mohon simpan struk ini untuk catatan Anda.</p>
+          
+          {/* Divider */}
+          <hr className="border-t border-gray-800 my-2" />
+          
+          {/* Receipt Header */}
+          <div className="flex justify-between text-sm mb-1">
+            <span>No - {transactionId ? transactionId.slice(-2) : "01"}</span>
+            <span>{format(date, "HH:mm:ss")}</span>
+            <span>{format(date, "yyyy-MM-dd")}</span>
+          </div>
+          
+          {/* Divider */}
+          <hr className="border-t border-gray-800 my-2" />
+          
+          {/* Items */}
+          <div className="space-y-2 mb-2">
+            {items.map((item, index) => (
+              <div key={index} className="text-left">
+                <div className="font-semibold">{item.product.name}</div>
+                <div className="flex justify-between">
+                  <span>{item.quantity} x {item.product.price.toLocaleString('id-ID')}</span>
+                  <span>Rp {(item.product.price * item.quantity).toLocaleString('id-ID')}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Divider */}
+          <hr className="border-t border-gray-800 my-2" />
+          
+          {/* Total */}
+          <div className="flex justify-between text-sm font-semibold">
+            <span>Total</span>
+            <span>Rp {total.toLocaleString('id-ID')}</span>
+          </div>
+          
+          {/* Payment Info */}
+          <div className="flex justify-between text-sm">
+            <span>Bayar ({paymentMethod === 'cash' ? 'Cash' : 'Transfer'})</span>
+            <span>Rp {cashAmount?.toLocaleString('id-ID') || total.toLocaleString('id-ID')}</span>
+          </div>
+          
+          <div className="flex justify-between text-sm">
+            <span>Kembali</span>
+            <span>Rp {changeAmount?.toLocaleString('id-ID') || "0"}</span>
+          </div>
+          
+          {/* Thank You Message */}
+          <div className="text-center mt-8 mb-2">
+            <p className="text-sm">Terimakasih telah berbelanja di toko kami</p>
+            <p className="text-xl">^_^</p>
+          </div>
         </div>
+        
+        {/* Wavy border at the bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-4 bg-white" style={{
+          clipPath: "url(#wave-bottom)"
+        }}></div>
       </div>
     );
   }

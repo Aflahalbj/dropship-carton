@@ -139,7 +139,9 @@ export class BluetoothPrinterService {
     changeAmount: number | undefined,
     transactionId: string,
     date: Date,
-    storeName: string = 'Toko Dropship'
+    storeName: string = 'TOKO ABDULLAH',
+    storeLocation: string = 'TANGERANG',
+    storePhone: string = '083880863610'
   ): Promise<boolean> {
     try {
       if (!this.connectedDevice) {
@@ -157,48 +159,34 @@ export class BluetoothPrinterService {
       
       // Store info
       receipt += `${storeName}\n`;
-      receipt += `--------------------------------\n`;
-      receipt += `No. ${transactionId.slice(-6)}\n`;
-      receipt += `${date.toLocaleString('id-ID')}\n`;
+      receipt += `${storeLocation}\n`;
+      receipt += `${storePhone}\n\n`;
+      
+      // Customer
       if (customerName) {
-        receipt += `Pelanggan: ${customerName}\n`;
+        receipt += `Tuan/Bos: ${customerName}\n`;
       }
+      receipt += `--------------------------------\n`;
+      
+      // Transaction info
+      receipt += `No - ${transactionId.slice(-2)}       ${date.getHours()}:${date.getMinutes()}       ${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}\n`;
       receipt += `--------------------------------\n\n`;
       
       // Items
-      receipt += `Barang      Qty   Harga    Total\n`;
-      receipt += `--------------------------------\n`;
-      
       items.forEach(item => {
-        // Truncate product name if too long
-        let name = item.product.name;
-        if (name.length > 10) name = name.substring(0, 10);
-        
-        const price = item.product.price.toLocaleString('id-ID');
-        const total = (item.product.price * item.quantity).toLocaleString('id-ID');
-        
-        // Format as columns
-        receipt += `${name.padEnd(10)} ${item.quantity.toString().padEnd(5)} ${price.padStart(7)} ${total.padStart(8)}\n`;
+        receipt += `${item.product.name}\n`;
+        receipt += `${item.quantity} x ${item.product.price.toLocaleString('id-ID')}`;
+        receipt += `          Rp ${(item.product.price * item.quantity).toLocaleString('id-ID')}\n\n`;
       });
       
       receipt += `--------------------------------\n`;
-      receipt += `TOTAL:             Rp ${total.toLocaleString('id-ID')}\n\n`;
+      receipt += `Total                Rp ${total.toLocaleString('id-ID')}\n`;
+      receipt += `Bayar (${paymentMethod === 'cash' ? 'Cash' : 'Transfer'})      Rp ${(cashAmount || total).toLocaleString('id-ID')}\n`;
+      receipt += `Kembali              Rp ${(changeAmount || 0).toLocaleString('id-ID')}\n\n`;
       
-      // Payment info
-      receipt += `${paymentMethod === 'cash' ? 'Tunai' : 'Transfer'}\n`;
-      
-      if (paymentMethod === 'cash' && cashAmount !== undefined) {
-        receipt += `Bayar:             Rp ${cashAmount.toLocaleString('id-ID')}\n`;
-        
-        if (changeAmount !== undefined && changeAmount > 0) {
-          receipt += `Kembali:           Rp ${changeAmount.toLocaleString('id-ID')}\n`;
-        }
-      }
-      
-      receipt += '\n';
-      receipt += `--------------------------------\n`;
-      receipt += `      Terima Kasih      \n`;
-      receipt += `      Atas Kunjungan Anda      \n`;
+      receipt += `\n\n`;
+      receipt += `      Terimakasih telah berbelanja di toko kami      \n`;
+      receipt += `                      ^_^                      \n`;
       receipt += '\n\n\n';  // Extra lines for paper cutter
 
       // Send to printer
