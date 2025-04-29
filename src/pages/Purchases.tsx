@@ -150,12 +150,11 @@ const Purchases: React.FC = () => {
   }: {
     product: Product;
   }) => {
-    const defaultImage = "https://placehold.co/300x150?text=Produk";
     return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={() => handleAddProduct(product)}>
         <div className="h-auto overflow-hidden flex items-center justify-center px-0 py-0 my-0 mx-0">
           <AspectRatio ratio={1 / 1} className="w-full">
             <Avatar className="w-full h-full rounded-none">
-              <AvatarImage src={product.image || defaultImage} alt={product.name} className="w-full h-full object-cover" />
+              <AvatarImage src={product.image} alt={product.name} className="w-full h-full object-cover" />
               <AvatarFallback className="rounded-none text-4xl" aria-label={product.name} />
             </Avatar>
           </AspectRatio>
