@@ -224,7 +224,7 @@ const Inventory = () => {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[60%]">Produk</TableHead>
-              <TableHead className="w-[40%]">Harga</TableHead>
+              <TableHead className="w-[30%]">Harga</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -245,8 +245,8 @@ const Inventory = () => {
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <div className="text-xs">Jual: Rp{product.price.toLocaleString('id-ID')}</div>
-                      <div className="text-xs">Beli: Rp{product.supplierPrice.toLocaleString('id-ID')}</div>
+                      <div className="text-xs">Rp{product.price.toLocaleString('id-ID')}</div>
+                      <div className="text-xs">Rp{product.supplierPrice.toLocaleString('id-ID')}</div>
                       <div className="text-xs">+Rp{(product.price - product.supplierPrice).toLocaleString('id-ID')}</div>
                     </div>
                   </TableCell>
