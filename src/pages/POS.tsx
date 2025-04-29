@@ -10,6 +10,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from "@/components/ui/button";
 import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 const POS: React.FC = () => {
   const {
     products,
@@ -98,7 +100,10 @@ const POS: React.FC = () => {
     return <Card className="overflow-hidden card-hover h-full flex flex-col cursor-pointer" onClick={handleAddToCart}>
         <div className="h-auto overflow-hidden flex items-center justify-center px-0 py-0 my-0 mx-0">
           <AspectRatio ratio={1 / 1} className="w-full">
-            <img src={product.image || defaultImage} alt={product.name} onError={e => (e.target as HTMLImageElement).src = defaultImage} className="w-full h-full object-cover" />
+            <Avatar className="w-full h-full rounded-none">
+              <AvatarImage src={product.image || defaultImage} alt={product.name} className="w-full h-full object-cover" />
+              <AvatarFallback className="rounded-none text-4xl" aria-label={product.name} />
+            </Avatar>
           </AspectRatio>
         </div>
         <div className="p-2 flex-grow px-[10px] py-[10px]">
@@ -175,7 +180,10 @@ const POS: React.FC = () => {
               return <div key={item.product.id} className="p-4 flex justify-between items-center">
                   <div className="flex-1">
                     {item.product.image && <div className="w-10 h-10 rounded mr-3 overflow-hidden float-left">
-                        <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = "https://placehold.co/300x150?text=Produk"} />
+                        <Avatar className="w-full h-full rounded-none">
+                          <AvatarImage src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
+                          <AvatarFallback className="rounded-none" aria-label={item.product.name} />
+                        </Avatar>
                       </div>}
                     <div>
                       <h4 className="font-medium">{item.product.name}</h4>

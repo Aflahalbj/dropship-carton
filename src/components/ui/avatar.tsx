@@ -27,7 +27,7 @@ const AvatarImage = React.forwardRef<
   const location = useLocation();
   const isInventoryPage = location.pathname === "/inventory";
   
-  // Don't show images on inventory page
+  // Don't show images on inventory page but show on POS and purchases pages
   if (isInventoryPage) {
     return null;
   }
