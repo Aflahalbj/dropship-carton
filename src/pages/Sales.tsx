@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Info, Calendar, Printer as PrinterIcon } from "lucide-react";
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Receipt from '../components/Receipt';
 import { useNavigate } from 'react-router-dom';
 import { BluetoothPrinter, printReceipt } from '@/components/BluetoothPrinter';
@@ -142,6 +142,7 @@ const Transactions = () => {
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-auto">
+          <DialogTitle>Detail Transaksi</DialogTitle>
           {selectedTransaction && (
             <>
               <Receipt 
@@ -202,7 +203,11 @@ const Transactions = () => {
                   <div className="flex flex-col space-y-1">
                     <div className="font-medium">
                       {transaction.products && transaction.products.length > 0 
-                        ? transaction.products[0].product.name 
+                        ? transaction.products.map((item: any, index: number) => (
+                            <div key={index}>
+                              {item.product.name}{index < transaction.products.length - 1 ? "," : ""} 
+                            </div>
+                          )) 
                         : "Produk"}
                     </div>
                     <div className="text-sm text-muted-foreground flex justify-between">
