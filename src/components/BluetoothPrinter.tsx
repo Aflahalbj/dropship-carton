@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import BluetoothPrinterService from "@/services/BluetoothPrinterService";
 import { CartItem } from '../context/AppContext';
 import React from 'react';
-import { Printer } from 'lucide-react';
+import { Bluetooth } from 'lucide-react';
 import { Button } from "./ui/button";
 
 interface BluetoothPrinterProps {
@@ -38,7 +38,7 @@ export const BluetoothPrinter: React.FC<BluetoothPrinterProps> = ({ className })
       className={`aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300 ${className}`}
       onClick={handleScanForPrinters}
     >
-      <Printer className="h-4 w-4" />
+      <Bluetooth className="h-4 w-4" />
     </Button>
   );
 };

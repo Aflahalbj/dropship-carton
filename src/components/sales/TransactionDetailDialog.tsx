@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+
+import React, { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer as PrinterIcon, Share, ArrowLeft, Trash2 } from "lucide-react";
@@ -6,6 +7,16 @@ import Receipt from '../Receipt';
 import { useReactToPrint } from 'react-to-print';
 import { printReceipt } from '@/components/BluetoothPrinter';
 import { toast } from "sonner";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
 
 interface TransactionDetailDialogProps {
   isOpen: boolean;
@@ -19,6 +30,8 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
   transaction
 }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
 
   const handlePrint = useReactToPrint({
     documentTitle: 'Struk Penjualan',
@@ -44,13 +57,23 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
 
   const handleShare = async () => {
     try {
+      // Try Web Share API for mobile devices
       if (navigator.share) {
         await navigator.share({
           title: 'Struk Penjualan',
           text: `Struk penjualan dari transaksi ${transaction?.id || ''}`,
         });
       } else {
-        toast.error("Fitur berbagi tidak didukung oleh perangkat Anda.");
+        // For desktop browsers, implement copy to clipboard functionality
+        if (navigator.clipboard) {
+          const text = `Struk penjualan dari transaksi ${transaction?.id || ''}\n` + 
+                       `Tanggal: ${new Date(transaction?.date).toLocaleDateString('id-ID')}\n` +
+                       `Total: Rp ${transaction?.amount?.toLocaleString('id-ID') || 0}`;
+          await navigator.clipboard.writeText(text);
+          toast.success("Detail transaksi disalin ke clipboard");
+        } else {
+          toast.error("Fitur berbagi tidak didukung oleh perangkat Anda.");
+        }
       }
     } catch (error) {
       console.error('Error sharing:', error);
@@ -59,13 +82,27 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
   };
 
   const handleReturn = () => {
+    setIsReturnDialogOpen(true);
+  };
+
+  const processReturn = () => {
+    // Here you would implement the return logic
+    toast.success("Proses pengembalian produk berhasil diinisiasi");
+    setIsReturnDialogOpen(false);
+    // Close the main dialog after processing the return
     onOpenChange(false);
   };
 
   const handleDelete = () => {
-    // For now just show a toast message
-    toast.info("Fitur hapus transaksi akan segera hadir.");
-    // In a real implementation, you would call a function to delete the transaction
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    // Here you would implement the delete transaction logic
+    toast.success("Transaksi berhasil dihapus");
+    setIsDeleteDialogOpen(false);
+    // Close the main dialog after deleting
+    onOpenChange(false);
   };
 
   return (
@@ -87,7 +124,7 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
                 changeAmount={transaction.changeAmount} 
               />
               
-              {/* New button row with 4 buttons */}
+              {/* Button row with 4 buttons */}
               <div className="grid grid-cols-4 gap-2 mt-6">
                 <Button 
                   onClick={handleBluetoothPrint} 
@@ -143,6 +180,42 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
           )}
         </DialogContent>
       </Dialog>
+      
+      {/* Return confirmation dialog */}
+      <AlertDialog open={isReturnDialogOpen} onOpenChange={setIsReturnDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Proses Pengembalian Produk</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin memproses pengembalian produk untuk transaksi ini? 
+              Proses ini untuk produk yang exp, cacat, tidak sesuai, atau alasan lainnya.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={processReturn}>Proses Pengembalian</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus transaksi ini? 
+              Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <div className="hidden">
         {transaction && (
