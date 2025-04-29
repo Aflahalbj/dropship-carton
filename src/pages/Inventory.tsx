@@ -223,7 +223,7 @@ const Inventory = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[60%]">Produk</TableHead>
+              <TableHead className="w-[70%]">Produk</TableHead>
               <TableHead className="w-[30%]">Harga</TableHead>
             </TableRow>
           </TableHeader>
