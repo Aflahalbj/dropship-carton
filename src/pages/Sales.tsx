@@ -11,7 +11,7 @@ import TransactionDetailDialog from '@/components/sales/TransactionDetailDialog'
 const Transactions = () => {
   const { transactions } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<'date' | 'amount' | 'customerName' | 'price' | 'stock'>('date');
+  const [sortField, setSortField] = useState<'date' | 'amount' | 'productName' | 'price' | 'stock'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [transactionType, setTransactionType] = useState('all');
   const [timePeriod, setTimePeriod] = useState('all');
@@ -73,8 +73,13 @@ const Transactions = () => {
     // Filter by search term
     const searchLower = searchTerm.toLowerCase();
     const customerName = transaction.customerName || '';
+    // Get product names from transaction items
+    const productNames = transaction.products ? 
+      transaction.products.map((item: any) => item.product.name.toLowerCase()).join(' ') : '';
+    
     return transaction.id?.toString().toLowerCase().includes(searchLower) || 
-           customerName.toLowerCase().includes(searchLower);
+           customerName.toLowerCase().includes(searchLower) ||
+           productNames.includes(searchLower);
   }).sort((a, b) => {
     switch (sortField) {
       case 'date':
@@ -83,10 +88,19 @@ const Transactions = () => {
           : new Date(b.date).getTime() - new Date(a.date).getTime();
       case 'amount':
         return sortDirection === 'asc' ? a.amount - b.amount : b.amount - a.amount;
-      case 'customerName':
-        const nameA = a.customerName || '';
-        const nameB = b.customerName || '';
-        return sortDirection === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+      case 'productName':
+        // Sort by the first product's name in each transaction
+        const getFirstProductName = (transaction: any) => {
+          if (transaction.products && transaction.products.length > 0) {
+            return transaction.products[0].product.name.toLowerCase();
+          }
+          return '';
+        };
+        const productNameA = getFirstProductName(a);
+        const productNameB = getFirstProductName(b);
+        return sortDirection === 'asc' 
+          ? productNameA.localeCompare(productNameB) 
+          : productNameB.localeCompare(productNameA);
       case 'price':
         return sortDirection === 'asc' ? a.amount - b.amount : b.amount - a.amount;
       case 'stock':
@@ -143,7 +157,7 @@ const Transactions = () => {
         sortField={sortField}
         sortDirection={sortDirection}
         onSortChange={(field, direction) => {
-          setSortField(field as 'date' | 'amount' | 'customerName' | 'price' | 'stock');
+          setSortField(field as 'date' | 'amount' | 'productName' | 'price' | 'stock');
           setSortDirection(direction);
         }}
         timePeriod={timePeriod}

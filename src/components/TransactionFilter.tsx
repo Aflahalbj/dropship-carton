@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, SortAsc } from 'lucide-react';
+import { Search, SortAsc, Filter } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -45,10 +45,10 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
             Tanggal (Terlama)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onSortChange('customerName', 'asc')}>
+          <DropdownMenuItem onClick={() => onSortChange('productName', 'asc')}>
             Nama (A-Z)
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onSortChange('customerName', 'desc')}>
+          <DropdownMenuItem onClick={() => onSortChange('productName', 'desc')}>
             Nama (Z-A)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -72,7 +72,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
       {!hideTransactionType && <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300">
-              <SortAsc className="h-4 w-4" />
+              <Filter className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
