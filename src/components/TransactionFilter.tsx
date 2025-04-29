@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Search, Filter, ArrowUpDown, Calendar } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -89,32 +90,6 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
         />
       </div>
       
-      {!hideTransactionType && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline" 
-              className="rounded-lg bg-slate-50 border border-gray-300 gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              {transactionType === 'all' ? 'Semua Transaksi' : 
-               transactionType === 'sale' ? 'Penjualan' : 'Pembelian'}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onTransactionTypeChange('all')}>
-              Semua Transaksi
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onTransactionTypeChange('sale')}>
-              Penjualan
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onTransactionTypeChange('purchase')}>
-              Pembelian
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-      
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
@@ -146,6 +121,32 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      
+      {!hideTransactionType && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="outline" 
+              className="rounded-lg bg-slate-50 border border-gray-300 gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              {transactionType === 'all' ? 'Semua Transaksi' : 
+               transactionType === 'sale' ? 'Penjualan' : 'Pembelian'}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('all')}>
+              Semua Transaksi
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('sale')}>
+              Penjualan
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('purchase')}>
+              Pembelian
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 };

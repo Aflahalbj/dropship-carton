@@ -2,7 +2,7 @@
 import React from 'react';
 import { BluetoothPrinter } from '@/components/BluetoothPrinter';
 import { Button } from '@/components/ui/button';
-import { Printer, Filter } from 'lucide-react';
+import { Filter, Calendar } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +30,7 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
         <p className="text-muted-foreground">{description}</p>
       </div>
       <div className="flex items-center gap-2">
+        <BluetoothPrinter />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
@@ -53,10 +54,6 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="outline" size="icon">
-          <Printer className="h-4 w-4" />
-        </Button>
-        <BluetoothPrinter />
       </div>
     </div>
   );
