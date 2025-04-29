@@ -1,16 +1,8 @@
-
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 interface TransactionFilterProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -23,7 +15,6 @@ interface TransactionFilterProps {
   timePeriod: string;
   onTimePeriodChange: (period: string) => void;
 }
-
 const TransactionFilter: React.FC<TransactionFilterProps> = ({
   searchTerm,
   onSearchChange,
@@ -36,15 +27,10 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
   timePeriod,
   onTimePeriodChange
 }) => {
-  return (
-    <div className="flex flex-1 gap-3 items-center">
+  return <div className="flex flex-1 gap-3 items-center">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
-          >
+          <Button variant="outline" size="icon" className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300">
             <Filter className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -70,34 +56,19 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
             Harga (Terendah)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onSortChange('stock', 'desc')}>
-            Stok (Tertinggi)
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onSortChange('stock', 'asc')}>
-            Stok (Terendah)
-          </DropdownMenuItem>
+          
+          
         </DropdownMenuContent>
       </DropdownMenu>
       
       <div className="relative flex-[3]">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-        <Input
-          type="text"
-          placeholder="Cari produk berdasarkan nama atau SKU..."
-          value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 rounded-full bg-slate-50 border border-gray-300"
-        />
+        <Input type="text" placeholder="Cari produk berdasarkan nama atau SKU..." value={searchTerm} onChange={e => onSearchChange(e.target.value)} className="pl-10 rounded-full bg-slate-50 border border-gray-300" />
       </div>
       
-      {!hideTransactionType && (
-        <DropdownMenu>
+      {!hideTransactionType && <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button 
-              variant="outline"
-              size="icon"
-              className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
-            >
+            <Button variant="outline" size="icon" className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300">
               <Filter className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -112,12 +83,9 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
               Pembelian
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+        </DropdownMenu>}
       
       {/* Removed the duplicate Calendar button that was here */}
-    </div>
-  );
+    </div>;
 };
-
 export default TransactionFilter;
