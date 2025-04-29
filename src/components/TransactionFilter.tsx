@@ -43,7 +43,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
           <Button 
             variant="outline" 
             size="icon" 
-            className="w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
+            className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
           >
             <ArrowUpDown className="h-4 w-4" />
           </Button>
@@ -96,7 +96,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
             <Button 
               variant="outline"
               size="icon"
-              className="w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
+              className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
             >
               <Filter className="h-4 w-4" />
             </Button>
@@ -120,7 +120,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
           <Button 
             variant="outline"
             size="icon"
-            className="w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
+            className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
           >
             <Calendar className="h-4 w-4" />
           </Button>

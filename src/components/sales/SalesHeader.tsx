@@ -2,7 +2,7 @@
 import React from 'react';
 import { BluetoothPrinter } from '@/components/BluetoothPrinter';
 import { Button } from '@/components/ui/button';
-import { Filter, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +36,7 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
             <Button 
               variant="outline" 
               size="icon"
-              className="w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
+              className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
             >
               <Calendar className="h-4 w-4" />
             </Button>

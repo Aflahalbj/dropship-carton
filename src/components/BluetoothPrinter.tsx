@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -67,7 +66,7 @@ export const BluetoothPrinter: React.FC<BluetoothPrinterProps> = ({ className })
           <Button 
             variant={selectedPrinter ? "outline" : "secondary"}
             size="icon"
-            className={`w-12 h-12 rounded-lg bg-slate-50 border border-gray-300 ${className}`}
+            className={`aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300 ${className}`}
             onClick={() => {
               if (!selectedPrinter) {
                 setDialogOpen(true);
@@ -82,6 +81,7 @@ export const BluetoothPrinter: React.FC<BluetoothPrinterProps> = ({ className })
             )}
           </Button>
         </DialogTrigger>
+        
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Pilih Printer Bluetooth</DialogTitle>
