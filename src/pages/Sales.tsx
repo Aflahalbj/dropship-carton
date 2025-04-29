@@ -98,32 +98,38 @@ const Transactions = () => {
         </div>
       </div>
       
-      <Card className="p-6">
-        <TransactionFilter searchTerm={searchTerm} onSearchChange={setSearchTerm} transactionType={transactionType} onTransactionTypeChange={setTransactionType} sortField={sortField} sortDirection={sortDirection} onSortChange={(field, direction) => {
-        setSortField(field as 'date' | 'amount' | 'name' | 'price' | 'stock');
-        setSortDirection(direction);
-      }} />
+      <TransactionFilter 
+        searchTerm={searchTerm} 
+        onSearchChange={setSearchTerm} 
+        transactionType={transactionType} 
+        onTransactionTypeChange={setTransactionType} 
+        sortField={sortField} 
+        sortDirection={sortDirection} 
+        onSortChange={(field, direction) => {
+          setSortField(field as 'date' | 'amount' | 'name' | 'price' | 'stock');
+          setSortDirection(direction);
+        }} 
+      />
         
-        <Tabs defaultValue="all" value={transactionType} onValueChange={setTransactionType}>
-          <TabsContent value="all" className="space-y-0">
-            {renderTransactionsTable(filteredTransactions)}
-          </TabsContent>
-          
-          <TabsContent value="sale" className="space-y-0">
-            {renderTransactionsTable(filteredTransactions)}
-          </TabsContent>
-          
-          <TabsContent value="purchase" className="space-y-0">
-            {renderTransactionsTable(filteredTransactions)}
-          </TabsContent>
-        </Tabs>
+      <Tabs defaultValue="all" value={transactionType} onValueChange={setTransactionType}>
+        <TabsContent value="all" className="space-y-0">
+          {renderTransactionsTable(filteredTransactions)}
+        </TabsContent>
         
-        {filteredTransactions.length === 0 && <div className="text-center py-8">
-            <p className="text-muted-foreground">
-              {transactionType === 'all' ? 'Tidak ada transaksi yang cocok dengan pencarian Anda' : `Tidak ada transaksi ${getTransactionTypeLabel(transactionType)} yang cocok dengan pencarian Anda`}
-            </p>
-          </div>}
-      </Card>
+        <TabsContent value="sale" className="space-y-0">
+          {renderTransactionsTable(filteredTransactions)}
+        </TabsContent>
+        
+        <TabsContent value="purchase" className="space-y-0">
+          {renderTransactionsTable(filteredTransactions)}
+        </TabsContent>
+      </Tabs>
+      
+      {filteredTransactions.length === 0 && <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            {transactionType === 'all' ? 'Tidak ada transaksi yang cocok dengan pencarian Anda' : `Tidak ada transaksi ${getTransactionTypeLabel(transactionType)} yang cocok dengan pencarian Anda`}
+          </p>
+        </div>}
       
       <div className="hidden">
         {selectedTransaction && <Receipt ref={receiptRef} items={selectedTransaction.products || []} total={selectedTransaction.amount || 0} date={new Date(selectedTransaction.date)} transactionId={selectedTransaction.id || ""} paymentMethod={selectedTransaction.paymentMethod || "cash"} customerName={selectedTransaction.customerName || "Pelanggan"} cashAmount={selectedTransaction.cashAmount} changeAmount={selectedTransaction.changeAmount} />}
