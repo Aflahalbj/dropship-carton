@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
@@ -65,8 +64,9 @@ export const BluetoothPrinter: React.FC<BluetoothPrinterProps> = ({ className })
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
           <Button 
-            variant={selectedPrinter ? "outline" : "secondary"} 
-            className={`gap-2 ${className}`}
+            variant={selectedPrinter ? "outline" : "secondary"}
+            size="icon"
+            className={`rounded-lg ${className}`}
             onClick={() => {
               if (!selectedPrinter) {
                 setDialogOpen(true);
@@ -75,15 +75,9 @@ export const BluetoothPrinter: React.FC<BluetoothPrinterProps> = ({ className })
             }}
           >
             {selectedPrinter ? (
-              <>
-                <Check className="w-4 h-4 text-green-500" />
-                <span className="truncate max-w-[100px]">{selectedPrinter.name}</span>
-              </>
+              <Check className="w-4 h-4 text-green-500" />
             ) : (
-              <>
-                <Bluetooth className="w-4 h-4" />
-                <span>Hubungkan Printer</span>
-              </>
+              <Bluetooth className="w-4 h-4" />
             )}
           </Button>
         </DialogTrigger>

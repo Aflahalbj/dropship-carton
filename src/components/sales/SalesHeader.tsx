@@ -30,16 +30,15 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
         <p className="text-muted-foreground">{description}</p>
       </div>
       <div className="flex items-center gap-2">
-        <BluetoothPrinter />
+        <BluetoothPrinter className="w-auto" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              className="rounded-lg bg-slate-50 border border-gray-300 gap-2"
+              size="icon"
+              className="rounded-lg bg-slate-50 border border-gray-300"
             >
               <Filter className="h-4 w-4" />
-              {transactionType === 'all' ? 'Semua Transaksi' : 
-               transactionType === 'sale' ? 'Penjualan' : 'Pembelian'}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-white">

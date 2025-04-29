@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Search, Filter, ArrowUpDown, Calendar } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -93,14 +92,11 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
-            variant="outline" 
-            className="rounded-lg bg-slate-50 border border-gray-300 gap-2"
+            variant="outline"
+            size="icon"
+            className="rounded-lg bg-slate-50 border border-gray-300"
           >
             <Calendar className="h-4 w-4" />
-            {timePeriod === 'today' ? 'Hari Ini' :
-             timePeriod === 'week' ? 'Minggu Ini' :
-             timePeriod === 'month' ? 'Bulan Ini' :
-             timePeriod === 'year' ? 'Tahun Ini' : 'Semua'}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -126,12 +122,11 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
-              variant="outline" 
-              className="rounded-lg bg-slate-50 border border-gray-300 gap-2"
+              variant="outline"
+              size="icon"
+              className="rounded-lg bg-slate-50 border border-gray-300"
             >
               <Filter className="h-4 w-4" />
-              {transactionType === 'all' ? 'Semua Transaksi' : 
-               transactionType === 'sale' ? 'Penjualan' : 'Pembelian'}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
