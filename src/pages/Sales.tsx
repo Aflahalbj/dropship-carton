@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Card } from "@/components/ui/card";
@@ -167,9 +168,11 @@ const Transactions = () => {
                 <TableCell className="p-4 bg-white">
                   <div className="flex flex-col space-y-1">
                     <div className="font-medium">
-                      {transaction.products && transaction.products.length > 0 ? transaction.products.map((item: any, index: number) => <span key={index}>
-                              {item.product.name}{index < transaction.products.length - 1 ? ", " : ""}
-                            </span>) : "Produk"}
+                      {transaction.products && transaction.products.length > 0 ? transaction.products.map((item: any, index: number) => 
+                        <span key={index}>
+                          {item.product.name}{index < transaction.products.length - 1 ? ", " : ""}
+                        </span>
+                      ) : "Produk"}
                     </div>
                     <div className="text-sm text-muted-foreground flex justify-between">
                       <span>{transaction.id?.toString().substring(0, 8)}</span>
