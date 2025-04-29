@@ -210,7 +210,7 @@ const Inventory = () => {
           
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input type="text" placeholder="Cari produk berdasarkan nama atau SKU..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 rounded-full bg-white border-slate-200" />
+            <Input type="text" placeholder="Cari produk berdasarkan nama atau SKU..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 rounded-full border-slate-200 bg-slate-50" />
           </div>
           
           <Button variant="outline" size="icon" className="w-10 h-10" onClick={() => handleOpenForm()}>
@@ -223,8 +223,8 @@ const Inventory = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[70%]">Produk</TableHead>
-              <TableHead className="w-[30%]">Harga</TableHead>
+              <TableHead className="w-[70%] bg-slate-50">Produk</TableHead>
+              <TableHead className="w-[30%] bg-slate-50">Harga</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
