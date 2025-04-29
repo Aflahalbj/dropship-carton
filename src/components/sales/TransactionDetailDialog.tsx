@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,8 @@ import {
   AlertDialogDescription, 
   AlertDialogFooter, 
   AlertDialogHeader, 
-  AlertDialogTitle 
+  AlertDialogTitle,
+  AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 
 interface TransactionDetailDialogProps {
@@ -30,8 +30,7 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
   transaction
 }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handlePrint = useReactToPrint({
     documentTitle: 'Struk Penjualan',
@@ -81,26 +80,16 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
     }
   };
 
-  const handleReturn = () => {
-    setIsReturnDialogOpen(true);
-  };
-
   const processReturn = () => {
     // Here you would implement the return logic
     toast.success("Proses pengembalian produk berhasil diinisiasi");
-    setIsReturnDialogOpen(false);
     // Close the main dialog after processing the return
     onOpenChange(false);
-  };
-
-  const handleDelete = () => {
-    setIsDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
     // Here you would implement the delete transaction logic
     toast.success("Transaksi berhasil dihapus");
-    setIsDeleteDialogOpen(false);
     // Close the main dialog after deleting
     onOpenChange(false);
   };
@@ -144,23 +133,57 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
                   <span className="text-xs">Share</span>
                 </Button>
                 
-                <Button 
-                  onClick={handleReturn} 
-                  variant="outline" 
-                  className="flex flex-col items-center justify-center py-4 h-auto"
-                >
-                  <ArrowLeft className="h-5 w-5 mb-1" />
-                  <span className="text-xs">Return</span>
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="flex flex-col items-center justify-center py-4 h-auto"
+                    >
+                      <ArrowLeft className="h-5 w-5 mb-1" />
+                      <span className="text-xs">Return</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Proses Pengembalian Produk</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Apakah Anda yakin ingin memproses pengembalian produk untuk transaksi ini? 
+                        Proses ini untuk produk yang exp, cacat, tidak sesuai, atau alasan lainnya.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogAction onClick={processReturn}>Proses Pengembalian</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 
-                <Button 
-                  onClick={handleDelete} 
-                  variant="outline" 
-                  className="flex flex-col items-center justify-center py-4 h-auto"
-                >
-                  <Trash2 className="h-5 w-5 mb-1" />
-                  <span className="text-xs">Delete</span>
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="flex flex-col items-center justify-center py-4 h-auto"
+                    >
+                      <Trash2 className="h-5 w-5 mb-1" />
+                      <span className="text-xs">Delete</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Apakah Anda yakin ingin menghapus transaksi ini? 
+                        Tindakan ini tidak dapat dibatalkan.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Hapus
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
 
               {/* For backward compatibility, keep the old buttons hidden */}
@@ -180,42 +203,6 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
           )}
         </DialogContent>
       </Dialog>
-      
-      {/* Return confirmation dialog */}
-      <AlertDialog open={isReturnDialogOpen} onOpenChange={setIsReturnDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Proses Pengembalian Produk</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin memproses pengembalian produk untuk transaksi ini? 
-              Proses ini untuk produk yang exp, cacat, tidak sesuai, atau alasan lainnya.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={processReturn}>Proses Pengembalian</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      
-      {/* Delete confirmation dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus transaksi ini? 
-              Tindakan ini tidak dapat dibatalkan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Hapus
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
       
       <div className="hidden">
         {transaction && (
