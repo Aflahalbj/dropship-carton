@@ -18,7 +18,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
   return (
     <TableRow 
       key={`${transaction.transactionType}-${transaction.id}`} 
-      className="cursor-pointer hover:bg-accent/50" 
+      className="cursor-pointer hover:bg-accent hover:bg-opacity-80 transition-colors duration-200" 
       onClick={onClick}
     >
       <TableCell className="p-4 bg-white">
