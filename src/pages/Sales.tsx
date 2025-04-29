@@ -20,7 +20,9 @@ const Transactions = () => {
   const allTransactions = [...transactions.map(t => ({
     ...t,
     transactionType: t.type,
-    amount: t.total
+    amount: t.total,
+    customerPhone: t.customerPhone || "",  // Ensure customerPhone is passed
+    customerAddress: t.customerAddress || "", // Ensure customerAddress is passed
   }))];
 
   const filteredTransactions = allTransactions.filter(transaction => {

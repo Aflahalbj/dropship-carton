@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { BluetoothPrinter } from '@/components/BluetoothPrinter';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 
 interface SalesHeaderProps {
   title: string;
@@ -15,6 +17,10 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({ title, description }) => {
         <p className="text-muted-foreground">{description}</p>
       </div>
       <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Printer size={18} />
+          Cetak
+        </Button>
         <BluetoothPrinter />
       </div>
     </div>
