@@ -34,6 +34,8 @@ export type Transaction = {
   profit: number;
   type: 'sale' | 'purchase';
   customerName?: string;
+  customerPhone?: string;
+  customerAddress?: string;
   paymentMethod?: 'cash' | 'transfer';
   cashAmount?: number;
   changeAmount?: number;
