@@ -32,7 +32,7 @@ export const MainLayout = () => {
                   <line x1="4" x2="20" y1="18" y2="18" />
                 </svg>
               </button>}
-            <h1 className="text-xl font-medium tracking-tight">POS Dropship</h1>
+            <h1 className="text-xl font-medium tracking-tight">DropPOS</h1>
           </div>
         </header>
         
