@@ -20,7 +20,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
       key={`${transaction.transactionType}-${transaction.id}`} 
       onClick={onClick}
     >
-      <TableCell className="p-4 bg-white hover:bg-gray-100 cursor-pointer transition-colors duration-200" 
+      <TableCell className="p-4 bg-white hover:bg-slate-50 cursor-pointer transition-colors duration-200" 
         onClick={onClick}>
         <div className="flex flex-col space-y-1">
           <div className="font-medium">
