@@ -30,9 +30,9 @@ const Transactions = () => {
       return false;
     }
     const searchLower = searchTerm.toLowerCase();
-    const customerName = 'customerName' in transaction ? transaction.customerName : '';
+    const customerName = transaction.customerName || '';
     return transaction.id?.toString().toLowerCase().includes(searchLower) || 
-           customerName && customerName.toLowerCase().includes(searchLower);
+           customerName.toLowerCase().includes(searchLower);
   }).sort((a, b) => {
     switch (sortField) {
       case 'date':
@@ -42,8 +42,8 @@ const Transactions = () => {
       case 'amount':
         return sortDirection === 'asc' ? a.amount - b.amount : b.amount - a.amount;
       case 'name':
-        const nameA = 'customerName' in a ? a.customerName || '' : '';
-        const nameB = 'customerName' in b ? b.customerName || '' : '';
+        const nameA = a.customerName || '';
+        const nameB = b.customerName || '';
         return sortDirection === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
       case 'price':
         return sortDirection === 'asc' ? a.amount - b.amount : b.amount - a.amount;
