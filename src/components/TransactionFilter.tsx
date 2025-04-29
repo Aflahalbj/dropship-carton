@@ -1,15 +1,8 @@
 
 import React from 'react';
-import { Search, Filter, ArrowUpDown } from 'lucide-react';
+import { Search, Filter, ArrowUpDown, Calendar } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +20,8 @@ interface TransactionFilterProps {
   sortDirection: 'asc' | 'desc';
   onSortChange: (field: string, direction: 'asc' | 'desc') => void;
   hideTransactionType?: boolean;
+  timePeriod: string;
+  onTimePeriodChange: (period: string) => void;
 }
 
 const TransactionFilter: React.FC<TransactionFilterProps> = ({
@@ -37,7 +32,9 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
   sortField,
   sortDirection,
   onSortChange,
-  hideTransactionType = false
+  hideTransactionType = false,
+  timePeriod,
+  onTimePeriodChange
 }) => {
   return (
     <div className="flex flex-1 gap-3 items-center">
@@ -98,9 +95,11 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
           <DropdownMenuTrigger asChild>
             <Button 
               variant="outline" 
-              className="rounded-lg bg-slate-50 w-12 h-12 p-0 flex items-center justify-center border border-gray-300"
+              className="rounded-lg bg-slate-50 border border-gray-300 gap-2"
             >
               <Filter className="h-4 w-4" />
+              {transactionType === 'all' ? 'Semua Transaksi' : 
+               transactionType === 'sale' ? 'Penjualan' : 'Pembelian'}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -116,6 +115,38 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="outline" 
+            className="rounded-lg bg-slate-50 border border-gray-300 gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            {timePeriod === 'today' ? 'Hari Ini' :
+             timePeriod === 'week' ? 'Minggu Ini' :
+             timePeriod === 'month' ? 'Bulan Ini' :
+             timePeriod === 'year' ? 'Tahun Ini' : 'Semua'}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onTimePeriodChange('today')}>
+            Hari Ini
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onTimePeriodChange('week')}>
+            Minggu Ini
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onTimePeriodChange('month')}>
+            Bulan Ini
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onTimePeriodChange('year')}>
+            Tahun Ini
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onTimePeriodChange('all')}>
+            Semua
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

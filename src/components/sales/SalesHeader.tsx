@@ -3,6 +3,12 @@ import React from 'react';
 import { BluetoothPrinter } from '@/components/BluetoothPrinter';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface SalesHeaderProps {
   title: string;

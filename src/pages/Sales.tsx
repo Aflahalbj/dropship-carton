@@ -14,6 +14,7 @@ const Transactions = () => {
   const [sortField, setSortField] = useState<'date' | 'amount' | 'name' | 'price' | 'stock'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [transactionType, setTransactionType] = useState('all');
+  const [timePeriod, setTimePeriod] = useState('all');
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -25,10 +26,51 @@ const Transactions = () => {
     customerAddress: t.customerAddress || "",
   }))];
 
+  // Helper function to filter transactions by time period
+  const filterByTimePeriod = (transaction: any) => {
+    const transactionDate = new Date(transaction.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    const currentDay = today.getDate();
+    
+    // Get the first day of the current week (Sunday)
+    const firstDayOfWeek = new Date(today);
+    const dayOfWeek = today.getDay();
+    const diff = today.getDate() - dayOfWeek;
+    firstDayOfWeek.setDate(diff);
+    firstDayOfWeek.setHours(0, 0, 0, 0);
+    
+    switch (timePeriod) {
+      case 'today':
+        return transactionDate >= today;
+      case 'week':
+        return transactionDate >= firstDayOfWeek;
+      case 'month':
+        return transactionDate.getMonth() === currentMonth && 
+               transactionDate.getFullYear() === currentYear;
+      case 'year':
+        return transactionDate.getFullYear() === currentYear;
+      case 'all':
+      default:
+        return true;
+    }
+  };
+
   const filteredTransactions = allTransactions.filter(transaction => {
+    // Filter by transaction type
     if (transactionType !== 'all' && transaction.transactionType !== transactionType) {
       return false;
     }
+    
+    // Filter by time period
+    if (!filterByTimePeriod(transaction)) {
+      return false;
+    }
+    
+    // Filter by search term
     const searchLower = searchTerm.toLowerCase();
     const customerName = transaction.customerName || '';
     return transaction.id?.toString().toLowerCase().includes(searchLower) || 
@@ -100,6 +142,8 @@ const Transactions = () => {
           setSortField(field as 'date' | 'amount' | 'name' | 'price' | 'stock');
           setSortDirection(direction);
         }}
+        timePeriod={timePeriod}
+        onTimePeriodChange={setTimePeriod}
       />
         
       <Tabs defaultValue="all" value={transactionType} onValueChange={setTransactionType}>
