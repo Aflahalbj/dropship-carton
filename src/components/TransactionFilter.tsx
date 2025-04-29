@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Search, Filter, ArrowUpDown, Calendar } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -89,35 +90,6 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
         />
       </div>
       
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant="outline"
-            size="icon"
-            className="rounded-lg bg-slate-50 border border-gray-300"
-          >
-            <Calendar className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onTimePeriodChange('today')}>
-            Hari Ini
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onTimePeriodChange('week')}>
-            Minggu Ini
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onTimePeriodChange('month')}>
-            Bulan Ini
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onTimePeriodChange('year')}>
-            Tahun Ini
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onTimePeriodChange('all')}>
-            Semua
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      
       {!hideTransactionType && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -142,6 +114,35 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="outline"
+            size="icon"
+            className="rounded-lg bg-slate-50 border border-gray-300"
+          >
+            <Filter className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onTimePeriodChange('all')}>
+            Semua
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onTimePeriodChange('today')}>
+            Hari Ini
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onTimePeriodChange('week')}>
+            Minggu Ini
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onTimePeriodChange('month')}>
+            Bulan Ini
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onTimePeriodChange('year')}>
+            Tahun Ini
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
