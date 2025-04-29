@@ -32,8 +32,9 @@ const AvatarImage = React.forwardRef<
     return null;
   }
   
-  // Don't render the image component if there's no valid src
-  if (!src) {
+  // Only render the image if there's a valid src and it's not a placeholder URL
+  const isPlaceholder = src?.includes('placehold.co');
+  if (!src || isPlaceholder) {
     return null;
   }
   
