@@ -11,7 +11,7 @@ import TransactionDetailDialog from '@/components/sales/TransactionDetailDialog'
 const Transactions = () => {
   const { transactions } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState<'date' | 'amount' | 'name' | 'price' | 'stock'>('date');
+  const [sortField, setSortField] = useState<'date' | 'amount' | 'customerName' | 'price' | 'stock'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [transactionType, setTransactionType] = useState('all');
   const [timePeriod, setTimePeriod] = useState('all');
@@ -83,7 +83,7 @@ const Transactions = () => {
           : new Date(b.date).getTime() - new Date(a.date).getTime();
       case 'amount':
         return sortDirection === 'asc' ? a.amount - b.amount : b.amount - a.amount;
-      case 'name':
+      case 'customerName':
         const nameA = a.customerName || '';
         const nameB = b.customerName || '';
         return sortDirection === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
@@ -143,7 +143,7 @@ const Transactions = () => {
         sortField={sortField}
         sortDirection={sortDirection}
         onSortChange={(field, direction) => {
-          setSortField(field as 'date' | 'amount' | 'name' | 'price' | 'stock');
+          setSortField(field as 'date' | 'amount' | 'customerName' | 'price' | 'stock');
           setSortDirection(direction);
         }}
         timePeriod={timePeriod}

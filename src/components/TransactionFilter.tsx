@@ -1,8 +1,10 @@
+
 import React from 'react';
-import { Search, Filter } from 'lucide-react';
+import { Search, SortAsc } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+
 interface TransactionFilterProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -15,6 +17,7 @@ interface TransactionFilterProps {
   timePeriod: string;
   onTimePeriodChange: (period: string) => void;
 }
+
 const TransactionFilter: React.FC<TransactionFilterProps> = ({
   searchTerm,
   onSearchChange,
@@ -31,7 +34,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300">
-            <Filter className="h-4 w-4" />
+            <SortAsc className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
@@ -42,10 +45,10 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
             Tanggal (Terlama)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onSortChange('name', 'asc')}>
+          <DropdownMenuItem onClick={() => onSortChange('customerName', 'asc')}>
             Nama (A-Z)
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onSortChange('name', 'desc')}>
+          <DropdownMenuItem onClick={() => onSortChange('customerName', 'desc')}>
             Nama (Z-A)
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -69,7 +72,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
       {!hideTransactionType && <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300">
-              <Filter className="h-4 w-4" />
+              <SortAsc className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -84,8 +87,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>}
-      
-      {/* Removed the duplicate Calendar button that was here */}
     </div>;
 };
+
 export default TransactionFilter;
