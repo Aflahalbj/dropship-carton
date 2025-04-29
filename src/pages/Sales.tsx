@@ -119,7 +119,7 @@ const Transactions = () => {
           title="Transaksi" 
           description="Riwayat transaksi penjualan dan pembelian"
           transactionType={transactionType}
-          onTransactionTypeChange={setTransactionType} 
+          onTransactionTypeChange={setTimePeriod} 
         />
         <EmptyTransactionState />
       </div>
@@ -132,7 +132,7 @@ const Transactions = () => {
         title="Transaksi" 
         description="Riwayat transaksi penjualan dan pembelian"
         transactionType={transactionType}
-        onTransactionTypeChange={setTransactionType} 
+        onTransactionTypeChange={setTimePeriod} 
       />
       
       <TransactionFilter 
@@ -148,7 +148,7 @@ const Transactions = () => {
         }}
         timePeriod={timePeriod}
         onTimePeriodChange={setTimePeriod}
-        hideTransactionType={true}
+        hideTransactionType={false}
       />
         
       <Tabs defaultValue="all" value={transactionType} onValueChange={setTransactionType}>

@@ -43,13 +43,19 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onTransactionTypeChange('all')}>
-              Semua Transaksi
+              Semua
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onTransactionTypeChange('sale')}>
-              Penjualan
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('today')}>
+              Hari Ini
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onTransactionTypeChange('purchase')}>
-              Pembelian
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('week')}>
+              Minggu Ini
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('month')}>
+              Bulan Ini
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('year')}>
+              Tahun Ini
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
