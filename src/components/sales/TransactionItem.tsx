@@ -51,7 +51,7 @@ const TransactionItem: React.FC<TransactionItemProps> = ({
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm">
+            <span className="text-sm text-muted-foreground">
               {transaction.customerAddress || "-"}
             </span>
             <span className={`text-sm px-2 py-0.5 rounded-full ${transaction.transactionType === 'sale' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
