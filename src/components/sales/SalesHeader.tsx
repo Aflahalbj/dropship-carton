@@ -2,7 +2,7 @@
 import React from 'react';
 import { BluetoothPrinter } from '@/components/BluetoothPrinter';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { Printer, Filter } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,11 +13,15 @@ import {
 interface SalesHeaderProps {
   title: string;
   description: string;
+  transactionType: string;
+  onTransactionTypeChange: (type: string) => void;
 }
 
 const SalesHeader: React.FC<SalesHeaderProps> = ({
   title,
-  description
+  description,
+  transactionType,
+  onTransactionTypeChange
 }) => {
   return (
     <div className="flex justify-between items-center mb-6">
@@ -26,6 +30,29 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
         <p className="text-muted-foreground">{description}</p>
       </div>
       <div className="flex items-center gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="outline" 
+              className="rounded-lg bg-slate-50 border border-gray-300 gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              {transactionType === 'all' ? 'Semua Transaksi' : 
+               transactionType === 'sale' ? 'Penjualan' : 'Pembelian'}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-white">
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('all')}>
+              Semua Transaksi
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('sale')}>
+              Penjualan
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('purchase')}>
+              Pembelian
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button variant="outline" size="icon">
           <Printer className="h-4 w-4" />
         </Button>

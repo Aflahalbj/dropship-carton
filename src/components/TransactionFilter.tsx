@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Search, Filter, ArrowUpDown, Calendar } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -32,7 +31,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
   sortField,
   sortDirection,
   onSortChange,
-  hideTransactionType = false,
+  hideTransactionType = true,
   timePeriod,
   onTimePeriodChange
 }) => {

@@ -117,7 +117,9 @@ const Transactions = () => {
       <div className="animate-slide-up">
         <SalesHeader 
           title="Transaksi" 
-          description="Riwayat transaksi penjualan dan pembelian" 
+          description="Riwayat transaksi penjualan dan pembelian"
+          transactionType={transactionType}
+          onTransactionTypeChange={setTransactionType} 
         />
         <EmptyTransactionState />
       </div>
@@ -128,7 +130,9 @@ const Transactions = () => {
     <div className="animate-slide-up">
       <SalesHeader 
         title="Transaksi" 
-        description="Riwayat transaksi penjualan dan pembelian" 
+        description="Riwayat transaksi penjualan dan pembelian"
+        transactionType={transactionType}
+        onTransactionTypeChange={setTransactionType} 
       />
       
       <TransactionFilter 
@@ -144,6 +148,7 @@ const Transactions = () => {
         }}
         timePeriod={timePeriod}
         onTimePeriodChange={setTimePeriod}
+        hideTransactionType={true}
       />
         
       <Tabs defaultValue="all" value={transactionType} onValueChange={setTransactionType}>
