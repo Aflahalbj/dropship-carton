@@ -1,8 +1,9 @@
+
 import React, { useState, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Info, Calendar, Printer as PrinterIcon, ArrowDown, ArrowUp } from "lucide-react";
+import { Info, Calendar, Printer as PrinterIcon } from "lucide-react";
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -13,6 +14,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import TransactionFilter from '@/components/TransactionFilter';
 import { useReactToPrint } from 'react-to-print';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 const Transactions = () => {
   const {
     transactions,
@@ -25,6 +27,8 @@ const Transactions = () => {
   const [transactionType, setTransactionType] = useState('all');
   const receiptRef = useRef<HTMLDivElement>(null);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
   const handlePrint = useReactToPrint({
     documentTitle: 'Struk Penjualan',
     contentRef: receiptRef,
@@ -32,15 +36,18 @@ const Transactions = () => {
       console.log('Print job completed');
     }
   });
+  
   const handleBluetoothPrint = async () => {
     if (!selectedTransaction) return;
     await printReceipt(selectedTransaction.products, selectedTransaction.total, selectedTransaction.paymentMethod || 'cash', selectedTransaction.customerName, selectedTransaction.cashAmount, selectedTransaction.changeAmount, selectedTransaction.id || "", new Date(selectedTransaction.date));
   };
+  
   const allTransactions = [...transactions.map(t => ({
     ...t,
     transactionType: t.type,
     amount: t.total
   }))];
+  
   const filteredTransactions = allTransactions.filter(transaction => {
     if (transactionType !== 'all' && transaction.transactionType !== transactionType) {
       return false;
@@ -66,6 +73,7 @@ const Transactions = () => {
         return 0;
     }
   });
+  
   if (allTransactions.length === 0) {
     return <div className="animate-slide-up">
         <div className="flex justify-between items-center mb-6">
@@ -87,6 +95,7 @@ const Transactions = () => {
         </div>
       </div>;
   }
+  
   return <div className="animate-slide-up">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -131,10 +140,43 @@ const Transactions = () => {
           </p>
         </div>}
       
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-auto">
+          {selectedTransaction && (
+            <>
+              <Receipt 
+                ref={receiptRef} 
+                items={selectedTransaction.products || []} 
+                total={selectedTransaction.amount || 0} 
+                date={new Date(selectedTransaction.date)} 
+                transactionId={selectedTransaction.id || ""} 
+                paymentMethod={selectedTransaction.paymentMethod || "cash"} 
+                customerName={selectedTransaction.customerName || "Pelanggan"} 
+                cashAmount={selectedTransaction.cashAmount} 
+                changeAmount={selectedTransaction.changeAmount} 
+              />
+              <div className="flex justify-end gap-2 mt-4">
+                <Button variant="outline" size="sm" onClick={() => {
+                  setTimeout(handlePrint, 100);
+                }}>
+                  <PrinterIcon className="w-4 h-4 mr-2" />
+                  Cetak (Browser)
+                </Button>
+                <Button variant="default" size="sm" onClick={handleBluetoothPrint}>
+                  <PrinterIcon className="w-4 h-4 mr-2" />
+                  Cetak Thermal
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+      
       <div className="hidden">
         {selectedTransaction && <Receipt ref={receiptRef} items={selectedTransaction.products || []} total={selectedTransaction.amount || 0} date={new Date(selectedTransaction.date)} transactionId={selectedTransaction.id || ""} paymentMethod={selectedTransaction.paymentMethod || "cash"} customerName={selectedTransaction.customerName || "Pelanggan"} cashAmount={selectedTransaction.cashAmount} changeAmount={selectedTransaction.changeAmount} />}
       </div>
     </div>;
+    
   function renderTransactionsTable(transactions: any[]) {
     if (transactions.length === 0) {
       return <div className="text-center py-8">
@@ -143,82 +185,63 @@ const Transactions = () => {
           </p>
         </div>;
     }
-    return <div className="bg-card border rounded-lg overflow-hidden">
+    
+    return <div className="rounded-lg overflow-hidden border">
         <Table>
-          <TableHeader>
-            <TableRow className="bg-accent hover:bg-accent">
-              <TableHead className="py-3 px-4 font-medium">Produk</TableHead>
-              <TableHead className="py-3 px-4 font-medium">Harga</TableHead>
-              <TableHead className="text-right py-3 px-4 font-medium">Tindakan</TableHead>
-            </TableRow>
-          </TableHeader>
           <TableBody>
-            {transactions.map(transaction => <TableRow key={`${transaction.transactionType}-${transaction.id}`}>
-                <TableCell className="py-3 px-4">
-                  <div className="flex flex-col">
-                    <span className="font-medium">{transaction.customerName || "Pelanggan"}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {transaction.id?.toString().substring(0, 8)}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {format(new Date(transaction.date), 'dd MMM yyyy', {
-                    locale: id
-                  })}
-                    </span>
+            {transactions.map(transaction => (
+              <TableRow 
+                key={`${transaction.transactionType}-${transaction.id}`}
+                className="cursor-pointer hover:bg-accent/50"
+                onClick={() => {
+                  setSelectedTransaction(transaction);
+                  setIsDialogOpen(true);
+                }}
+              >
+                <TableCell className="p-4">
+                  <div className="flex flex-col space-y-1">
+                    <div className="font-medium">
+                      {transaction.products && transaction.products.length > 0 
+                        ? transaction.products[0].product.name 
+                        : "Produk"}
+                    </div>
+                    <div className="text-sm text-muted-foreground flex justify-between">
+                      <span>{transaction.id?.toString().substring(0, 8)}</span>
+                      <span>{format(new Date(transaction.date), 'dd MMM yyyy', { locale: id })}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>{transaction.customerName || "Pelanggan"}</span>
+                      <span className="font-medium">Rp{transaction.amount.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        {transaction.customerPhone || "-"}
+                      </span>
+                      <span className="text-sm text-green-600">
+                        {transaction.profit ? `Rp${transaction.profit.toLocaleString('id-ID')}` : ''}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">
+                        {transaction.customerAddress || "-"}
+                      </span>
+                      <span className={`text-sm px-2 py-0.5 rounded-full ${
+                        transaction.transactionType === 'sale' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {getTransactionTypeLabel(transaction.transactionType)}
+                      </span>
+                    </div>
                   </div>
                 </TableCell>
-                <TableCell className="py-3 px-4">
-                  <div className="flex flex-col">
-                    <span className="font-medium">Rp{transaction.amount.toLocaleString('id-ID')}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {transaction.products?.length || 0} item
-                    </span>
-                    <span className={`text-sm ${transaction.transactionType === 'sale' ? 'text-green-600' : 'text-blue-600'}`}>
-                      {getTransactionTypeLabel(transaction.transactionType)}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="py-3 px-4 text-right">
-                  {transaction.transactionType === 'sale' && <div className="flex justify-end gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => setSelectedTransaction(transaction)}>
-                            Lihat
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-h-[90vh] overflow-auto">
-                          <Receipt items={transaction.products} total={transaction.amount} date={new Date(transaction.date)} transactionId={transaction.id || ""} paymentMethod={transaction.paymentMethod || "cash"} customerName={transaction.customerName || "Pelanggan"} cashAmount={transaction.cashAmount} changeAmount={transaction.changeAmount} />
-                          <div className="flex justify-end gap-2 mt-4">
-                            <Button variant="outline" size="sm" onClick={() => {
-                        setSelectedTransaction(transaction);
-                        setTimeout(handlePrint, 100);
-                      }}>
-                              <PrinterIcon className="w-4 h-4 mr-2" />
-                              Cetak (Browser)
-                            </Button>
-                            <Button variant="default" size="sm" onClick={() => {
-                        setSelectedTransaction(transaction);
-                        handleBluetoothPrint();
-                      }}>
-                              <PrinterIcon className="w-4 h-4 mr-2" />
-                              Cetak Thermal
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>}
-                </TableCell>
-              </TableRow>)}
-            
-            {transactions.length === 0 && <TableRow>
-                <TableCell colSpan={3} className="py-6 text-center text-muted-foreground">
-                  Tidak ada transaksi ditemukan
-                </TableCell>
-              </TableRow>}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>;
   }
+  
   function toggleSort(field: 'date' | 'amount' | 'name' | 'price' | 'stock') {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -227,6 +250,7 @@ const Transactions = () => {
       setSortDirection('desc');
     }
   }
+  
   function getTransactionTypeBadgeClasses(type: string) {
     switch (type) {
       case 'sale':
@@ -237,6 +261,7 @@ const Transactions = () => {
         return 'bg-gray-100 text-gray-800';
     }
   }
+  
   function getTransactionTypeLabel(type: string) {
     switch (type) {
       case 'sale':
@@ -248,4 +273,5 @@ const Transactions = () => {
     }
   }
 };
+
 export default Transactions;
