@@ -44,9 +44,9 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="icon" 
-            className="w-12 h-12 rounded-lg bg-slate-50"
+            className="w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
           >
             <ArrowUpDown className="h-4 w-4" />
           </Button>
@@ -89,7 +89,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
           placeholder="Cari produk berdasarkan nama atau SKU..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10 rounded-full bg-slate-50 border-0"
+          className="pl-10 rounded-full bg-slate-50 border border-gray-300"
         />
       </div>
       
@@ -97,8 +97,8 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
-              variant="ghost" 
-              className="rounded-lg bg-slate-50 w-12 h-12 p-0 flex items-center justify-center"
+              variant="outline" 
+              className="rounded-lg bg-slate-50 w-12 h-12 p-0 flex items-center justify-center border border-gray-300"
             >
               <Filter className="h-4 w-4" />
             </Button>
