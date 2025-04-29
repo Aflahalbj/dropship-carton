@@ -31,13 +31,28 @@ const SalesHeader: React.FC<SalesHeaderProps> = ({
       </div>
       <div className="flex items-center gap-2">
         <BluetoothPrinter className="w-auto" />
-        <Button 
-          variant="outline" 
-          size="icon"
-          className="rounded-lg bg-slate-50 border border-gray-300"
-        >
-          <Calendar className="h-4 w-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="icon"
+              className="w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
+            >
+              <Calendar className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('all')}>
+              Semua Transaksi
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('sale')}>
+              Penjualan
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onTransactionTypeChange('purchase')}>
+              Pembelian
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

@@ -67,7 +67,7 @@ export const BluetoothPrinter: React.FC<BluetoothPrinterProps> = ({ className })
           <Button 
             variant={selectedPrinter ? "outline" : "secondary"}
             size="icon"
-            className={`rounded-lg bg-slate-50 border border-gray-300 ${className}`}
+            className={`w-12 h-12 rounded-lg bg-slate-50 border border-gray-300 ${className}`}
             onClick={() => {
               if (!selectedPrinter) {
                 setDialogOpen(true);

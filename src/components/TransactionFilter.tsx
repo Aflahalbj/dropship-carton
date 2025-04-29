@@ -96,7 +96,7 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
             <Button 
               variant="outline"
               size="icon"
-              className="rounded-lg bg-slate-50 border border-gray-300"
+              className="w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
             >
               <Filter className="h-4 w-4" />
             </Button>
@@ -120,9 +120,9 @@ const TransactionFilter: React.FC<TransactionFilterProps> = ({
           <Button 
             variant="outline"
             size="icon"
-            className="rounded-lg bg-slate-50 border border-gray-300"
+            className="w-12 h-12 rounded-lg bg-slate-50 border border-gray-300"
           >
-            <Filter className="h-4 w-4" />
+            <Calendar className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
