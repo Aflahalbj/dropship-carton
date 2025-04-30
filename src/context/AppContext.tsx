@@ -113,6 +113,7 @@ type AppContextType = {
   
   // Transaction functions
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<boolean>;
+  deleteTransaction: (id: string | undefined) => boolean; // Add this line
   
   // Expense functions
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<boolean>;
@@ -892,6 +893,71 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     return true;
   };
   
+  const deleteTransaction = (id: string | undefined): boolean => {
+    if (!id) {
+      toast.error("ID transaksi tidak valid");
+      return false;
+    }
+
+    try {
+      // Find the transaction
+      const transaction = transactions.find(t => t.id === id);
+      if (!transaction) {
+        toast.error("Transaksi tidak ditemukan");
+        return false;
+      }
+
+      // Update product stock based on transaction type
+      const updatedProducts = [...products];
+      
+      if (transaction.type === 'sale') {
+        // For a sale transaction, add the products back to stock
+        transaction.products.forEach(item => {
+          const productIndex = updatedProducts.findIndex(p => p.id === item.product.id);
+          if (productIndex !== -1) {
+            updatedProducts[productIndex] = {
+              ...updatedProducts[productIndex],
+              stock: updatedProducts[productIndex].stock + item.quantity
+            };
+          }
+        });
+        
+        // Return the money from capital
+        subtractFromCapital(transaction.total);
+      } else if (transaction.type === 'purchase') {
+        // For a purchase transaction, remove the products from stock
+        transaction.products.forEach(item => {
+          const productIndex = updatedProducts.findIndex(p => p.id === item.product.id);
+          if (productIndex !== -1) {
+            // Don't allow stock to go below 0
+            const newStock = Math.max(0, updatedProducts[productIndex].stock - item.quantity);
+            updatedProducts[productIndex] = {
+              ...updatedProducts[productIndex],
+              stock: newStock
+            };
+          }
+        });
+        
+        // Add the money back to capital
+        addToCapital(transaction.total);
+      }
+
+      // Update products with new stock values
+      setProducts(updatedProducts);
+      
+      // Remove the transaction from the list
+      setTransactions(prev => prev.filter(t => t.id !== id));
+      
+      // TODO: If using Supabase, we would delete the transaction from the database here
+      // For now, just return success
+      return true;
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast.error("Gagal menghapus transaksi");
+      return false;
+    }
+  };
+  
   const addExpense = async (expense: Omit<Expense, 'id'>): Promise<boolean> => {
     try {
       const success = await subtractFromCapital(expense.amount);
@@ -1016,6 +1082,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     handlePageNavigation,
     
     addTransaction,
+    deleteTransaction,
     
     addExpense,
   };
