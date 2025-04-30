@@ -153,8 +153,11 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
 
   const confirmDelete = () => {
     if (transaction) {
-      // Delete the transaction and restore stock if checkbox is checked
-      const success = deleteTransaction(transaction.id, restoreStock);
+      // Fixed: Pass restoreStock as a parameter object rather than a separate argument
+      const success = deleteTransaction({
+        id: transaction.id,
+        restoreStock
+      });
       
       if (success) {
         if (restoreStock) {
