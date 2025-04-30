@@ -1,8 +1,8 @@
 
 import React, { useRef, useState } from 'react';
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Printer as PrinterIcon, Share, ArrowLeft, Trash2 } from "lucide-react";
+import { Printer as PrinterIcon, Share, ArrowLeft, Trash2, ArrowDownToLine } from "lucide-react";
 import Receipt from '../Receipt';
 import { useReactToPrint } from 'react-to-print';
 import { printReceipt } from '@/components/BluetoothPrinter';
@@ -59,19 +59,36 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
 
   const handleShare = async () => {
     try {
-      // Try Web Share API for mobile devices
+      const receiptText = generateReceiptText(transaction);
+      
+      // Create a file from the receipt text for sharing
+      const file = new Blob([receiptText], { type: 'text/plain' });
+      
+      // Try native share API first
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'Struk Penjualan',
+            text: `Struk penjualan dari transaksi ${transaction?.id || ''}`,
+          });
+          return;
+        } catch (err) {
+          console.error("Error sharing file:", err);
+          // Fall back to text sharing
+        }
+      }
+      
+      // Fall back to text sharing if file sharing isn't supported
       if (navigator.share) {
         await navigator.share({
           title: 'Struk Penjualan',
-          text: `Struk penjualan dari transaksi ${transaction?.id || ''}`,
+          text: receiptText,
         });
       } else {
         // For desktop browsers, implement copy to clipboard functionality
         if (navigator.clipboard) {
-          const text = `Struk penjualan dari transaksi ${transaction?.id || ''}\n` + 
-                       `Tanggal: ${new Date(transaction?.date).toLocaleDateString('id-ID')}\n` +
-                       `Total: Rp ${transaction?.amount?.toLocaleString('id-ID') || 0}`;
-          await navigator.clipboard.writeText(text);
+          await navigator.clipboard.writeText(receiptText);
           toast.success("Detail transaksi disalin ke clipboard");
         } else {
           toast.error("Fitur berbagi tidak didukung oleh perangkat Anda.");
@@ -81,6 +98,43 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
       console.error('Error sharing:', error);
       toast.error("Gagal membagikan struk.");
     }
+  };
+  
+  // Helper function to generate receipt text for sharing
+  const generateReceiptText = (transaction: any): string => {
+    if (!transaction) return "";
+    
+    let text = "";
+    text += "TOKO ABDULLAH\n";
+    text += "TANGERANG\n";
+    text += "083880863610\n\n";
+    
+    if (transaction.customerName) {
+      text += `Tuan/Bos: ${transaction.customerName}\n`;
+    }
+    text += `--------------------------------\n`;
+    text += `No - ${transaction.id?.slice(-2) || "01"}   `;
+    text += `${new Date(transaction.date).toLocaleTimeString('id-ID')}   `;
+    text += `${new Date(transaction.date).toLocaleDateString('id-ID')}\n`;
+    text += `--------------------------------\n\n`;
+    
+    // Items
+    transaction.products?.forEach((item: any) => {
+      text += `${item.product.name}\n`;
+      text += `${item.quantity} x ${item.product.price.toLocaleString('id-ID')}`;
+      text += `          Rp ${(item.product.price * item.quantity).toLocaleString('id-ID')}\n\n`;
+    });
+    
+    text += `--------------------------------\n`;
+    text += `Total                Rp ${transaction.amount?.toLocaleString('id-ID')}\n`;
+    text += `Bayar (${transaction.paymentMethod === 'cash' ? 'Cash' : 'Transfer'})      Rp ${(transaction.cashAmount || transaction.amount).toLocaleString('id-ID')}\n`;
+    text += `Kembali              Rp ${(transaction.changeAmount || 0).toLocaleString('id-ID')}\n\n`;
+    
+    text += `\n\n`;
+    text += `      Terimakasih telah berbelanja di toko kami      \n`;
+    text += `                      ^_^                      \n`;
+    
+    return text;
   };
 
   const processReturn = () => {
@@ -111,6 +165,10 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
         <DialogContent className="max-h-[90vh] overflow-auto">
           <DialogTitle>Detail Transaksi</DialogTitle>
+          <DialogDescription>
+            Lihat dan kelola detail transaksi penjualan
+          </DialogDescription>
+          
           {transaction && (
             <>
               <Receipt 
@@ -191,7 +249,7 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
                     <AlertDialogFooter>
                       <AlertDialogCancel>Batal</AlertDialogCancel>
                       <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Hapus
+                        Hapus dan Kembalikan Stok
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

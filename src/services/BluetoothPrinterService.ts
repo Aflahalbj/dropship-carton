@@ -33,8 +33,11 @@ export class BluetoothPrinterService {
   private static instance: BluetoothPrinterService;
   private connectedDevice: PrinterDevice | null = null;
   private isInitialized = false;
+  private isCordovaAvailable = false;
 
-  private constructor() {}
+  private constructor() {
+    this.isCordovaAvailable = typeof window !== 'undefined' && !!window.cordova;
+  }
 
   public static getInstance(): BluetoothPrinterService {
     if (!BluetoothPrinterService.instance) {
@@ -45,6 +48,11 @@ export class BluetoothPrinterService {
 
   public async initialize(): Promise<boolean> {
     try {
+      if (!this.isCordovaAvailable) {
+        console.warn('Bluetooth features are only available in native apps');
+        return false;
+      }
+      
       // Check if we're in a native environment where BleClient is available
       if (!this.isInitialized && BleClient && BleClient.initialize) {
         await BleClient.initialize();
@@ -59,44 +67,59 @@ export class BluetoothPrinterService {
 
   public async scanForPrinters(): Promise<PrinterDevice[]> {
     try {
+      if (!this.isCordovaAvailable) {
+        toast.warning('Bluetooth tidak tersedia di browser. Gunakan aplikasi Android untuk fitur ini.');
+        return [];
+      }
+      
       await this.initialize();
       
       let pairedPrinters: PrinterDevice[] = [];
       
       // Check if BluetoothSerial is available
       if (BluetoothSerial && BluetoothSerial.list) {
-        // First try to get paired devices from BluetoothSerial
-        const pairedDevices = await BluetoothSerial.list();
-        pairedPrinters = pairedDevices.map(device => ({
-          id: device.id,
-          name: device.name || 'Unknown Device',
-          address: device.address
-        }));
+        try {
+          // First try to get paired devices from BluetoothSerial
+          const pairedDevices = await BluetoothSerial.list();
+          
+          if (Array.isArray(pairedDevices)) {
+            pairedPrinters = pairedDevices.map(device => ({
+              id: device.id,
+              name: device.name || 'Unknown Device',
+              address: device.address
+            }));
+          } else {
+            console.error('BluetoothSerial.list() did not return an array:', pairedDevices);
+          }
 
-        // Then try to scan for new devices using BLE if available
-        if (BleClient && BleClient.requestLEScan) {
-          await BleClient.requestLEScan(
-            { services: [] },
-            (result) => {
-              if (result.device && result.device.name) {
-                // Check if device is already in the list
-                const existingDevice = pairedPrinters.find(
-                  device => device.address === result.device.deviceId
-                );
-                if (!existingDevice) {
-                  pairedPrinters.push({
-                    id: result.device.deviceId,
-                    name: result.device.name || 'Unknown Device',
-                    address: result.device.deviceId
-                  });
+          // Then try to scan for new devices using BLE if available
+          if (BleClient && BleClient.requestLEScan) {
+            await BleClient.requestLEScan(
+              { services: [] },
+              (result) => {
+                if (result.device && result.device.name) {
+                  // Check if device is already in the list
+                  const existingDevice = pairedPrinters.find(
+                    device => device.address === result.device.deviceId
+                  );
+                  if (!existingDevice) {
+                    pairedPrinters.push({
+                      id: result.device.deviceId,
+                      name: result.device.name || 'Unknown Device',
+                      address: result.device.deviceId
+                    });
+                  }
                 }
               }
-            }
-          );
+            );
 
-          // Wait a bit to collect devices
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          await BleClient.stopLEScan();
+            // Wait a bit to collect devices
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await BleClient.stopLEScan();
+          }
+        } catch (error) {
+          console.error('Error scanning for Bluetooth devices:', error);
+          toast.error('Gagal memindai perangkat Bluetooth');
         }
       } else {
         // If running in a browser or environment without Bluetooth
@@ -114,12 +137,22 @@ export class BluetoothPrinterService {
 
   public async connectToPrinter(device: PrinterDevice): Promise<boolean> {
     try {
-      if (!BluetoothSerial || !BluetoothSerial.connect) {
+      if (!this.isCordovaAvailable) {
         toast.error('Bluetooth tidak tersedia di browser');
         return false;
       }
       
+      if (!BluetoothSerial || !BluetoothSerial.connect) {
+        toast.error('API Bluetooth tidak tersedia di perangkat ini');
+        return false;
+      }
+      
+      // Disconnect any existing connection first
+      await this.disconnect();
+      
+      // Connect to the new device
       await BluetoothSerial.connect(device.address);
+      
       this.connectedDevice = device;
       toast.success(`Terhubung ke printer: ${device.name}`);
       return true;
@@ -144,53 +177,91 @@ export class BluetoothPrinterService {
     storePhone: string = '083880863610'
   ): Promise<boolean> {
     try {
+      if (!this.isCordovaAvailable) {
+        toast.error('Fitur cetak hanya tersedia di aplikasi Android');
+        return false;
+      }
+      
       if (!this.connectedDevice) {
         toast.error('Tidak ada printer yang terhubung');
         return false;
       }
 
       if (!BluetoothSerial || !BluetoothSerial.write) {
-        toast.error('Bluetooth tidak tersedia di browser');
+        toast.error('API Bluetooth tidak tersedia di perangkat ini');
         return false;
       }
 
-      // Format the receipt as a string
-      let receipt = '\n\n';
+      // Format the receipt as a string with ESC/POS commands for 58mm printers
+      let commands = [];
+      
+      // Initialize printer
+      commands.push(Buffer.from([0x1B, 0x40])); // ESC @
+      
+      // Center align
+      commands.push(Buffer.from([0x1B, 0x61, 0x01])); // ESC a 1
+      
+      // Bold on for header
+      commands.push(Buffer.from([0x1B, 0x45, 0x01])); // ESC E 1
       
       // Store info
-      receipt += `${storeName}\n`;
-      receipt += `${storeLocation}\n`;
-      receipt += `${storePhone}\n\n`;
+      commands.push(Buffer.from(`${storeName}\n`));
+      commands.push(Buffer.from(`${storeLocation}\n`));
+      commands.push(Buffer.from(`${storePhone}\n\n`));
+      
+      // Bold off
+      commands.push(Buffer.from([0x1B, 0x45, 0x00])); // ESC E 0
+      
+      // Left align
+      commands.push(Buffer.from([0x1B, 0x61, 0x00])); // ESC a 0
       
       // Customer
       if (customerName) {
-        receipt += `Tuan/Bos: ${customerName}\n`;
+        commands.push(Buffer.from(`Tuan/Bos: ${customerName}\n`));
       }
-      receipt += `--------------------------------\n`;
+      commands.push(Buffer.from(`--------------------------------\n`));
       
       // Transaction info
-      receipt += `No - ${transactionId.slice(-2)}       ${date.getHours()}:${date.getMinutes()}       ${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}\n`;
-      receipt += `--------------------------------\n\n`;
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      
+      commands.push(Buffer.from(`No - ${transactionId.slice(-4)}    ${hours}:${minutes}    ${year}-${month}-${day}\n`));
+      commands.push(Buffer.from(`--------------------------------\n\n`));
       
       // Items
       items.forEach(item => {
-        receipt += `${item.product.name}\n`;
-        receipt += `${item.quantity} x ${item.product.price.toLocaleString('id-ID')}`;
-        receipt += `          Rp ${(item.product.price * item.quantity).toLocaleString('id-ID')}\n\n`;
+        commands.push(Buffer.from(`${item.product.name}\n`));
+        commands.push(Buffer.from(`${item.quantity} x ${item.product.price.toLocaleString('id-ID')}`));
+        commands.push(Buffer.from(`          Rp ${(item.product.price * item.quantity).toLocaleString('id-ID')}\n\n`));
       });
       
-      receipt += `--------------------------------\n`;
-      receipt += `Total                Rp ${total.toLocaleString('id-ID')}\n`;
-      receipt += `Bayar (${paymentMethod === 'cash' ? 'Cash' : 'Transfer'})      Rp ${(cashAmount || total).toLocaleString('id-ID')}\n`;
-      receipt += `Kembali              Rp ${(changeAmount || 0).toLocaleString('id-ID')}\n\n`;
+      commands.push(Buffer.from(`--------------------------------\n`));
+      commands.push(Buffer.from(`Total                Rp ${total.toLocaleString('id-ID')}\n`));
+      commands.push(Buffer.from(`Bayar (${paymentMethod === 'cash' ? 'Cash' : 'Transfer'})`));
+      commands.push(Buffer.from(`      Rp ${(cashAmount || total).toLocaleString('id-ID')}\n`));
+      commands.push(Buffer.from(`Kembali              Rp ${(changeAmount || 0).toLocaleString('id-ID')}\n\n`));
       
-      receipt += `\n\n`;
-      receipt += `      Terimakasih telah berbelanja di toko kami      \n`;
-      receipt += `                      ^_^                      \n`;
-      receipt += '\n\n\n';  // Extra lines for paper cutter
-
+      // Center align for thank you
+      commands.push(Buffer.from([0x1B, 0x61, 0x01])); // ESC a 1
+      
+      commands.push(Buffer.from(`\n\n`));
+      commands.push(Buffer.from(`Terimakasih telah berbelanja\n`));
+      commands.push(Buffer.from(`di toko kami\n`));
+      commands.push(Buffer.from(`^_^\n`));
+      
+      // Feed and cut
+      commands.push(Buffer.from(`\n\n\n\n`));  // Feed paper before cutting
+      commands.push(Buffer.from([0x1D, 0x56, 0x01]));  // GS V 1 - Full cut
+      
+      // Combine all commands into a single buffer
+      const fullCommand = Buffer.concat(commands);
+      
       // Send to printer
-      await BluetoothSerial.write(receipt);
+      await BluetoothSerial.write(fullCommand);
+      
       toast.success('Struk berhasil dicetak!');
       return true;
     } catch (error) {
