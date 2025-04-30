@@ -62,37 +62,42 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
       const receiptText = generateReceiptText(transaction);
       
       // Create a file from the receipt text for sharing
-      const file = new Blob([receiptText], { type: 'text/plain' });
+      const blob = new Blob([receiptText], { type: 'text/plain' });
       
       // Try native share API first
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      if (navigator.canShare) {
         try {
-          await navigator.share({
-            files: [file],
-            title: 'Struk Penjualan',
-            text: `Struk penjualan dari transaksi ${transaction?.id || ''}`,
-          });
-          return;
+          // Create a File object instead of using Blob directly
+          const file = new File([blob], "struk-penjualan.txt", { type: 'text/plain' });
+          
+          // Check if we can share files
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Struk Penjualan',
+              text: `Struk penjualan dari transaksi ${transaction?.id || ''}`,
+            });
+            return;
+          } else {
+            // Fall back to text sharing if file sharing isn't supported
+            await navigator.share({
+              title: 'Struk Penjualan',
+              text: receiptText,
+            });
+            return;
+          }
         } catch (err) {
-          console.error("Error sharing file:", err);
-          // Fall back to text sharing
+          console.error("Error sharing:", err);
+          // Fall back to clipboard
         }
       }
       
-      // Fall back to text sharing if file sharing isn't supported
-      if (navigator.share) {
-        await navigator.share({
-          title: 'Struk Penjualan',
-          text: receiptText,
-        });
+      // For desktop browsers, implement copy to clipboard functionality
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(receiptText);
+        toast.success("Detail transaksi disalin ke clipboard");
       } else {
-        // For desktop browsers, implement copy to clipboard functionality
-        if (navigator.clipboard) {
-          await navigator.clipboard.writeText(receiptText);
-          toast.success("Detail transaksi disalin ke clipboard");
-        } else {
-          toast.error("Fitur berbagi tidak didukung oleh perangkat Anda.");
-        }
+        toast.error("Fitur berbagi tidak didukung oleh perangkat Anda.");
       }
     } catch (error) {
       console.error('Error sharing:', error);
