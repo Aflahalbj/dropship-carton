@@ -192,34 +192,34 @@ export class BluetoothPrinterService {
         return false;
       }
 
-      // Format the receipt as a string with ESC/POS commands for 58mm printers
-      let commands = [];
+      // Improved ESC/POS commands for 58mm printers
+      const commands = [];
       
       // Initialize printer
-      commands.push(Buffer.from([0x1B, 0x40])); // ESC @
+      commands.push(new Uint8Array([0x1B, 0x40])); // ESC @
       
       // Center align
-      commands.push(Buffer.from([0x1B, 0x61, 0x01])); // ESC a 1
+      commands.push(new Uint8Array([0x1B, 0x61, 0x01])); // ESC a 1
       
       // Bold on for header
-      commands.push(Buffer.from([0x1B, 0x45, 0x01])); // ESC E 1
+      commands.push(new Uint8Array([0x1B, 0x45, 0x01])); // ESC E 1
       
       // Store info
-      commands.push(Buffer.from(`${storeName}\n`));
-      commands.push(Buffer.from(`${storeLocation}\n`));
-      commands.push(Buffer.from(`${storePhone}\n\n`));
+      commands.push(this.textToBytes(`${storeName}\n`));
+      commands.push(this.textToBytes(`${storeLocation}\n`));
+      commands.push(this.textToBytes(`${storePhone}\n\n`));
       
       // Bold off
-      commands.push(Buffer.from([0x1B, 0x45, 0x00])); // ESC E 0
+      commands.push(new Uint8Array([0x1B, 0x45, 0x00])); // ESC E 0
       
       // Left align
-      commands.push(Buffer.from([0x1B, 0x61, 0x00])); // ESC a 0
+      commands.push(new Uint8Array([0x1B, 0x61, 0x00])); // ESC a 0
       
       // Customer
       if (customerName) {
-        commands.push(Buffer.from(`Tuan/Bos: ${customerName}\n`));
+        commands.push(this.textToBytes(`Tuan/Bos: ${customerName}\n`));
       }
-      commands.push(Buffer.from(`--------------------------------\n`));
+      commands.push(this.textToBytes(`--------------------------------\n`));
       
       // Transaction info
       const hours = date.getHours().toString().padStart(2, '0');
@@ -228,39 +228,38 @@ export class BluetoothPrinterService {
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate().toString().padStart(2, '0');
       
-      commands.push(Buffer.from(`No - ${transactionId.slice(-4)}    ${hours}:${minutes}    ${year}-${month}-${day}\n`));
-      commands.push(Buffer.from(`--------------------------------\n\n`));
+      commands.push(this.textToBytes(`No - ${transactionId.slice(-4)}    ${hours}:${minutes}    ${year}-${month}-${day}\n`));
+      commands.push(this.textToBytes(`--------------------------------\n\n`));
       
       // Items
       items.forEach(item => {
-        commands.push(Buffer.from(`${item.product.name}\n`));
-        commands.push(Buffer.from(`${item.quantity} x ${item.product.price.toLocaleString('id-ID')}`));
-        commands.push(Buffer.from(`          Rp ${(item.product.price * item.quantity).toLocaleString('id-ID')}\n\n`));
+        commands.push(this.textToBytes(`${item.product.name}\n`));
+        commands.push(this.textToBytes(`${item.quantity} x ${item.product.price.toLocaleString('id-ID')}`));
+        commands.push(this.textToBytes(`          Rp ${(item.product.price * item.quantity).toLocaleString('id-ID')}\n\n`));
       });
       
-      commands.push(Buffer.from(`--------------------------------\n`));
-      commands.push(Buffer.from(`Total                Rp ${total.toLocaleString('id-ID')}\n`));
-      commands.push(Buffer.from(`Bayar (${paymentMethod === 'cash' ? 'Cash' : 'Transfer'})`));
-      commands.push(Buffer.from(`      Rp ${(cashAmount || total).toLocaleString('id-ID')}\n`));
-      commands.push(Buffer.from(`Kembali              Rp ${(changeAmount || 0).toLocaleString('id-ID')}\n\n`));
+      commands.push(this.textToBytes(`--------------------------------\n`));
+      commands.push(this.textToBytes(`Total                Rp ${total.toLocaleString('id-ID')}\n`));
+      commands.push(this.textToBytes(`Bayar (${paymentMethod === 'cash' ? 'Cash' : 'Transfer'})`));
+      commands.push(this.textToBytes(`      Rp ${(cashAmount || total).toLocaleString('id-ID')}\n`));
+      commands.push(this.textToBytes(`Kembali              Rp ${(changeAmount || 0).toLocaleString('id-ID')}\n\n`));
       
       // Center align for thank you
-      commands.push(Buffer.from([0x1B, 0x61, 0x01])); // ESC a 1
+      commands.push(new Uint8Array([0x1B, 0x61, 0x01])); // ESC a 1
       
-      commands.push(Buffer.from(`\n\n`));
-      commands.push(Buffer.from(`Terimakasih telah berbelanja\n`));
-      commands.push(Buffer.from(`di toko kami\n`));
-      commands.push(Buffer.from(`^_^\n`));
+      commands.push(this.textToBytes(`\n\n`));
+      commands.push(this.textToBytes(`Terimakasih telah berbelanja\n`));
+      commands.push(this.textToBytes(`di toko kami\n`));
+      commands.push(this.textToBytes(`^_^\n`));
       
       // Feed and cut
-      commands.push(Buffer.from(`\n\n\n\n`));  // Feed paper before cutting
-      commands.push(Buffer.from([0x1D, 0x56, 0x01]));  // GS V 1 - Full cut
+      commands.push(this.textToBytes(`\n\n\n\n`));  // Feed paper before cutting
+      commands.push(new Uint8Array([0x1D, 0x56, 0x01]));  // GS V 1 - Full cut
       
-      // Combine all commands into a single buffer
-      const fullCommand = Buffer.concat(commands);
-      
-      // Send to printer
-      await BluetoothSerial.write(fullCommand);
+      // Send each command to printer
+      for (const cmd of commands) {
+        await BluetoothSerial.write(cmd);
+      }
       
       toast.success('Struk berhasil dicetak!');
       return true;
@@ -269,6 +268,12 @@ export class BluetoothPrinterService {
       toast.error('Gagal mencetak struk. Silakan coba lagi.');
       return false;
     }
+  }
+  
+  // Helper method to convert string to bytes
+  private textToBytes(text: string): Uint8Array {
+    const encoder = new TextEncoder();
+    return encoder.encode(text);
   }
 
   public async disconnect(): Promise<void> {

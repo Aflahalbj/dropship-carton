@@ -2,7 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Printer as PrinterIcon, Share, ArrowLeft, Trash2, ArrowDownToLine } from "lucide-react";
+import { Printer as PrinterIcon, Share, ArrowLeft, Trash2 } from "lucide-react";
 import Receipt from '../Receipt';
 import { useReactToPrint } from 'react-to-print';
 import { printReceipt } from '@/components/BluetoothPrinter';
@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TransactionDetailDialogProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
 }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [restoreStock, setRestoreStock] = useState(true);
   const { deleteTransaction } = useAppContext();
 
   const handlePrint = useReactToPrint({
@@ -151,11 +153,15 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
 
   const confirmDelete = () => {
     if (transaction) {
-      // Delete the transaction and restore stock
-      const success = deleteTransaction(transaction.id);
+      // Delete the transaction and restore stock if checkbox is checked
+      const success = deleteTransaction(transaction.id, restoreStock);
       
       if (success) {
-        toast.success("Transaksi berhasil dihapus dan stok produk dikembalikan");
+        if (restoreStock) {
+          toast.success("Transaksi berhasil dihapus dan stok produk dikembalikan");
+        } else {
+          toast.success("Transaksi berhasil dihapus tanpa mengembalikan stok");
+        }
       } else {
         toast.error("Gagal menghapus transaksi");
       }
@@ -248,13 +254,28 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
                       <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
                       <AlertDialogDescription>
                         Apakah Anda yakin ingin menghapus transaksi ini? 
-                        Stok produk akan dikembalikan dan tindakan ini tidak dapat dibatalkan.
                       </AlertDialogDescription>
+                      <div className="flex items-center space-x-2 mt-4">
+                        <Checkbox 
+                          id="restore-stock"
+                          checked={restoreStock}
+                          onCheckedChange={(checked) => setRestoreStock(checked as boolean)}
+                        />
+                        <label
+                          htmlFor="restore-stock"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Kembalikan stok barang
+                        </label>
+                      </div>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Batal</AlertDialogCancel>
-                      <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Hapus dan Kembalikan Stok
+                      <AlertDialogAction 
+                        onClick={confirmDelete} 
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Hapus Transaksi
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
