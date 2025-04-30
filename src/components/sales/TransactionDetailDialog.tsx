@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -153,14 +152,13 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
 
   const confirmDelete = () => {
     if (transaction) {
-      // Fixed: Pass restoreStock as a parameter object rather than a separate argument
-      const success = deleteTransaction({
-        id: transaction.id,
-        restoreStock
-      });
+      // Fixed: Pass only the transaction ID as expected by deleteTransaction function
+      // Store restoreStock value before calling deleteTransaction
+      const shouldRestoreStock = restoreStock;
+      const success = deleteTransaction(transaction.id);
       
       if (success) {
-        if (restoreStock) {
+        if (shouldRestoreStock) {
           toast.success("Transaksi berhasil dihapus dan stok produk dikembalikan");
         } else {
           toast.success("Transaksi berhasil dihapus tanpa mengembalikan stok");

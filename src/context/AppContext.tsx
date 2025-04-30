@@ -113,7 +113,7 @@ type AppContextType = {
   
   // Transaction functions
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<boolean>;
-  deleteTransaction: (id: string | undefined) => boolean; // Add this line
+  deleteTransaction: (id: string | undefined, restoreStock?: boolean) => boolean; // Update the type definition
   
   // Expense functions
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<boolean>;
@@ -893,7 +893,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     return true;
   };
   
-  const deleteTransaction = (id: string | undefined): boolean => {
+  const deleteTransaction = (id: string | undefined, restoreStock: boolean = true): boolean => {
     if (!id) {
       toast.error("ID transaksi tidak valid");
       return false;
@@ -907,11 +907,11 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         return false;
       }
 
-      // Update product stock based on transaction type
+      // Update product stock based on transaction type and restoreStock flag
       const updatedProducts = [...products];
       
-      if (transaction.type === 'sale') {
-        // For a sale transaction, add the products back to stock
+      if (transaction.type === 'sale' && restoreStock) {
+        // For a sale transaction, add the products back to stock if restoreStock is true
         transaction.products.forEach(item => {
           const productIndex = updatedProducts.findIndex(p => p.id === item.product.id);
           if (productIndex !== -1) {
@@ -924,8 +924,8 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Return the money from capital
         subtractFromCapital(transaction.total);
-      } else if (transaction.type === 'purchase') {
-        // For a purchase transaction, remove the products from stock
+      } else if (transaction.type === 'purchase' && restoreStock) {
+        // For a purchase transaction, remove the products from stock if restoreStock is true
         transaction.products.forEach(item => {
           const productIndex = updatedProducts.findIndex(p => p.id === item.product.id);
           if (productIndex !== -1) {
@@ -942,8 +942,10 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         addToCapital(transaction.total);
       }
 
-      // Update products with new stock values
-      setProducts(updatedProducts);
+      if (restoreStock) {
+        // Update products with new stock values only if restoreStock is true
+        setProducts(updatedProducts);
+      }
       
       // Remove the transaction from the list
       setTransactions(prev => prev.filter(t => t.id !== id));
