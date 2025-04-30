@@ -1,6 +1,5 @@
-
 import { toast } from "sonner";
-import { CartItem } from '../context/AppContext';
+import { CartItem } from '../context/types';
 
 // Import with dynamic checks to prevent build errors
 let BluetoothSerial: any = {};

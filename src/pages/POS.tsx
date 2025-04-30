@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { toast } from "sonner";
-import { useAppContext, Product } from "@/context/AppContext";
+import { useAppContext } from "@/context/AppContext";
+import { Product } from "@/context/types";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowUpDown, ShoppingCart, X, Check, ChevronsLeft, Trash2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';

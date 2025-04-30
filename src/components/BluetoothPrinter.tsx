@@ -1,7 +1,7 @@
 
 import { toast } from "sonner";
 import BluetoothPrinterService, { PrinterDevice } from "@/services/BluetoothPrinterService";
-import { CartItem } from '../context/AppContext';
+import { CartItem } from '../context/types';
 import React, { useState } from 'react';
 import { Bluetooth, Loader2 } from 'lucide-react';
 import { Button } from "./ui/button";

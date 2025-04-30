@@ -1,11 +1,23 @@
+
 import React, { createContext, useContext } from 'react';
-import { AppContextType, Supplier } from './types';
+import { AppContextType, Supplier, Product, CartItem, Transaction, Expense, AppUser } from './types';
 import { useAuthState } from './hooks/useAuthState';
 import { useCapitalState } from './hooks/useCapitalState';
 import { useProductState } from './hooks/useProductState';
 import { useCartState } from './hooks/useCartState';
 import { useTransactionState } from './hooks/useTransactionState';
 import { useExpenseState } from './hooks/useExpenseState';
+
+// Re-export types so they can be imported from AppContext
+export type { 
+  AppContextType, 
+  Supplier, 
+  Product, 
+  CartItem, 
+  Transaction, 
+  Expense, 
+  AppUser 
+};
 
 // Create the context
 const AppContext = createContext<AppContextType | undefined>(undefined);

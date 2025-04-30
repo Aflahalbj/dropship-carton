@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { CartItem } from '../context/AppContext';
+import { CartItem } from '../context/types';
 import { Store } from 'lucide-react';
 
 interface ReceiptProps {

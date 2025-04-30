@@ -1,10 +1,12 @@
+
 import React, { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useAppContext, Product, Supplier } from "@/context/AppContext";
+import { useAppContext } from "@/context/AppContext";
+import { Product, Supplier } from "@/context/types";
 import { Search, ArrowUpDown, ShoppingCart, X, Plus, ChevronsLeft, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { PurchaseCheckoutForm } from '@/components/PurchaseCheckoutForm';
