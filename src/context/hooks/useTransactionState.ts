@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Transaction, Product } from '../types';
 import { getFromLocalStorage, saveToLocalStorage } from '../utils';
@@ -165,7 +164,7 @@ export const useTransactionState = (
     return true;
   };
   
-  const deleteTransaction = (id: string | undefined, restoreStock: boolean = true): boolean => {
+  const deleteTransaction = (id: string, restoreStock: boolean = true): boolean => {
     if (!id) {
       toast.error("ID transaksi tidak valid");
       return false;
@@ -179,42 +178,42 @@ export const useTransactionState = (
         return false;
       }
 
-      // Update product stock based on transaction type and restoreStock flag
-      const updatedProducts = [...products];
-      
-      if (transaction.type === 'sale' && restoreStock) {
-        // For a sale transaction, add the products back to stock if restoreStock is true
-        transaction.products.forEach(item => {
-          const productIndex = updatedProducts.findIndex(p => p.id === item.product.id);
-          if (productIndex !== -1) {
-            updatedProducts[productIndex] = {
-              ...updatedProducts[productIndex],
-              stock: updatedProducts[productIndex].stock + item.quantity
-            };
-          }
-        });
-        
-        // Return the money from capital
-        subtractFromCapital(transaction.total);
-      } else if (transaction.type === 'purchase' && restoreStock) {
-        // For a purchase transaction, remove the products from stock if restoreStock is true
-        transaction.products.forEach(item => {
-          const productIndex = updatedProducts.findIndex(p => p.id === item.product.id);
-          if (productIndex !== -1) {
-            // Don't allow stock to go below 0
-            const newStock = Math.max(0, updatedProducts[productIndex].stock - item.quantity);
-            updatedProducts[productIndex] = {
-              ...updatedProducts[productIndex],
-              stock: newStock
-            };
-          }
-        });
-        
-        // Add the money back to capital
-        addToCapital(transaction.total);
-      }
-
+      // Only update product stock if restoreStock is true
       if (restoreStock) {
+        const updatedProducts = [...products];
+        
+        if (transaction.type === 'sale') {
+          // For a sale transaction, add the products back to stock if restoreStock is true
+          transaction.products.forEach(item => {
+            const productIndex = updatedProducts.findIndex(p => p.id === item.product.id);
+            if (productIndex !== -1) {
+              updatedProducts[productIndex] = {
+                ...updatedProducts[productIndex],
+                stock: updatedProducts[productIndex].stock + item.quantity
+              };
+            }
+          });
+          
+          // Return the money from capital
+          subtractFromCapital(transaction.total);
+        } else if (transaction.type === 'purchase') {
+          // For a purchase transaction, remove the products from stock if restoreStock is true
+          transaction.products.forEach(item => {
+            const productIndex = updatedProducts.findIndex(p => p.id === item.product.id);
+            if (productIndex !== -1) {
+              // Don't allow stock to go below 0
+              const newStock = Math.max(0, updatedProducts[productIndex].stock - item.quantity);
+              updatedProducts[productIndex] = {
+                ...updatedProducts[productIndex],
+                stock: newStock
+              };
+            }
+          });
+          
+          // Add the money back to capital
+          addToCapital(transaction.total);
+        }
+
         // Update products with new stock values only if restoreStock is true
         setProducts(updatedProducts);
       }

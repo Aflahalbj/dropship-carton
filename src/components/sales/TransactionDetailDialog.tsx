@@ -152,13 +152,11 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
 
   const confirmDelete = () => {
     if (transaction) {
-      // Fixed: Pass only the transaction ID as expected by deleteTransaction function
-      // Store restoreStock value before calling deleteTransaction
-      const shouldRestoreStock = restoreStock;
-      const success = deleteTransaction(transaction.id);
+      // Pass the transaction ID and the restoreStock flag value
+      const success = deleteTransaction(transaction.id, restoreStock);
       
       if (success) {
-        if (shouldRestoreStock) {
+        if (restoreStock) {
           toast.success("Transaksi berhasil dihapus dan stok produk dikembalikan");
         } else {
           toast.success("Transaksi berhasil dihapus tanpa mengembalikan stok");

@@ -1,4 +1,3 @@
-
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 // Define types
@@ -55,7 +54,7 @@ export type AppUser = {
 };
 
 // Define context type
-export type AppContextType = {
+export interface AppContextType {
   // Auth state
   isAuthenticated: boolean;
   currentUser: AppUser | null;
@@ -111,8 +110,8 @@ export type AppContextType = {
   
   // Transaction functions
   addTransaction: (transaction: Omit<Transaction, 'id'>) => Promise<boolean>;
-  deleteTransaction: (id: string | undefined, restoreStock?: boolean) => boolean;
+  deleteTransaction: (id: string, restoreStock?: boolean) => boolean;
   
   // Expense functions
   addExpense: (expense: Omit<Expense, 'id'>) => Promise<boolean>;
-};
+}
