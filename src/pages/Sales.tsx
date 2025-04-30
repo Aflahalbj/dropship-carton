@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
@@ -9,7 +8,7 @@ import TransactionList from '@/components/sales/TransactionList';
 import TransactionDetailDialog from '@/components/sales/TransactionDetailDialog';
 
 const Transactions = () => {
-  const { transactions } = useAppContext();
+  const { transactions, deleteTransaction } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortField, setSortField] = useState<'date' | 'amount' | 'productName' | 'price' | 'stock'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -17,14 +16,6 @@ const Transactions = () => {
   const [timePeriod, setTimePeriod] = useState('all');
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const allTransactions = [...transactions.map(t => ({
-    ...t,
-    transactionType: t.type,
-    amount: t.total,
-    customerPhone: t.customerPhone || "",
-    customerAddress: t.customerAddress || "",
-  }))];
 
   // Helper function to filter transactions by time period
   const filterByTimePeriod = (transaction: any) => {
@@ -58,6 +49,14 @@ const Transactions = () => {
         return true;
     }
   };
+
+  const allTransactions = [...transactions.map(t => ({
+    ...t,
+    transactionType: t.type,
+    amount: t.total,
+    customerPhone: t.customerPhone || "",
+    customerAddress: t.customerAddress || "",
+  }))];
 
   const filteredTransactions = allTransactions.filter(transaction => {
     // Filter by transaction type

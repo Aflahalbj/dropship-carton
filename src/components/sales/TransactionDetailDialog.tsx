@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import Receipt from '../Receipt';
 import { useReactToPrint } from 'react-to-print';
 import { printReceipt } from '@/components/BluetoothPrinter';
 import { toast } from "sonner";
+import { useAppContext } from "@/context/AppContext";
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -31,6 +33,7 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
 }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { deleteTransaction } = useAppContext();
 
   const handlePrint = useReactToPrint({
     documentTitle: 'Struk Penjualan',
@@ -88,10 +91,19 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
   };
 
   const confirmDelete = () => {
-    // Here you would implement the delete transaction logic
-    toast.success("Transaksi berhasil dihapus");
-    // Close the main dialog after deleting
-    onOpenChange(false);
+    if (transaction) {
+      // Delete the transaction and restore stock
+      const success = deleteTransaction(transaction.id);
+      
+      if (success) {
+        toast.success("Transaksi berhasil dihapus dan stok produk dikembalikan");
+      } else {
+        toast.error("Gagal menghapus transaksi");
+      }
+      
+      // Close the main dialog after deleting
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -173,7 +185,7 @@ const TransactionDetailDialog: React.FC<TransactionDetailDialogProps> = ({
                       <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
                       <AlertDialogDescription>
                         Apakah Anda yakin ingin menghapus transaksi ini? 
-                        Tindakan ini tidak dapat dibatalkan.
+                        Stok produk akan dikembalikan dan tindakan ini tidak dapat dibatalkan.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
