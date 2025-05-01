@@ -482,7 +482,13 @@ export class BluetoothPrinterService {
       let printService = services.find(s => s.uuid.includes(PRINTER_SERVICE));
       if (!printService) {
         // Try to find any service with write characteristics
-        printService = services.find(s => s.characteristics.some(c => c.properties.includes('write')));
+        printService = services.find(s => 
+          s.characteristics.some(c => 
+            c.properties && 
+            // Fix: Check if 'write' is in properties array instead of using includes
+            c.properties.indexOf('write') !== -1
+          )
+        );
       }
       
       if (!printService) {
@@ -492,11 +498,18 @@ export class BluetoothPrinterService {
       
       // Find a suitable characteristic for writing
       let printCharacteristic = printService.characteristics.find(c => 
-        c.uuid.includes(PRINTER_CHARACTERISTIC) && c.properties.includes('write')
+        c.uuid.includes(PRINTER_CHARACTERISTIC) && 
+        c.properties && 
+        // Fix: Check if 'write' is in properties array instead of using includes
+        c.properties.indexOf('write') !== -1
       );
       
       if (!printCharacteristic) {
-        printCharacteristic = printService.characteristics.find(c => c.properties.includes('write'));
+        printCharacteristic = printService.characteristics.find(c => 
+          c.properties && 
+          // Fix: Check if 'write' is in properties array instead of using includes
+          c.properties.indexOf('write') !== -1
+        );
       }
       
       if (!printCharacteristic) {
@@ -547,11 +560,13 @@ export class BluetoothPrinterService {
       
       for (let i = 0; i < data.length; i += CHUNK_SIZE) {
         const chunk = data.slice(i, i + CHUNK_SIZE);
+        // Fix: Convert Uint8Array to DataView
+        const dataView = new DataView(chunk.buffer);
         await BleClient.write(
           this.connectedDevice.id,
           printService.uuid,
           printCharacteristic.uuid,
-          chunk
+          dataView
         );
         // Small delay between chunks
         await new Promise(resolve => setTimeout(resolve, 50));

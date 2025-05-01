@@ -114,8 +114,9 @@ export const printReceipt = async (
         });
         
         const connectedDevice = BluetoothPrinterService.getConnectedDevice();
-        if (connectedDevice && window.cordova && window.cordova.plugins && window.cordova.plugins.bluetooth) {
-          await window.cordova.plugins.bluetooth.serial.write(receiptText);
+        // Fix: Check for BluetoothSerial instead of window.cordova.plugins.bluetooth
+        if (connectedDevice && BluetoothSerial) {
+          await BluetoothSerial.write(receiptText);
           toast.success("Struk berhasil dicetak dengan metode alternatif!");
           return true;
         } else {
