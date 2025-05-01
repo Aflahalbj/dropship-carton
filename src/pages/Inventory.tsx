@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import TransactionFilter from '@/components/TransactionFilter';
+
 const Inventory = () => {
   const {
     products,
@@ -178,61 +179,62 @@ const Inventory = () => {
       toast.success("Produk berhasil dihapus");
     }
   };
-  return <div className="container py-4 px-4 mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Manajemen Inventaris</h2>
-          <p className="text-muted-foreground">Kelola katalog produk dan tingkat stok Anda</p>
-        </div>
-      </div>
-      
-      <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
-        <div className="flex max-w-3xl w-full gap-3 items-center">
-          <Select value={sortField + "-" + sortDirection} onValueChange={value => {
-          const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
-          setSortField(field);
-          setSortDirection(direction);
-        }}>
-            <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200">
-              <ArrowUpDown className="h-4 w-4" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
-              <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
-              <SelectItem value="price-asc">Harga Jual (Terendah)</SelectItem>
-              <SelectItem value="price-desc">Harga Jual (Tertinggi)</SelectItem>
-              <SelectItem value="stock-asc">Stok (Terendah)</SelectItem>
-              <SelectItem value="stock-desc">Stok (Tertinggi)</SelectItem>
-              <SelectItem value="profit-asc">Keuntungan (Terendah)</SelectItem>
-              <SelectItem value="profit-desc">Keuntungan (Tertinggi)</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input type="text" placeholder="Cari produk berdasarkan nama atau SKU..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 rounded-full border-slate-200 bg-slate-50" />
+  return (
+      <>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Manajemen Inventaris</h2>
+            <p className="text-muted-foreground">Kelola katalog produk dan tingkat stok Anda</p>
           </div>
-          
-          <Button variant="outline" size="icon" className="w-10 h-10" onClick={() => handleOpenForm()}>
-            <Plus size={20} />
-          </Button>
         </div>
-      </div>
-      
-      <div className="bg-card border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[70%] bg-slate-100">Produk</TableHead>
-              <TableHead className="w-[30%] bg-slate-100">Harga</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProducts.length === 0 ? <TableRow>
-                <TableCell colSpan={2} className="py-6 text-center text-muted-foreground">
-                  Tidak ada produk ditemukan
-                </TableCell>
-              </TableRow> : filteredProducts.map(product => <TableRow key={product.id} className="cursor-pointer" onClick={() => handleOpenForm(product)}>
+        
+        <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-6">
+          <div className="flex max-w-3xl w-full gap-3 items-center">
+            <Select value={sortField + "-" + sortDirection} onValueChange={value => {
+            const [field, direction] = value.split("-") as [string, 'asc' | 'desc'];
+            setSortField(field);
+            setSortDirection(direction);
+          }}>
+              <SelectTrigger className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-200">
+                <ArrowUpDown className="h-4 w-4" />
+              </SelectTrigger>
+              <SelectContent align="end">
+                <SelectItem value="name-asc">Nama (A-Z)</SelectItem>
+                <SelectItem value="name-desc">Nama (Z-A)</SelectItem>
+                <SelectItem value="price-asc">Harga Jual (Terendah)</SelectItem>
+                <SelectItem value="price-desc">Harga Jual (Tertinggi)</SelectItem>
+                <SelectItem value="stock-asc">Stok (Terendah)</SelectItem>
+                <SelectItem value="stock-desc">Stok (Tertinggi)</SelectItem>
+                <SelectItem value="profit-asc">Keuntungan (Terendah)</SelectItem>
+                <SelectItem value="profit-desc">Keuntungan (Tertinggi)</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+              <Input type="text" placeholder="Cari produk berdasarkan nama atau SKU..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 rounded-full border-slate-200 bg-slate-50" />
+            </div>
+            
+            <Button variant="outline" size="icon" className="w-10 h-10" onClick={() => handleOpenForm()}>
+              <Plus size={20} />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="bg-card border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[70%] bg-slate-100">Produk</TableHead>
+                <TableHead className="w-[30%] bg-slate-100">Harga</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProducts.length === 0 ? <TableRow>
+                  <TableCell colSpan={2} className="py-6 text-center text-muted-foreground">
+                    Tidak ada produk ditemukan
+                  </TableCell>
+                </TableRow> : filteredProducts.map(product => <TableRow key={product.id} className="cursor-pointer" onClick={() => handleOpenForm(product)}>
                   <TableCell className="py-2">
                     <div className="flex items-center gap-3">
                       
@@ -251,139 +253,141 @@ const Inventory = () => {
                     </div>
                   </TableCell>
                 </TableRow>)}
-          </TableBody>
-        </Table>
-      </div>
-      
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <div className="p-4">
-            <h3 className="text-xl font-semibold mb-4">Konfirmasi Hapus Produk</h3>
-            <p className="mb-6">Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.</p>
-            
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                Batal
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteProduct}>
-                Hapus Produk
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      {showForm && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <Card className="max-w-lg w-full relative animate-slide-up max-h-[90vh] overflow-y-auto">
-            <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-10" onClick={handleCloseForm}>
-              <X size={20} />
-            </Button>
-            
-            <div className="p-6">
-              <h3 className="text-xl font-semibold mb-4">
-                {editingProduct ? 'Edit Produk' : 'Tambah Produk Baru'}
-              </h3>
+            </TableBody>
+          </Table>
+        </div>
+        
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <div className="p-4">
+              <h3 className="text-xl font-semibold mb-4">Konfirmasi Hapus Produk</h3>
+              <p className="mb-6">Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.</p>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">
-                    Nama Produk
-                  </label>
-                  <Input id="name" name="name" placeholder="Masukkan nama produk" value={formData.name} onChange={handleInputChange} required />
-                </div>
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  Batal
+                </Button>
+                <Button variant="destructive" onClick={handleDeleteProduct}>
+                  Hapus Produk
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+        
+        {showForm && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <Card className="max-w-lg w-full relative animate-slide-up max-h-[90vh] overflow-y-auto">
+              <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-10" onClick={handleCloseForm}>
+                <X size={20} />
+              </Button>
+              
+              <div className="p-6">
+                <h3 className="text-xl font-semibold mb-4">
+                  {editingProduct ? 'Edit Produk' : 'Tambah Produk Baru'}
+                </h3>
                 
-                <div>
-                  <label htmlFor="sku" className="block text-sm font-medium text-muted-foreground mb-1">
-                    SKU
-                  </label>
-                  <Input id="sku" name="sku" placeholder="Masukkan SKU produk" value={formData.sku} onChange={handleInputChange} readOnly={!!editingProduct} required />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label htmlFor="price" className="block text-sm font-medium text-muted-foreground mb-1">
-                      Harga Jual
+                    <label htmlFor="name" className="block text-sm font-medium text-muted-foreground mb-1">
+                      Nama Produk
                     </label>
-                    <Input id="price" name="price" type="text" placeholder="0" value={formData.price} onChange={e => {
+                    <Input id="name" name="name" placeholder="Masukkan nama produk" value={formData.name} onChange={handleInputChange} required />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="sku" className="block text-sm font-medium text-muted-foreground mb-1">
+                      SKU
+                    </label>
+                    <Input id="sku" name="sku" placeholder="Masukkan SKU produk" value={formData.sku} onChange={handleInputChange} readOnly={!!editingProduct} required />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="price" className="block text-sm font-medium text-muted-foreground mb-1">
+                        Harga Jual
+                      </label>
+                      <Input id="price" name="price" type="text" placeholder="0" value={formData.price} onChange={e => {
                   const value = e.target.value.replace(/[^\d]/g, '');
                   setFormData(prev => ({
                     ...prev,
                     price: value
                   }));
                 }} required />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="supplierPrice" className="block text-sm font-medium text-muted-foreground mb-1">
-                      Harga Supplier
-                    </label>
-                    <Input id="supplierPrice" name="supplierPrice" type="text" placeholder="0" value={formData.supplierPrice} onChange={e => {
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="supplierPrice" className="block text-sm font-medium text-muted-foreground mb-1">
+                        Harga Supplier
+                      </label>
+                      <Input id="supplierPrice" name="supplierPrice" type="text" placeholder="0" value={formData.supplierPrice} onChange={e => {
                   const value = e.target.value.replace(/[^\d]/g, '');
                   setFormData(prev => ({
                     ...prev,
                     supplierPrice: value
                   }));
                 }} required />
+                    </div>
                   </div>
-                </div>
-                
-                <div>
-                  <label htmlFor="stock" className="block text-sm font-medium text-muted-foreground mb-1">
-                    Stok
-                  </label>
-                  <Input id="stock" name="stock" type="text" placeholder="0" value={formData.stock} onChange={e => {
+                  
+                  <div>
+                    <label htmlFor="stock" className="block text-sm font-medium text-muted-foreground mb-1">
+                      Stok
+                    </label>
+                    <Input id="stock" name="stock" type="text" placeholder="0" value={formData.stock} onChange={e => {
                 const value = e.target.value.replace(/[^\d]/g, '');
                 setFormData(prev => ({
                   ...prev,
                   stock: value
                 }));
               }} className="w-full h-10" required />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-muted-foreground mb-2">
-                    Foto Produk
-                  </label>
-                  
-                  <div className="flex gap-2 mb-3">
-                    <Button type="button" variant={imageSource === 'url' ? 'default' : 'outline'} size="sm" onClick={() => setImageSource('url')} className="flex items-center gap-1">
-                      <Link size={14} />
-                      URL
-                    </Button>
-                    <Button type="button" variant={imageSource === 'file' ? 'default' : 'outline'} size="sm" onClick={() => setImageSource('file')} className="flex items-center gap-1">
-                      <Image size={14} />
-                      Upload
-                    </Button>
                   </div>
                   
-                  {imageSource === 'url' ? <Input name="image" placeholder="https://example.com/image.jpg" value={formData.image} onChange={handleInputChange} /> : <Input type="file" accept="image/*" onChange={handleFileChange} className="text-sm" />}
-                  
-                  {formData.image ? <div className="mt-3 border rounded overflow-hidden w-24 h-24">
-                      <img src={formData.image} alt="Preview" className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = 'https://placehold.co/100x100?text=Error'} />
-                    </div> : <div className="mt-3 border rounded overflow-hidden w-24 h-24">
-                      <img src="https://placehold.co/300x150?text=Produk" alt="Default" className="w-full h-full object-cover" />
-                    </div>}
-                </div>
-                
-                <div className="flex justify-between gap-3 pt-2">
-                  {editingProduct && <Button type="button" variant="destructive" size="icon" onClick={() => confirmDeleteProduct(editingProduct.id)}>
-                      <Trash size={16} />
-                    </Button>}
-                  
-                  <div className="flex gap-3 ml-auto">
-                    <Button type="button" variant="outline" onClick={handleCloseForm}>
-                      Batal
-                    </Button>
-                    <Button type="submit" className="bg-primary text-white flex items-center gap-2">
-                      <Check size={18} />
-                      {editingProduct ? 'Perbarui Produk' : 'Tambah Produk'}
-                    </Button>
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">
+                      Foto Produk
+                    </label>
+                    
+                    <div className="flex gap-2 mb-3">
+                      <Button type="button" variant={imageSource === 'url' ? 'default' : 'outline'} size="sm" onClick={() => setImageSource('url')} className="flex items-center gap-1">
+                        <Link size={14} />
+                        URL
+                      </Button>
+                      <Button type="button" variant={imageSource === 'file' ? 'default' : 'outline'} size="sm" onClick={() => setImageSource('file')} className="flex items-center gap-1">
+                        <Image size={14} />
+                        Upload
+                      </Button>
+                    </div>
+                    
+                    {imageSource === 'url' ? <Input name="image" placeholder="https://example.com/image.jpg" value={formData.image} onChange={handleInputChange} /> : <Input type="file" accept="image/*" onChange={handleFileChange} className="text-sm" />}
+                    
+                    {formData.image ? <div className="mt-3 border rounded overflow-hidden w-24 h-24">
+                        <img src={formData.image} alt="Preview" className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).src = 'https://placehold.co/100x100?text=Error'} />
+                      </div> : <div className="mt-3 border rounded overflow-hidden w-24 h-24">
+                        <img src="https://placehold.co/300x150?text=Produk" alt="Default" className="w-full h-full object-cover" />
+                      </div>}
                   </div>
-                </div>
-              </form>
-            </div>
-          </Card>
-        </div>}
-    </div>;
+                  
+                  <div className="flex justify-between gap-3 pt-2">
+                    {editingProduct && <Button type="button" variant="destructive" size="icon" onClick={() => confirmDeleteProduct(editingProduct.id)}>
+                        <Trash size={16} />
+                      </Button>}
+                    
+                    <div className="flex gap-3 ml-auto">
+                      <Button type="button" variant="outline" onClick={handleCloseForm}>
+                        Batal
+                      </Button>
+                      <Button type="submit" className="bg-primary text-white flex items-center gap-2">
+                        <Check size={18} />
+                        {editingProduct ? 'Perbarui Produk' : 'Tambah Produk'}
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </Card>
+          </div>}
+      </>
+  );
 };
+
 export default Inventory;

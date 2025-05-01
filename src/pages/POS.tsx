@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -241,76 +240,79 @@ const POS: React.FC = () => {
       duration: 1000
     });
   };
-  return <div className="container animate-slide-up px-0 py-0">
-      <div className="flex justify-between items-center mb-6">
-        {showCheckout && <Button variant="ghost" size="icon" onClick={() => setShowCheckout(false)} className="mr-4">
-          <ChevronsLeft size={24} />
-        </Button>}
-        
-        <div className="w-full text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-left">Kasir</h2>
-          <p className="text-muted-foreground text-left">Proses penjualan produk</p>
-        </div>
-        
-        {posCart.length > 0 && <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleClearCartAndReturn}>
-            <Trash2 size={20} />
+  
+  return (
+      <>
+        <div className="flex justify-between items-center mb-6">
+          {showCheckout && <Button variant="ghost" size="icon" onClick={() => setShowCheckout(false)} className="mr-4">
+            <ChevronsLeft size={24} />
           </Button>}
-      </div>
+          
+          <div className="w-full text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-left">Kasir</h2>
+            <p className="text-muted-foreground text-left">Proses penjualan produk</p>
+          </div>
+          
+          {posCart.length > 0 && <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={handleClearCartAndReturn}>
+              <Trash2 size={20} />
+            </Button>}
+        </div>
 
-      {!showCheckout ? <>
-          <div className="mb-6 flex flex-wrap gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
-              <Input type="text" placeholder="Cari produk berdasarkan nama atau SKU..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 mx-0" />
+        {!showCheckout ? <>
+            <div className="mb-6 flex flex-wrap gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
+                <Input type="text" placeholder="Cari produk berdasarkan nama atau SKU..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10 mx-0" />
+              </div>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <ArrowUpDown size={16} />
+                    <span className="hidden sm:inline">Urutkan</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => setSortOrder("name-asc")}>
+                    Nama (A-Z)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOrder("name-desc")}>
+                    Nama (Z-A)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOrder("price-asc")}>
+                    Harga (Terendah-Tertinggi)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOrder("price-desc")}>
+                    Harga (Tertinggi-Terendah)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOrder("stock-asc")}>
+                    Stok (Terendah-Tertinggi)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOrder("stock-desc")}>
+                    Stok (Tertinggi-Terendah)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <ArrowUpDown size={16} />
-                  <span className="hidden sm:inline">Urutkan</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => setSortOrder("name-asc")}>
-                  Nama (A-Z)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("name-desc")}>
-                  Nama (Z-A)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("price-asc")}>
-                  Harga (Terendah-Tertinggi)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("price-desc")}>
-                  Harga (Tertinggi-Terendah)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("stock-asc")}>
-                  Stok (Terendah-Tertinggi)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("stock-desc")}>
-                  Stok (Tertinggi-Terendah)
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 px-0 mx-0 my-0 py-0">
-            {filteredProducts.map(product => <ProductCard key={product.id} product={product} />)}
-          </div>
-          
-          {filteredProducts.length === 0 && <div className="text-center py-10">
-              <p className="text-muted-foreground">Tidak ada produk yang cocok dengan pencarian Anda.</p>
-            </div>}
-        </> : <CartView onCheckout={handleCheckout} />}
-      
-      {shouldShowCartIcon && <Button className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary text-white hover:bg-primary/90 transition-all" onClick={() => setShowCheckout(true)}>
-          <div className="relative">
-            <ShoppingCart size={24} />
-            <span className="absolute -top-2 -right-2 bg-white text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold px-0 py-[3px] my-[-5px] mx-[-5px]">
-              {posCart.length}
-            </span>
-          </div>
-        </Button>}
-    </div>;
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 px-0 mx-0 my-0 py-0">
+              {filteredProducts.map(product => <ProductCard key={product.id} product={product} />)}
+            </div>
+            
+            {filteredProducts.length === 0 && <div className="text-center py-10">
+                <p className="text-muted-foreground">Tidak ada produk yang cocok dengan pencarian Anda.</p>
+              </div>}
+          </> : <CartView onCheckout={handleCheckout} />}
+        
+        {shouldShowCartIcon && <Button className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-primary text-white hover:bg-primary/90 transition-all" onClick={() => setShowCheckout(true)}>
+            <div className="relative">
+              <ShoppingCart size={24} />
+              <span className="absolute -top-2 -right-2 bg-white text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold px-0 py-[3px] my-[-5px] mx-[-5px]">
+                {posCart.length}
+              </span>
+            </div>
+          </Button>}
+      </>
+  );
 };
 export default POS;
