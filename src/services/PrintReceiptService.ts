@@ -3,6 +3,7 @@ import BluetoothPrinterService from "./BluetoothPrinterService";
 import { CartItem } from '../context/types';
 import { toast } from "sonner";
 import { generateReceiptText } from "../utils/receiptUtils";
+import { BluetoothSerial } from '@awesome-cordova-plugins/bluetooth-serial';
 
 export const printReceipt = async (
   items: CartItem[],
@@ -114,8 +115,8 @@ export const printReceipt = async (
         });
         
         const connectedDevice = BluetoothPrinterService.getConnectedDevice();
-        // Fix: Check for BluetoothSerial instead of window.cordova.plugins.bluetooth
-        if (connectedDevice && BluetoothSerial) {
+        // Fix: Check for BluetoothSerial instance
+        if (connectedDevice && typeof BluetoothSerial !== 'undefined') {
           await BluetoothSerial.write(receiptText);
           toast.success("Struk berhasil dicetak dengan metode alternatif!");
           return true;

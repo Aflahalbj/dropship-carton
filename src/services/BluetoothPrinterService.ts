@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import { CartItem } from '../context/types';
 import { BleClient, numberToUUID } from '@capacitor-community/bluetooth-le';
@@ -485,8 +484,8 @@ export class BluetoothPrinterService {
         printService = services.find(s => 
           s.characteristics.some(c => 
             c.properties && 
-            // Fix: Check if 'write' is in properties array instead of using includes
-            c.properties.indexOf('write') !== -1
+            // Fix: Check if 'write' property exists in the properties object
+            c.properties.hasOwnProperty('write') && c.properties.write === true
           )
         );
       }
@@ -500,15 +499,15 @@ export class BluetoothPrinterService {
       let printCharacteristic = printService.characteristics.find(c => 
         c.uuid.includes(PRINTER_CHARACTERISTIC) && 
         c.properties && 
-        // Fix: Check if 'write' is in properties array instead of using includes
-        c.properties.indexOf('write') !== -1
+        // Fix: Check if 'write' property exists in the properties object
+        c.properties.hasOwnProperty('write') && c.properties.write === true
       );
       
       if (!printCharacteristic) {
         printCharacteristic = printService.characteristics.find(c => 
           c.properties && 
-          // Fix: Check if 'write' is in properties array instead of using includes
-          c.properties.indexOf('write') !== -1
+          // Fix: Check if 'write' property exists in the properties object
+          c.properties.hasOwnProperty('write') && c.properties.write === true
         );
       }
       
