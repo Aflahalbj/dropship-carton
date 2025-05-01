@@ -13,14 +13,6 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorHttp: {
       enabled: true
-    },
-    BluetoothLe: {
-      displayStrings: {
-        scanning: "Mencari perangkat...",
-        cancel: "Batal",
-        availableDevices: "Perangkat Tersedia",
-        noDeviceFound: "Tidak ada perangkat ditemukan"
-      }
     }
   },
   android: {

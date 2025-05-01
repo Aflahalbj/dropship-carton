@@ -22,9 +22,14 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
   useEffect(() => {
     const checkConnectedDevice = async () => {
       if (isNative) {
-        const device = BluetoothPrinterService.getConnectedDevice();
-        if (device) {
-          console.log("Already connected to printer:", device);
+        try {
+          await BluetoothPrinterService.init();
+          const device = BluetoothPrinterService.getConnectedDevice();
+          if (device) {
+            console.log("Already connected to printer:", device);
+          }
+        } catch (error) {
+          console.error("Error initializing printer service:", error);
         }
       }
     };
