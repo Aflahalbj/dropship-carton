@@ -2,6 +2,7 @@
 import BluetoothPrinterService from "./BluetoothPrinterService";
 import { CartItem } from '../context/types';
 import { toast } from "sonner";
+import { generateReceiptText } from "../utils/receiptUtils";
 
 export const printReceipt = async (
   items: CartItem[],
@@ -14,8 +15,13 @@ export const printReceipt = async (
   date: Date
 ) => {
   try {
-    // Log untuk debugging
-    console.log("Attempting to print receipt:", { items, total, transactionId });
+    // Enhanced logging for debugging
+    console.log("Attempting to print receipt:", { 
+      items, 
+      total, 
+      transactionId,
+      deviceType: typeof window !== 'undefined' ? window.navigator.userAgent : 'unknown' 
+    });
     
     // Get currently connected device
     const connectedDevice = BluetoothPrinterService.getConnectedDevice();
@@ -37,11 +43,11 @@ export const printReceipt = async (
       
       // Try to connect to the first printer
       console.log("Attempting to connect to printer:", printers[0]);
-      toast.info(`Mencoba menghubungkan ke printer: ${printers[0].name}...`);
+      toast.loading(`Mencoba menghubungkan ke printer: ${printers[0].name}...`);
       
       const connected = await BluetoothPrinterService.connectToPrinter(printers[0]);
       if (!connected) {
-        toast.error("Gagal terhubung ke printer");
+        toast.error("Gagal terhubung ke printer. Periksa koneksi dan coba lagi.");
         return false;
       }
       
@@ -50,14 +56,27 @@ export const printReceipt = async (
       console.log("Using connected printer:", connectedDevice);
     }
     
-    // Now print the receipt
+    // Prepare receipt data
     const storeName = "TOKO ABDULLAH";
     const storeLocation = "TANGERANG";
     const storePhone = "083880863610";
     
-    toast.info("Mencetak struk...");
+    toast.loading("Mencetak struk...");
     console.log("Sending print command to printer");
     
+    // Generate receipt preview
+    console.log("Receipt preview:", generateReceiptText({
+      products: items.map(item => ({ product: item.product, quantity: item.quantity })),
+      amount: total,
+      paymentMethod,
+      customerName,
+      cashAmount,
+      changeAmount,
+      id: transactionId,
+      date
+    }));
+    
+    // Print the receipt
     const success = await BluetoothPrinterService.printReceipt(
       items,
       total,
@@ -73,6 +92,41 @@ export const printReceipt = async (
     );
     
     console.log("Print result:", success);
+    
+    // If printing failed, try one more time with plain text
+    if (!success) {
+      toast.error("Gagal mencetak struk. Mencoba metode alternatif...");
+      
+      // Wait a moment before trying again
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Try plain text method
+      try {
+        const receiptText = generateReceiptText({
+          products: items.map(item => ({ product: item.product, quantity: item.quantity })),
+          amount: total,
+          paymentMethod,
+          customerName,
+          cashAmount,
+          changeAmount,
+          id: transactionId,
+          date
+        });
+        
+        const connectedDevice = BluetoothPrinterService.getConnectedDevice();
+        if (connectedDevice && window.cordova && window.cordova.plugins && window.cordova.plugins.bluetooth) {
+          await window.cordova.plugins.bluetooth.serial.write(receiptText);
+          toast.success("Struk berhasil dicetak dengan metode alternatif!");
+          return true;
+        } else {
+          return false;
+        }
+      } catch (fallbackError) {
+        console.error("Fallback printing method failed:", fallbackError);
+        return false;
+      }
+    }
+    
     return success;
   } catch (error) {
     console.error("Error printing receipt:", error);
