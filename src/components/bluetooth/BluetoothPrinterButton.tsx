@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bluetooth, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import BluetoothPrinterDialog from './BluetoothPrinterDialog';
@@ -17,6 +17,20 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
   const [printers, setPrinters] = useState<PrinterDevice[]>([]);
   const [connecting, setConnecting] = useState<string | null>(null);
   const isNative = Capacitor.isNativePlatform();
+
+  // Check for connected printer on component mount
+  useEffect(() => {
+    const checkConnectedDevice = async () => {
+      if (isNative) {
+        const device = BluetoothPrinterService.getConnectedDevice();
+        if (device) {
+          console.log("Already connected to printer:", device);
+        }
+      }
+    };
+    
+    checkConnectedDevice();
+  }, [isNative]);
 
   const handleScanForPrinters = async () => {
     try {

@@ -21,15 +21,6 @@ const config: CapacitorConfig = {
         availableDevices: "Perangkat Tersedia",
         noDeviceFound: "Tidak ada perangkat ditemukan"
       }
-    },
-    PermissionsAndroid: {
-      BLUETOOTH: true,
-      BLUETOOTH_ADMIN: true,
-      BLUETOOTH_SCAN: true,
-      BLUETOOTH_CONNECT: true,
-      BLUETOOTH_ADVERTISE: true,
-      ACCESS_COARSE_LOCATION: true,
-      ACCESS_FINE_LOCATION: true
     }
   },
   android: {
@@ -40,7 +31,7 @@ const config: CapacitorConfig = {
       keystoreAliasPassword: undefined,
     },
     minSdkVersion: 23,
-    // Add permission configurations
+    // Enhanced permissions for Bluetooth
     permissions: [
       "android.permission.BLUETOOTH",
       "android.permission.BLUETOOTH_ADMIN",

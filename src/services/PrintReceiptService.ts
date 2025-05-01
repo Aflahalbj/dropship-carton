@@ -4,6 +4,7 @@ import { CartItem } from '../context/types';
 import { toast } from "sonner";
 import { generateReceiptText } from "../utils/receiptUtils";
 import { BluetoothSerial } from '@awesome-cordova-plugins/bluetooth-serial';
+import { Capacitor } from '@capacitor/core';
 
 export const printReceipt = async (
   items: CartItem[],
@@ -21,8 +22,15 @@ export const printReceipt = async (
       items, 
       total, 
       transactionId,
-      deviceType: typeof window !== 'undefined' ? window.navigator.userAgent : 'unknown' 
+      deviceType: Capacitor.getPlatform()
     });
+    
+    // Only proceed with Bluetooth printing on native platforms
+    if (!Capacitor.isNativePlatform()) {
+      toast.error("Printing hanya berfungsi di aplikasi Android/iOS");
+      console.log("Not a native platform, printing unavailable");
+      return false;
+    }
     
     // Get currently connected device
     const connectedDevice = BluetoothPrinterService.getConnectedDevice();
@@ -62,11 +70,14 @@ export const printReceipt = async (
     const storeLocation = "TANGERANG";
     const storePhone = "083880863610";
     
-    toast.loading("Mencetak struk...");
+    toast.loading("Mencetak struk...", {
+      id: "printing-receipt",
+      duration: 10000
+    });
     console.log("Sending print command to printer");
     
-    // Generate receipt preview
-    console.log("Receipt preview:", generateReceiptText({
+    // Generate receipt text
+    const receiptText = generateReceiptText({
       products: items.map(item => ({ product: item.product, quantity: item.quantity })),
       amount: total,
       paymentMethod,
@@ -75,9 +86,40 @@ export const printReceipt = async (
       changeAmount,
       id: transactionId,
       date
-    }));
+    });
     
-    // Print the receipt
+    console.log("Receipt to be printed:", receiptText);
+    
+    // Try to print directly with BluetoothSerial first
+    try {
+      if (typeof BluetoothSerial !== 'undefined') {
+        // Check if we have a connected device before attempting to write
+        const isConnected = await BluetoothSerial.isConnected();
+        console.log("BluetoothSerial isConnected:", isConnected);
+        
+        if (!isConnected && connectedDevice) {
+          console.log("Connecting with BluetoothSerial to:", connectedDevice.address);
+          await BluetoothSerial.connect(connectedDevice.address);
+        }
+        
+        // Add a command to initialize the printer before sending the text
+        // ESC @ - Initialize printer
+        // ESC ! 0 - Set default text style
+        const initCommands = '\x1B\x40\x1B\x21\x00';
+        await BluetoothSerial.write(initCommands + receiptText + '\n\n\n\n\n');
+        
+        console.log("Receipt sent via BluetoothSerial");
+        toast.dismiss("printing-receipt");
+        toast.success("Struk berhasil dicetak!");
+        return true;
+      }
+    } catch (serialError) {
+      console.error("BluetoothSerial error:", serialError);
+      // Continue to fallback method if this fails
+    }
+    
+    // If BluetoothSerial direct method failed, try with the PrinterService
+    console.log("Falling back to PrinterService method");
     const success = await BluetoothPrinterService.printReceipt(
       items,
       total,
@@ -92,46 +134,20 @@ export const printReceipt = async (
       storePhone
     );
     
-    console.log("Print result:", success);
+    console.log("PrinterService print result:", success);
+    toast.dismiss("printing-receipt");
     
-    // If printing failed, try one more time with plain text
-    if (!success) {
-      toast.error("Gagal mencetak struk. Mencoba metode alternatif...");
-      
-      // Wait a moment before trying again
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Try plain text method
-      try {
-        const receiptText = generateReceiptText({
-          products: items.map(item => ({ product: item.product, quantity: item.quantity })),
-          amount: total,
-          paymentMethod,
-          customerName,
-          cashAmount,
-          changeAmount,
-          id: transactionId,
-          date
-        });
-        
-        const connectedDevice = BluetoothPrinterService.getConnectedDevice();
-        // Fix: Check for BluetoothSerial instance
-        if (connectedDevice && typeof BluetoothSerial !== 'undefined') {
-          await BluetoothSerial.write(receiptText);
-          toast.success("Struk berhasil dicetak dengan metode alternatif!");
-          return true;
-        } else {
-          return false;
-        }
-      } catch (fallbackError) {
-        console.error("Fallback printing method failed:", fallbackError);
-        return false;
-      }
+    if (success) {
+      toast.success("Struk berhasil dicetak!");
+      return true;
+    } else {
+      toast.error("Gagal mencetak struk. Silakan coba lagi.");
+      return false;
     }
     
-    return success;
   } catch (error) {
     console.error("Error printing receipt:", error);
+    toast.dismiss("printing-receipt");
     toast.error(`Gagal mencetak struk: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return false;
   }
