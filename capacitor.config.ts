@@ -10,6 +10,19 @@ const config: CapacitorConfig = {
     cleartext: true,
     allowNavigation: ['*.lovableproject.com']
   },
+  plugins: {
+    CapacitorHttp: {
+      enabled: true
+    },
+    BluetoothLe: {
+      displayStrings: {
+        scanning: "Mencari perangkat...",
+        cancel: "Batal",
+        availableDevices: "Perangkat Tersedia",
+        noDeviceFound: "Tidak ada perangkat ditemukan"
+      }
+    }
+  },
   android: {
     buildOptions: {
       keystorePath: undefined,

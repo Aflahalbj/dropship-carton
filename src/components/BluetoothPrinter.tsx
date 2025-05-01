@@ -26,7 +26,9 @@ export const BluetoothPrinter: React.FC<BluetoothPrinterProps> = ({ className })
   const handleScanForPrinters = async () => {
     try {
       setIsScanning(true);
+      console.log('Starting printer scan...');
       const foundPrinters = await BluetoothPrinterService.scanForPrinters();
+      console.log('Found printers:', foundPrinters);
       
       if (foundPrinters.length === 0) {
         toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan.");
@@ -46,15 +48,20 @@ export const BluetoothPrinter: React.FC<BluetoothPrinterProps> = ({ className })
   const connectToPrinter = async (printer: PrinterDevice) => {
     try {
       setConnecting(printer.id);
+      console.log('Connecting to printer:', printer);
       const connected = await BluetoothPrinterService.connectToPrinter(printer);
       
       if (connected) {
+        console.log('Successfully connected to printer');
         toast.success(`Terhubung ke printer: ${printer.name}`);
         setShowPrinterDialog(false);
+      } else {
+        console.log('Failed to connect to printer');
+        toast.error(`Gagal terhubung ke printer: ${printer.name}`);
       }
     } catch (error) {
       console.error("Failed to connect to printer:", error);
-      toast.error("Gagal terhubung ke printer");
+      toast.error(`Gagal terhubung ke printer: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setConnecting(null);
     }
@@ -150,9 +157,12 @@ export const printReceipt = async (
     
     // Get currently connected device
     const connectedDevice = BluetoothPrinterService.getConnectedDevice();
+    console.log("Currently connected device:", connectedDevice);
     
     if (!connectedDevice) {
       console.log("No printer connected, scanning for printers");
+      toast.info("Tidak ada printer yang terhubung. Memindai printer...");
+      
       // If no device is connected, try to scan for printers
       const printers = await BluetoothPrinterService.scanForPrinters();
       
@@ -165,11 +175,15 @@ export const printReceipt = async (
       
       // Try to connect to the first printer
       console.log("Attempting to connect to printer:", printers[0]);
+      toast.info(`Mencoba menghubungkan ke printer: ${printers[0].name}...`);
+      
       const connected = await BluetoothPrinterService.connectToPrinter(printers[0]);
       if (!connected) {
         toast.error("Gagal terhubung ke printer");
         return false;
       }
+      
+      toast.success(`Terhubung ke printer: ${printers[0].name}`);
     } else {
       console.log("Using connected printer:", connectedDevice);
     }
@@ -179,7 +193,9 @@ export const printReceipt = async (
     const storeLocation = "TANGERANG";
     const storePhone = "083880863610";
     
+    toast.info("Mencetak struk...");
     console.log("Sending print command to printer");
+    
     const success = await BluetoothPrinterService.printReceipt(
       items,
       total,
@@ -198,7 +214,7 @@ export const printReceipt = async (
     return success;
   } catch (error) {
     console.error("Error printing receipt:", error);
-    toast.error("Gagal mencetak struk. Silakan coba lagi.");
+    toast.error(`Gagal mencetak struk: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return false;
   }
 };
