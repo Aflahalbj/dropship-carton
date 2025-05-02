@@ -2,13 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from '@/components/FormInputs';
+import { Check, Cash, CreditCard } from 'lucide-react';
 
 export interface CheckoutFormData {
   customerName?: string;
-  paymentMethod: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  paymentMethod: 'cash' | 'transfer';
   cashAmount?: number;
   changeAmount?: number;
   modifiedCart?: any[];
@@ -28,7 +30,9 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   isProcessing = false
 }) => {
   const [customerName, setCustomerName] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<string>('cash');
+  const [customerPhone, setCustomerPhone] = useState<string>('');
+  const [customerAddress, setCustomerAddress] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
   const [cashAmount, setCashAmount] = useState<number | undefined>(undefined);
   const [changeAmount, setChangeAmount] = useState<number>(0);
   
@@ -46,6 +50,13 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     // Set the cash amount to exactly match the cart total
     setCashAmount(cartTotal);
   };
+  
+  // Quick amount buttons
+  const quickAmounts = [1000000, 5000000, 10000000, 20000000];
+  
+  const handleQuickAmount = (amount: number) => {
+    setCashAmount(amount);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +67,8 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
     
     onSubmit({
       customerName: customerName || undefined,
+      customerPhone: customerPhone || undefined,
+      customerAddress: customerAddress || undefined,
       paymentMethod,
       cashAmount,
       changeAmount: paymentMethod === 'cash' ? changeAmount : undefined
@@ -64,69 +77,104 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="border rounded-lg p-6 bg-card">
-      <h3 className="font-medium text-lg mb-4">Checkout</h3>
+      <h3 className="font-medium text-lg mb-4">Informasi Pelanggan</h3>
       
       <div className="space-y-4">
         <div>
+          <Label htmlFor="customerName">Nama Pelanggan (Opsional)</Label>
           <Input
-            placeholder="Nama Pelanggan (Opsional)"
+            id="customerName"
+            placeholder="Nama pelanggan"
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
+            className="mt-1"
           />
         </div>
         
         <div>
-          <div className="flex justify-between mb-1">
-            <span>Total Belanja</span>
-            <span className="font-medium">Rp{cartTotal.toLocaleString('id-ID')}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground text-sm">Profit</span>
-            <span className="text-muted-foreground text-sm">Rp{cartProfit.toLocaleString('id-ID')}</span>
-          </div>
+          <Label htmlFor="customerPhone">Nomor Telepon (Opsional)</Label>
+          <Input
+            id="customerPhone"
+            placeholder="Nomor telepon pelanggan"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)}
+            className="mt-1"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="customerAddress">Alamat (Opsional)</Label>
+          <Input
+            id="customerAddress"
+            placeholder="Alamat pelanggan"
+            value={customerAddress}
+            onChange={(e) => setCustomerAddress(e.target.value)}
+            className="mt-1"
+          />
         </div>
         
         <div className="space-y-2">
-          <span className="text-sm font-medium">Metode Pembayaran</span>
-          <RadioGroup 
-            defaultValue="cash" 
-            value={paymentMethod}
-            onValueChange={setPaymentMethod}
-            className="flex flex-col space-y-1"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="cash" id="cash" />
-              <Label htmlFor="cash">Tunai</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="transfer" id="transfer" />
-              <Label htmlFor="transfer">Transfer</Label>
-            </div>
-          </RadioGroup>
+          <Label>Metode Pembayaran</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant={paymentMethod === 'cash' ? 'default' : 'outline'}
+              onClick={() => setPaymentMethod('cash')}
+              className="justify-center py-6"
+            >
+              <Cash className="mr-2" size={20} />
+              Tunai
+            </Button>
+            <Button
+              type="button"
+              variant={paymentMethod === 'transfer' ? 'default' : 'outline'}
+              onClick={() => setPaymentMethod('transfer')}
+              className="justify-center py-6"
+            >
+              <CreditCard className="mr-2" size={20} />
+              Transfer
+            </Button>
+          </div>
         </div>
         
         {paymentMethod === 'cash' && (
           <>
             <div className="space-y-1">
               <Label htmlFor="cash-amount">Jumlah Uang Tunai</Label>
-              <div className="flex gap-2">
+              <div className="relative">
                 <CurrencyInput
                   id="cash-amount"
                   initialValue={cashAmount?.toString()}
                   onChange={(value) => setCashAmount(value)}
-                  placeholder="0"
-                  className="flex-1"
+                  placeholder="Masukkan jumlah uang"
+                  className="w-full"
                 />
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleExactAmount}
-                  className="whitespace-nowrap"
-                >
-                  Uang Pas
-                </Button>
               </div>
             </div>
+            
+            <div className="grid grid-cols-4 gap-2">
+              {quickAmounts.map((amount) => (
+                <Button
+                  key={amount}
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleQuickAmount(amount)}
+                  className="text-sm"
+                >
+                  {(amount / 1000000).toFixed(0)}.{amount % 1000000 === 0 ? '000' : ''}
+                  {amount >= 1000000 ? ' juta' : ''}
+                </Button>
+              ))}
+            </div>
+            
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleExactAmount}
+              className="w-full"
+            >
+              Uang Pas: {cartTotal.toLocaleString('id-ID')}
+            </Button>
             
             <div className="flex justify-between items-center pt-2">
               <Label>Kembalian:</Label>
@@ -138,12 +186,36 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         )}
       </div>
       
+      <div className="mt-6 space-y-2">
+        <div className="flex justify-between items-center">
+          <span className="text-muted-foreground">Subtotal:</span>
+          <span className="font-medium">Rp{cartTotal.toLocaleString('id-ID')}</span>
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <span className="text-muted-foreground">Estimasi Profit:</span>
+          <span className="text-blue-500 font-medium">Rp{cartProfit.toLocaleString('id-ID')}</span>
+        </div>
+        
+        <div className="flex justify-between items-center text-lg font-bold">
+          <span>Total:</span>
+          <span>Rp{cartTotal.toLocaleString('id-ID')}</span>
+        </div>
+      </div>
+      
       <Button 
         type="submit" 
-        className="w-full mt-6" 
+        className="w-full mt-4 py-6" 
         disabled={isProcessing || (paymentMethod === 'cash' && (!cashAmount || cashAmount < cartTotal))}
       >
-        {isProcessing ? "Memproses..." : "Proses Pembayaran"}
+        {isProcessing ? (
+          "Memproses..."
+        ) : (
+          <>
+            <Check className="mr-2" size={20} />
+            Selesaikan Penjualan
+          </>
+        )}
       </Button>
     </form>
   );

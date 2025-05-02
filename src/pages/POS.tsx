@@ -62,6 +62,8 @@ const POS: React.FC = () => {
       profit: posCart.reduce((total, item) => total + (item.product.price - item.product.supplierPrice) * item.quantity, 0),
       type: 'sale' as const,
       customerName: formData.customerName,
+      customerPhone: formData.customerPhone,
+      customerAddress: formData.customerAddress,
       paymentMethod: formData.paymentMethod as 'cash' | 'transfer',
       cashAmount: formData.cashAmount,
       changeAmount: formData.changeAmount
