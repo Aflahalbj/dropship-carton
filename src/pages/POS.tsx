@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -63,7 +62,7 @@ const POS: React.FC = () => {
       profit: posCart.reduce((total, item) => total + (item.product.price - item.product.supplierPrice) * item.quantity, 0),
       type: 'sale' as const,
       customerName: formData.customerName,
-      paymentMethod: formData.paymentMethod,
+      paymentMethod: formData.paymentMethod as 'cash' | 'transfer',
       cashAmount: formData.cashAmount,
       changeAmount: formData.changeAmount
     };
