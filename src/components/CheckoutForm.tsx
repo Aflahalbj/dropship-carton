@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from '@/components/FormInputs';
 import { Check, Banknote, CreditCard } from 'lucide-react';
+
 export interface CheckoutFormData {
   customerName?: string;
   customerPhone?: string;
@@ -13,12 +15,14 @@ export interface CheckoutFormData {
   changeAmount?: number;
   modifiedCart?: any[];
 }
+
 interface CheckoutFormProps {
   cartTotal: number;
   cartProfit: number;
   onSubmit: (data: CheckoutFormData) => void;
   isProcessing: boolean;
 }
+
 export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   cartTotal,
   cartProfit,
@@ -41,6 +45,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       setChangeAmount(0);
     }
   }, [cashAmount, cartTotal, paymentMethod]);
+  
   const handleExactAmount = () => {
     // Set the cash amount to exactly match the cart total
     setCashAmount(cartTotal);
@@ -51,11 +56,13 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
   const handleQuickAmount = (amount: number) => {
     setCashAmount(amount);
   };
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (paymentMethod === 'cash' && (!cashAmount || cashAmount < cartTotal)) {
       return; // Don't submit if cash amount is insufficient
     }
+    
     onSubmit({
       customerName: customerName || undefined,
       customerPhone: customerPhone || undefined,
@@ -65,6 +72,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
       changeAmount: paymentMethod === 'cash' ? changeAmount : undefined
     });
   };
+  
   return <form onSubmit={handleSubmit} className="border rounded-lg p-6 bg-card">
       <h3 className="font-medium text-lg mb-4">Informasi Pelanggan</h3>
       
@@ -101,16 +109,19 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
         {paymentMethod === 'cash' && <>
             <div className="space-y-1">
               <Label htmlFor="cash-amount">Jumlah Uang Tunai</Label>
-              <div className="relative">
+              <div className="relative flex items-center">
                 <CurrencyInput id="cash-amount" initialValue={cashAmount?.toString()} onChange={value => setCashAmount(value)} placeholder="Masukkan jumlah uang" className="w-full" />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleExactAmount} 
+                  className="ml-2 h-10 w-10 p-0 flex items-center justify-center"
+                  title="Uang pas"
+                >
+                  <Check size={16} />
+                </Button>
               </div>
             </div>
-            
-            
-            
-            <Button type="button" variant="outline" onClick={handleExactAmount} className="w-full">
-              Uang Pas: {cartTotal.toLocaleString('id-ID')}
-            </Button>
             
             <div className="flex justify-between items-center pt-2">
               <Label>Kembalian:</Label>

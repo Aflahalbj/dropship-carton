@@ -51,12 +51,13 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
         return;
       }
       
-      const foundPrinters = await BluetoothPrinterService.scanForPrinters();
+      // Use longer scan duration to find more devices
+      const foundPrinters = await BluetoothPrinterService.scanForPrinters(15000);
       console.log('Found printers:', foundPrinters);
       
       if (foundPrinters.length === 0) {
-        toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan.", {
-          duration: 3000
+        toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing.", {
+          duration: 5000
         });
         return;
       }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +7,14 @@ import { useAppContext } from "@/context/AppContext";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Check, Banknote, CreditCard } from 'lucide-react';
+
 interface PurchaseCheckoutFormProps {
   purchaseTotal: number;
   currentCapital: number;
   onCheckout: () => void;
   isProcessing: boolean;
 }
+
 export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
   purchaseTotal,
   currentCapital,
@@ -34,6 +37,7 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
       setChangeAmount(0);
     }
   }, [cashValue, purchaseTotal, paymentMethod]);
+  
   const handleExactAmount = () => {
     // Set the cash value to exactly match the purchase total
     setCashValue(purchaseTotal);
@@ -44,6 +48,7 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
   const handleQuickAmount = (amount: number) => {
     setCashValue(amount);
   };
+  
   const handleCheckout = () => {
     if (paymentMethod === 'cash' && (!cashValue || cashValue < purchaseTotal)) {
       toast.error("Jumlah uang tunai harus mencukupi total pembayaran", {
@@ -51,14 +56,17 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
       });
       return;
     }
+    
     if (purchaseTotal > currentCapital) {
       toast.error("Modal tidak mencukupi untuk pembelian ini", {
         duration: 3000
       });
       return;
     }
+    
     onCheckout();
   };
+  
   return <div className="border rounded-lg p-6 bg-card">
       <h3 className="font-medium text-lg mb-4">Informasi Supplier</h3>
       
@@ -95,16 +103,19 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
         {paymentMethod === 'cash' && <>
             <div className="space-y-1">
               <Label htmlFor="cash-amount">Jumlah Uang Tunai</Label>
-              <div className="relative">
+              <div className="relative flex items-center">
                 <CurrencyInput id="cash-amount" initialValue={cashValue?.toString()} onChange={value => setCashValue(value)} placeholder="Masukkan jumlah uang" className="w-full" />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleExactAmount} 
+                  className="ml-2 h-10 w-10 p-0 flex items-center justify-center"
+                  title="Uang pas"
+                >
+                  <Check size={16} />
+                </Button>
               </div>
             </div>
-            
-            
-            
-            <Button type="button" variant="outline" onClick={handleExactAmount} className="w-full">
-              Uang Pas: {purchaseTotal.toLocaleString('id-ID')}
-            </Button>
             
             <div className="flex justify-between items-center pt-2">
               <Label>Kembalian:</Label>
@@ -133,4 +144,5 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
       </Button>
     </div>;
 };
+
 export default PurchaseCheckoutForm;

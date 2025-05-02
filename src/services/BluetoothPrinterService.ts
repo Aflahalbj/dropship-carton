@@ -51,13 +51,13 @@ class BluetoothPrinterServiceClass {
     }
   }
 
-  async scanForPrinters(): Promise<PrinterDevice[]> {
+  async scanForPrinters(scanDuration: number = 10000): Promise<PrinterDevice[]> {
     try {
       await this.init();
-      console.log('Scanning for Bluetooth printers...');
+      console.log(`Scanning for Bluetooth printers with ${scanDuration}ms duration...`);
       
       const result = await BluetoothPrinter.scan({
-        scanDuration: 5000  // 5 seconds scan
+        scanDuration: scanDuration
       });
       
       if (!result.value) {
