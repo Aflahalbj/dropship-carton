@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bluetooth, Loader2 } from 'lucide-react';
+import { Bluetooth, Loader2, AlertCircle, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,7 +8,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PrinterDevice } from "@/services/BluetoothPrinterService";
 
 interface BluetoothPrinterDialogProps {
@@ -19,6 +22,8 @@ interface BluetoothPrinterDialogProps {
   onConnectPrinter: (printer: PrinterDevice) => Promise<void>;
   onRescan: () => Promise<void>;
   isScanning: boolean;
+  showTroubleshooting?: boolean;
+  onToggleTroubleshooting?: () => void;
 }
 
 const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
@@ -28,11 +33,43 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
   connecting,
   onConnectPrinter,
   onRescan,
-  isScanning
+  isScanning,
+  showTroubleshooting = false,
+  onToggleTroubleshooting,
 }) => {
+  const troubleshootingTips = [
+    {
+      title: "Printer Tidak Terdeteksi",
+      tips: [
+        "Pastikan printer dalam mode pairing (biasanya dengan menekan tombol pada printer).",
+        "Pastikan printer dinyalakan dan baterai dalam kondisi baik.",
+        "Pastikan printer berada dalam jangkauan Bluetooth (biasanya 10 meter).",
+        "Coba matikan dan nyalakan kembali printer.",
+      ]
+    },
+    {
+      title: "Masalah Koneksi",
+      tips: [
+        "Pastikan tidak ada perangkat lain yang terhubung dengan printer.",
+        "Coba hapus pairing yang ada di pengaturan Bluetooth Android.",
+        "Restart perangkat Android Anda dan coba lagi.",
+        "Pastikan Android Anda versi 6.0 atau lebih tinggi.",
+      ]
+    },
+    {
+      title: "Izin yang Dibutuhkan",
+      tips: [
+        "Izin Lokasi (diperlukan untuk memindai Bluetooth pada Android)",
+        "Izin Bluetooth",
+        "Izin Bluetooth Admin",
+        "Pastikan semua izin diberikan di Pengaturan aplikasi.",
+      ]
+    }
+  ];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Perangkat Printer Bluetooth</DialogTitle>
           <DialogDescription>
@@ -62,27 +99,71 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
               </Button>
             ))
           ) : (
-            <p className="text-center py-4 text-gray-500">Tidak ada printer yang ditemukan</p>
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing.
+              </AlertDescription>
+            </Alert>
           )}
         </div>
         
-        <Button 
-          className="w-full mt-2" 
-          onClick={onRescan}
-          disabled={isScanning}
-        >
-          {isScanning ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Memindai...
-            </>
-          ) : (
-            <>
-              <Bluetooth className="mr-2 h-4 w-4" />
-              Pindai Ulang
-            </>
-          )}
-        </Button>
+        {showTroubleshooting && (
+          <div className="mt-4 border rounded-lg p-3 bg-muted/50">
+            <Accordion type="single" collapsible className="w-full">
+              {troubleshootingTips.map((section, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-sm font-medium">{section.title}</AccordionTrigger>
+                  <AccordionContent>
+                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                      {section.tips.map((tip, tipIndex) => (
+                        <li key={tipIndex}>{tip}</li>
+                      ))}
+                    </ul>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        )}
+        
+        <DialogFooter className="flex sm:justify-between">
+          <Button 
+            className="w-full mt-2" 
+            onClick={onRescan}
+            disabled={isScanning}
+          >
+            {isScanning ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Memindai...
+              </>
+            ) : (
+              <>
+                <Bluetooth className="mr-2 h-4 w-4" />
+                Pindai Ulang
+              </>
+            )}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="w-full mt-2" 
+            onClick={onToggleTroubleshooting}
+          >
+            {showTroubleshooting ? (
+              <>
+                <X className="mr-2 h-4 w-4" />
+                Sembunyikan Bantuan
+              </>
+            ) : (
+              <>
+                <AlertCircle className="mr-2 h-4 w-4" />
+                Lihat Bantuan
+              </>
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

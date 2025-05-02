@@ -40,13 +40,18 @@ export const printReceipt = async (
       toast.info("Tidak ada printer yang terhubung. Memindai printer...");
       
       try {
+        // Initialize printer system first
+        await BluetoothPrinterService.init();
+        
         // If no device is connected, try to scan for printers
-        const printers = await BluetoothPrinterService.scanForPrinters();
+        const printers = await BluetoothPrinterService.scanForPrinters(20000);
         
         console.log("Found printers:", printers);
         
         if (printers.length === 0) {
-          toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan.");
+          toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing.", {
+            duration: 5000
+          });
           return false;
         }
         
@@ -58,14 +63,18 @@ export const printReceipt = async (
         toast.dismiss("connecting-printer");
         
         if (!connected) {
-          toast.error("Gagal terhubung ke printer. Periksa koneksi dan coba lagi.");
+          toast.error("Gagal terhubung ke printer. Coba cek panduan pemecahan masalah.", {
+            duration: 5000
+          });
           return false;
         }
         
         toast.success(`Terhubung ke printer: ${printers[0].name}`);
       } catch (error) {
         console.error("Error scanning/connecting to printer:", error);
-        toast.error("Periksa apakah printer Bluetooth Anda kompatibel dan terhubung");
+        toast.error("Periksa apakah printer Bluetooth Anda kompatibel dan dalam mode pairing", {
+          duration: 5000
+        });
         return false;
       }
     }
@@ -104,7 +113,7 @@ export const printReceipt = async (
       toast.success("Struk berhasil dicetak!");
       return true;
     } else {
-      toast.error("Gagal mencetak struk. Silakan coba lagi.");
+      toast.error("Gagal mencetak struk. Periksa koneksi printer dan coba lagi.");
       return false;
     }
     

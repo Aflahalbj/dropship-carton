@@ -13,6 +13,11 @@ const config: CapacitorConfig = {
   plugins: {
     CapacitorHttp: {
       enabled: true
+    },
+    BluetoothPrinter: {
+      // Printer configurations
+      scanDuration: 20000, // 20 seconds for thorough scanning
+      reconnectAttempts: 3  // Try reconnecting up to 3 times
     }
   },
   android: {
