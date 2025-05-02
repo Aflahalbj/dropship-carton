@@ -1,191 +1,150 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { CurrencyInput, TextInput } from './FormInputs';
-import { useFormValidation } from '@/utils/form-helpers';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Check, CreditCard, Wallet, Phone, MapPin } from 'lucide-react';
-import { toast } from 'sonner';
-import { useAppContext } from '@/context/AppContext';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { CurrencyInput } from '@/components/FormInputs';
+
+interface CheckoutFormData {
+  customerName?: string;
+  paymentMethod: string;
+  cashAmount?: number;
+  changeAmount?: number;
+  modifiedCart?: any[];
+}
 
 interface CheckoutFormProps {
   cartTotal: number;
   cartProfit: number;
-  onSubmit: (formData: CheckoutFormData) => void;
+  onSubmit: (data: CheckoutFormData) => void;
   isProcessing: boolean;
 }
 
-export interface CheckoutFormData {
-  customerName: string;
-  customerPhone: string; // Added customer phone
-  customerAddress: string; // Added customer address
-  paymentMethod: 'cash' | 'transfer';
-  cashAmount: number;
-  changeAmount: number; // Added changeAmount property
-  modifiedCart?: any[]; 
-}
-
-export const CheckoutForm: React.FC<CheckoutFormProps> = ({
-  cartTotal,
+export const CheckoutForm: React.FC<CheckoutFormProps> = ({ 
+  cartTotal, 
   cartProfit,
   onSubmit,
-  isProcessing
+  isProcessing = false
 }) => {
-  // Form state
   const [customerName, setCustomerName] = useState<string>('');
-  const [customerPhone, setCustomerPhone] = useState<string>(''); // New state for customer phone
-  const [customerAddress, setCustomerAddress] = useState<string>(''); // New state for customer address
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer'>('cash');
-  const [cashAmount, setCashAmount] = useState<number>(0);
-
-  // Form validation
-  const {
-    errors,
-    setErrors,
-    validateForm
-  } = useFormValidation();
-
-  // Calculated values
-  const changeAmount = paymentMethod === 'cash' ? Math.max(0, cashAmount - cartTotal) : 0;
-  const handleSubmit = () => {
-    // Validate form fields
-    const fieldsToValidate: Record<string, any> = {
-      cashAmount: paymentMethod === 'cash' ? cashAmount : true
-    };
-    const isValid = validateForm(fieldsToValidate);
-
-    // Additional validation for cash payment
-    if (paymentMethod === 'cash' && cashAmount < cartTotal) {
-      setErrors(prev => ({
-        ...prev,
-        cashAmount: 'Jumlah uang tunai tidak mencukupi'
-      }));
-      return;
-    }
-    if (isValid) {
-      onSubmit({
-        customerName,
-        customerPhone,
-        customerAddress,
-        paymentMethod,
-        cashAmount,
-        changeAmount // Pass the calculated changeAmount
-      });
+  const [paymentMethod, setPaymentMethod] = useState<string>('cash');
+  const [cashAmount, setCashAmount] = useState<number | undefined>(undefined);
+  const [changeAmount, setChangeAmount] = useState<number>(0);
+  
+  // Calculate change whenever cash value or payment method changes
+  useEffect(() => {
+    if (paymentMethod === 'cash' && typeof cashAmount === 'number') {
+      const change = cashAmount - cartTotal;
+      setChangeAmount(change >= 0 ? change : 0);
     } else {
-      toast.error('Mohon lengkapi semua field yang diperlukan', {
-        duration: 1000
-      });
+      setChangeAmount(0);
     }
-  };
-  const handleQuickAmount = (amount: number) => {
-    setCashAmount(amount);
-  };
-  const setExactAmount = () => {
+  }, [cashAmount, cartTotal, paymentMethod]);
+
+  const handleExactAmount = () => {
+    // Set the cash amount to exactly match the cart total
     setCashAmount(cartTotal);
   };
-  return <Card className="p-5">
-      <h3 className="font-medium text-lg mb-4">Informasi Pelanggan</h3>
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (paymentMethod === 'cash' && (!cashAmount || cashAmount < cartTotal)) {
+      return; // Don't submit if cash amount is insufficient
+    }
+    
+    onSubmit({
+      customerName: customerName || undefined,
+      paymentMethod,
+      cashAmount,
+      changeAmount: paymentMethod === 'cash' ? changeAmount : undefined
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="border rounded-lg p-6 bg-card">
+      <h3 className="font-medium text-lg mb-4">Checkout</h3>
       
       <div className="space-y-4">
-        <TextInput 
-          id="customerName" 
-          label="Nama Pelanggan (Opsional)" 
-          placeholder="Nama pelanggan" 
-          onChange={setCustomerName} 
-          error={errors.customerName} 
-        />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <TextInput 
-            id="customerPhone" 
-            label="Nomor Telepon (Opsional)" 
-            placeholder="Nomor telepon pelanggan" 
-            onChange={setCustomerPhone}
-            error={errors.customerPhone}
-          />
-          
-          <TextInput 
-            id="customerAddress" 
-            label="Alamat (Opsional)" 
-            placeholder="Alamat pelanggan" 
-            onChange={setCustomerAddress}
-            error={errors.customerAddress}
+        <div>
+          <Input
+            placeholder="Nama Pelanggan (Opsional)"
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
           />
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-muted-foreground mb-1">
-            Metode Pembayaran
-          </label>
-          <Tabs defaultValue="cash" className="w-full" value={paymentMethod} onValueChange={v => setPaymentMethod(v as 'cash' | 'transfer')}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="cash" className="flex items-center gap-1">
-                <Wallet size={16} />
-                Tunai
-              </TabsTrigger>
-              <TabsTrigger value="transfer" className="flex items-center gap-1">
-                <CreditCard size={16} />
-                Transfer
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="cash" className="space-y-4 mt-2">
-              <CurrencyInput id="cashAmount" label="Jumlah Uang Tunai" placeholder="Masukkan jumlah uang" onChange={setCashAmount} error={errors.cashAmount} />
-              
-              <div className="grid grid-cols-4 gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAmount(1000000)} className="text-xs">
-                  1.000.000
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAmount(5000000)} className="text-xs">
-                  5.000.000
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAmount(10000000)} className="text-xs">
-                  10.000.000
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => handleQuickAmount(20000000)} className="text-xs">
-                  20.000.000
-                </Button>
-                <Button type="button" variant="outline" size="sm" onClick={setExactAmount} className="col-span-4 mt-1 text-xs">
-                  Uang Pas: {cartTotal.toLocaleString('id-ID')}
-                </Button>
-              </div>
-              
-              {cashAmount > 0 && <div className="pt-2 border-t">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Kembalian:</span>
-                    <span className="font-medium">
-                      Rp{changeAmount.toLocaleString('id-ID')}
-                    </span>
-                  </div>
-                </div>}
-            </TabsContent>
-            <TabsContent value="transfer" className="space-y-4 mt-2">
-              <div className="p-2 bg-accent rounded-md text-sm">
-                Pembayaran akan dilakukan melalui transfer bank
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-        
-        <div className="space-y-3 pt-4 border-t">
+          <div className="flex justify-between mb-1">
+            <span>Total Belanja</span>
+            <span className="font-medium">Rp{cartTotal.toLocaleString('id-ID')}</span>
+          </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Subtotal:</span>
-            <span>Rp{cartTotal.toLocaleString('id-ID')}</span>
-          </div>
-          <div className="flex justify-between font-medium">
-            <span className="text-muted-foreground">Estimasi Profit:</span>
-            <span className="text-primary">Rp{cartProfit.toLocaleString('id-ID')}</span>
-          </div>
-          <div className="flex justify-between text-lg font-semibold">
-            <span>Total:</span>
-            <span>Rp{cartTotal.toLocaleString('id-ID')}</span>
+            <span className="text-muted-foreground text-sm">Profit</span>
+            <span className="text-muted-foreground text-sm">Rp{cartProfit.toLocaleString('id-ID')}</span>
           </div>
         </div>
         
-        <Button className="w-full bg-primary text-white flex items-center justify-center gap-2 mt-4" onClick={handleSubmit} disabled={isProcessing || paymentMethod === 'cash' && cashAmount < cartTotal}>
-          <Check size={18} />
-          Selesaikan Penjualan
-        </Button>
+        <div className="space-y-2">
+          <span className="text-sm font-medium">Metode Pembayaran</span>
+          <RadioGroup 
+            defaultValue="cash" 
+            value={paymentMethod}
+            onValueChange={setPaymentMethod}
+            className="flex flex-col space-y-1"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="cash" id="cash" />
+              <Label htmlFor="cash">Tunai</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="transfer" id="transfer" />
+              <Label htmlFor="transfer">Transfer</Label>
+            </div>
+          </RadioGroup>
+        </div>
+        
+        {paymentMethod === 'cash' && (
+          <>
+            <div className="space-y-1">
+              <Label htmlFor="cash-amount">Jumlah Uang Tunai</Label>
+              <div className="flex gap-2">
+                <CurrencyInput
+                  id="cash-amount"
+                  value={cashAmount}
+                  onChange={(value) => setCashAmount(value)}
+                  placeholder="0"
+                  className="flex-1"
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleExactAmount}
+                  className="whitespace-nowrap"
+                >
+                  Uang Pas
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center pt-2">
+              <Label>Kembalian:</Label>
+              <span className="text-lg font-medium">
+                Rp{changeAmount.toLocaleString('id-ID')}
+              </span>
+            </div>
+          </>
+        )}
       </div>
-    </Card>;
+      
+      <Button 
+        type="submit" 
+        className="w-full mt-6" 
+        disabled={isProcessing || (paymentMethod === 'cash' && (!cashAmount || cashAmount < cartTotal))}
+      >
+        {isProcessing ? "Memproses..." : "Proses Pembayaran"}
+      </Button>
+    </form>
+  );
 };

@@ -39,29 +39,35 @@ export const printReceipt = async (
       console.log("No printer connected, scanning for printers");
       toast.info("Tidak ada printer yang terhubung. Memindai printer...");
       
-      // If no device is connected, try to scan for printers
-      const printers = await BluetoothPrinterService.scanForPrinters();
-      
-      console.log("Found printers:", printers);
-      
-      if (printers.length === 0) {
-        toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan.");
+      try {
+        // If no device is connected, try to scan for printers
+        const printers = await BluetoothPrinterService.scanForPrinters();
+        
+        console.log("Found printers:", printers);
+        
+        if (printers.length === 0) {
+          toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan.");
+          return false;
+        }
+        
+        // Try to connect to the first printer
+        console.log("Attempting to connect to printer:", printers[0]);
+        toast.loading(`Mencoba menghubungkan ke printer: ${printers[0].name}...`, { id: "connecting-printer" });
+        
+        const connected = await BluetoothPrinterService.connectToPrinter(printers[0]);
+        toast.dismiss("connecting-printer");
+        
+        if (!connected) {
+          toast.error("Gagal terhubung ke printer. Periksa koneksi dan coba lagi.");
+          return false;
+        }
+        
+        toast.success(`Terhubung ke printer: ${printers[0].name}`);
+      } catch (error) {
+        console.error("Error scanning/connecting to printer:", error);
+        toast.error("Periksa apakah printer Bluetooth Anda kompatibel dan terhubung");
         return false;
       }
-      
-      // Try to connect to the first printer
-      console.log("Attempting to connect to printer:", printers[0]);
-      toast.loading(`Mencoba menghubungkan ke printer: ${printers[0].name}...`, { id: "connecting-printer" });
-      
-      const connected = await BluetoothPrinterService.connectToPrinter(printers[0]);
-      toast.dismiss("connecting-printer");
-      
-      if (!connected) {
-        toast.error("Gagal terhubung ke printer. Periksa koneksi dan coba lagi.");
-        return false;
-      }
-      
-      toast.success(`Terhubung ke printer: ${printers[0].name}`);
     }
     
     // Prepare receipt data

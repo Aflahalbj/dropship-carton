@@ -44,8 +44,52 @@ export const createPluginProxy = (name: string) => {
   }
   
   try {
-    // Use a dynamic import to prevent bundling issues
-    return registerPlugin(name);
+    // Try to use the plugin on native platforms
+    const plugin = registerPlugin(name);
+    
+    // Return a wrapped plugin that handles potential implementation issues
+    return {
+      initialize: async () => {
+        try {
+          return await plugin.initialize();
+        } catch (error) {
+          console.error(`${name}.initialize() failed:`, error);
+          return { value: false };
+        }
+      },
+      scan: async (options?: any) => {
+        try {
+          return await plugin.scan(options);
+        } catch (error) {
+          console.error(`${name}.scan() failed:`, error);
+          return { value: false, devices: [] };
+        }
+      },
+      connect: async (options: any) => {
+        try {
+          return await plugin.connect(options);
+        } catch (error) {
+          console.error(`${name}.connect() failed:`, error);
+          return { value: false };
+        }
+      },
+      disconnect: async () => {
+        try {
+          return await plugin.disconnect();
+        } catch (error) {
+          console.error(`${name}.disconnect() failed:`, error);
+          return { value: false };
+        }
+      },
+      print: async (options: any) => {
+        try {
+          return await plugin.print(options);
+        } catch (error) {
+          console.error(`${name}.print() failed:`, error);
+          return { value: false };
+        }
+      }
+    };
   } catch (error) {
     console.error(`Failed to initialize ${name} plugin:`, error);
     // Return mock implementation as fallback
