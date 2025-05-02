@@ -8,5 +8,6 @@ declare module 'capacitor-bluetooth-printer' {
     print(options: { text: string }): Promise<{ value: boolean }>;
   }
   
+  // Export the plugin instance
   export const BluetoothPrinter: BluetoothPrinterPlugin;
 }

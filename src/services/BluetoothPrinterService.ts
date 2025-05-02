@@ -2,6 +2,7 @@
 import { Capacitor } from '@capacitor/core';
 import { BluetoothPrinter } from 'capacitor-bluetooth-printer';
 import { toast } from 'sonner';
+import '../utils/capacitorShim'; // Import our shim to ensure compatibility
 
 export interface PrinterDevice {
   id: string;
