@@ -76,7 +76,7 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
           <div className="flex gap-2">
             <CurrencyInput
               id="cash-amount"
-              value={cashValue}
+              initialValue={cashValue?.toString()}
               onChange={(value) => setCashValue(value)}
               placeholder="0"
               className="flex-1"

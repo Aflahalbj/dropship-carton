@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
@@ -9,7 +10,8 @@ import { Search, ArrowUpDown, ShoppingCart, X, Check, ChevronsLeft, Trash2 } fro
 import { useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { CheckoutForm, CheckoutFormData } from '@/components/CheckoutForm';
+import { CheckoutForm } from '@/components/CheckoutForm';
+import type { CheckoutFormData } from '@/components/CheckoutForm';
 import CartItemPriceEditor from '@/components/CartItemPriceEditor';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 

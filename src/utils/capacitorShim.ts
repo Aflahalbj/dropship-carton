@@ -6,6 +6,15 @@ import { Capacitor } from '@capacitor/core';
  * This file provides compatibility for plugins that use outdated Capacitor APIs
  */
 
+// Define plugin interfaces for type safety
+interface BluetoothPrinterPluginInterface {
+  initialize: () => Promise<{ value: boolean }>;
+  scan: (options?: { scanDuration?: number }) => Promise<{ value: boolean, devices?: Array<{ address: string, name: string }> }>;
+  connect: (options: { address: string }) => Promise<{ value: boolean }>;
+  disconnect: () => Promise<{ value: boolean }>;
+  print: (options: { text: string }) => Promise<{ value: boolean }>;
+}
+
 // Create a compatibility layer for old plugins using registerWebPlugin
 export function registerWebPluginShim(plugin: any) {
   // In Capacitor 7+, registerWebPlugin is not needed, but
@@ -29,7 +38,7 @@ export function safeRegisterPlugin(name: string, plugin: any) {
 (window as any).registerWebPlugin = registerWebPluginShim;
 
 // Create a proxy for BluetoothPrinter to avoid direct import issues
-export const createPluginProxy = (name: string) => {
+export const createPluginProxy = (name: string): BluetoothPrinterPluginInterface => {
   // Only initialize on native platforms
   if (!Capacitor.isNativePlatform()) {
     console.log(`${name} plugin is only available on native platforms.`);
@@ -45,7 +54,7 @@ export const createPluginProxy = (name: string) => {
   
   try {
     // Try to use the plugin on native platforms
-    const plugin = registerPlugin(name);
+    const plugin = registerPlugin(name) as any;
     
     // Return a wrapped plugin that handles potential implementation issues
     return {

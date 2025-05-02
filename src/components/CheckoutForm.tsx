@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from '@/components/FormInputs';
 
-interface CheckoutFormData {
+export interface CheckoutFormData {
   customerName?: string;
   paymentMethod: string;
   cashAmount?: number;
@@ -112,7 +112,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
               <div className="flex gap-2">
                 <CurrencyInput
                   id="cash-amount"
-                  value={cashAmount}
+                  initialValue={cashAmount?.toString()}
                   onChange={(value) => setCashAmount(value)}
                   placeholder="0"
                   className="flex-1"
