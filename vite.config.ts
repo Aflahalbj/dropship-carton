@@ -27,5 +27,9 @@ export default defineConfig(({ mode }) => ({
     commonjsOptions: {
       transformMixedEsModules: true, // Handle mixed module formats
     },
+    rollupOptions: {
+      // External packages that shouldn't be bundled
+      external: ['capacitor-bluetooth-printer'],
+    }
   }
 }));

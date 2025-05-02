@@ -27,3 +27,33 @@ export function safeRegisterPlugin(name: string, plugin: any) {
 // Mock implementation of registerWebPlugin for compatibility
 (window as any).registerWebPlugin = registerWebPluginShim;
 
+// Create a proxy for BluetoothPrinter to avoid direct import issues
+export const createPluginProxy = (name: string) => {
+  // Only initialize on native platforms
+  if (!Capacitor.isNativePlatform()) {
+    console.log(`${name} plugin is only available on native platforms.`);
+    // Return mock implementation for web
+    return {
+      initialize: async () => ({ value: false }),
+      scan: async () => ({ value: false, devices: [] }),
+      connect: async () => ({ value: false }),
+      disconnect: async () => ({ value: false }),
+      print: async () => ({ value: false })
+    };
+  }
+  
+  try {
+    // Use a dynamic import to prevent bundling issues
+    return registerPlugin(name);
+  } catch (error) {
+    console.error(`Failed to initialize ${name} plugin:`, error);
+    // Return mock implementation as fallback
+    return {
+      initialize: async () => ({ value: false }),
+      scan: async () => ({ value: false, devices: [] }),
+      connect: async () => ({ value: false }),
+      disconnect: async () => ({ value: false }),
+      print: async () => ({ value: false })
+    };
+  }
+};

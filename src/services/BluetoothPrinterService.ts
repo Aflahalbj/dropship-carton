@@ -1,8 +1,10 @@
 
 import { Capacitor } from '@capacitor/core';
-import { BluetoothPrinter } from 'capacitor-bluetooth-printer';
 import { toast } from 'sonner';
-import '../utils/capacitorShim'; // Import our shim to ensure compatibility
+import { createPluginProxy } from '../utils/capacitorShim';
+
+// Create a proxy for the BluetoothPrinter plugin to avoid direct import issues
+const BluetoothPrinter = createPluginProxy('BluetoothPrinter');
 
 export interface PrinterDevice {
   id: string;
