@@ -6,7 +6,7 @@ import { CurrencyInput } from '@/components/FormInputs';
 import { useAppContext } from "@/context/AppContext";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
-import { Check, Cash, CreditCard } from 'lucide-react';
+import { Check, Banknote, CreditCard } from 'lucide-react';
 
 interface PurchaseCheckoutFormProps {
   purchaseTotal: number;
@@ -115,7 +115,7 @@ export const PurchaseCheckoutForm: React.FC<PurchaseCheckoutFormProps> = ({
               onClick={() => setPaymentMethod('cash')}
               className="justify-center py-6"
             >
-              <Cash className="mr-2" size={20} />
+              <Banknote className="mr-2" size={20} />
               Tunai
             </Button>
             <Button

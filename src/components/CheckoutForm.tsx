@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
 import { Label } from "@/components/ui/label";
 import { CurrencyInput } from '@/components/FormInputs';
-import { Check, Cash, CreditCard } from 'lucide-react';
+import { Check, Banknote, CreditCard } from 'lucide-react';
 
 export interface CheckoutFormData {
   customerName?: string;
@@ -122,7 +121,7 @@ export const CheckoutForm: React.FC<CheckoutFormProps> = ({
               onClick={() => setPaymentMethod('cash')}
               className="justify-center py-6"
             >
-              <Cash className="mr-2" size={20} />
+              <Banknote className="mr-2" size={20} />
               Tunai
             </Button>
             <Button
