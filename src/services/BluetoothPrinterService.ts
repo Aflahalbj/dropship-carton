@@ -3,8 +3,17 @@ import { Capacitor } from '@capacitor/core';
 import { toast } from 'sonner';
 import { createPluginProxy } from '../utils/capacitorShim';
 
+// Define the plugin interface to ensure type safety
+interface BluetoothPrinterPlugin {
+  initialize: () => Promise<{ value: boolean }>;
+  scan: (options?: { scanDuration?: number }) => Promise<{ value: boolean, devices?: Array<{ address: string, name: string }> }>;
+  connect: (options: { address: string }) => Promise<{ value: boolean }>;
+  disconnect: () => Promise<{ value: boolean }>;
+  print: (options: { text: string }) => Promise<{ value: boolean }>;
+}
+
 // Create a proxy for the BluetoothPrinter plugin to avoid direct import issues
-const BluetoothPrinter = createPluginProxy('BluetoothPrinter');
+const BluetoothPrinter = createPluginProxy('BluetoothPrinter') as BluetoothPrinterPlugin;
 
 export interface PrinterDevice {
   id: string;

@@ -1,5 +1,6 @@
 
 import { registerPlugin } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * This file provides compatibility for plugins that use outdated Capacitor APIs
