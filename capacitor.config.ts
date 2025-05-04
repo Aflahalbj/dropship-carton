@@ -15,9 +15,16 @@ const config: CapacitorConfig = {
       enabled: true
     },
     BluetoothPrinter: {
-      // Printer configurations
-      scanDuration: 20000, // 20 seconds for thorough scanning
-      reconnectAttempts: 3  // Try reconnecting up to 3 times
+      // Enhanced printer configurations
+      scanDuration: 15000, // 15 seconds for thorough scanning
+      reconnectAttempts: 3,  // Try reconnecting up to 3 times
+      printerCommands: {
+        initialize: '\x1B@', // ESC @ - Initialize printer
+        alignCenter: '\x1B\x61\x01', // ESC a 1 - Center alignment
+        alignLeft: '\x1B\x61\x00', // ESC a 0 - Left alignment
+        feedLine: '\x0A', // LF - Line feed
+        cutPaper: '\x1D\x56\x42\x00', // GS V B 0 - Cut paper
+      }
     }
   },
   android: {

@@ -34,6 +34,24 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
           const device = BluetoothPrinterService.getConnectedDevice();
           if (device) {
             console.log("Already connected to printer:", device);
+          } else {
+            // Try to find paired printers and connect to first one
+            const pairedPrinters = await BluetoothPrinterService.getPairedPrinters();
+            if (pairedPrinters.length > 0) {
+              console.log("Found paired printers:", pairedPrinters);
+              // Try to connect to the first printer silently
+              try {
+                const connected = await BluetoothPrinterService.connectToPrinter(pairedPrinters[0]);
+                if (connected) {
+                  console.log("Auto-connected to paired printer:", pairedPrinters[0]);
+                  toast.success(`Terhubung otomatis ke printer: ${pairedPrinters[0].name}`, {
+                    duration: 3000
+                  });
+                }
+              } catch (error) {
+                console.error("Failed to auto-connect to paired printer:", error);
+              }
+            }
           }
         } catch (error) {
           console.error("Error initializing printer service:", error);
@@ -58,15 +76,30 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
         return;
       }
       
-      // Use longer scan duration to find more devices
-      const foundPrinters = await BluetoothPrinterService.scanForPrinters(20000);
-      console.log('Found printers:', foundPrinters);
+      // First, try to get paired printers
+      const pairedPrinters = await BluetoothPrinterService.getPairedPrinters();
+      console.log('Found paired printers:', pairedPrinters);
       
-      if (foundPrinters.length === 0) {
+      // Use longer scan duration to find more devices
+      const scannedPrinters = await BluetoothPrinterService.scanForPrinters(15000);
+      console.log('Found new printers from scan:', scannedPrinters);
+      
+      // Combine paired and scanned printers, avoiding duplicates
+      const allPrinters = [...pairedPrinters];
+      
+      scannedPrinters.forEach(printer => {
+        if (!allPrinters.some(p => p.address === printer.address)) {
+          allPrinters.push(printer);
+        }
+      });
+      
+      console.log('Combined printer list:', allPrinters);
+      
+      if (allPrinters.length === 0) {
         setShowTroubleshooting(true);
       }
       
-      setPrinters(foundPrinters);
+      setPrinters(allPrinters);
       setShowPrinterDialog(true);
     } catch (error) {
       console.error("Error scanning for printers:", error);
@@ -93,9 +126,15 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
         setShowTroubleshooting(false);
       } else {
         console.log('Failed to connect to printer');
+        toast.error("Gagal terhubung ke printer. Pastikan printer dalam mode pairing.", {
+          duration: 3000
+        });
       }
     } catch (error) {
       console.error("Failed to connect to printer:", error);
+      toast.error("Gagal terhubung ke printer. Coba restart printer dan aplikasi.", {
+        duration: 3000
+      });
     } finally {
       setConnecting(null);
     }

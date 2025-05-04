@@ -39,12 +39,22 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
 }) => {
   const troubleshootingTips = [
     {
+      title: "EcoPrint & Printer Thermal Lainnya",
+      tips: [
+        "Tekan dan tahan tombol power pada EcoPrint selama 3-5 detik hingga lampu indikator berkedip untuk mode pairing.",
+        "Pastikan printer sudah terisi daya atau baterai penuh.",
+        "Pastikan printer sudah memiliki kertas thermal yang terpasang dengan benar.",
+        "Jika printer tidak terdeteksi, reset printer dengan menekan tombol reset atau power selama 8-10 detik."
+      ]
+    },
+    {
       title: "Printer Tidak Terdeteksi",
       tips: [
         "Pastikan printer dalam mode pairing (biasanya dengan menekan tombol pada printer).",
         "Pastikan printer dinyalakan dan baterai dalam kondisi baik.",
-        "Pastikan printer berada dalam jangkauan Bluetooth (biasanya 10 meter).",
+        "Pastikan printer berada dalam jangkauan Bluetooth (biasanya 5-10 meter).",
         "Coba matikan dan nyalakan kembali printer.",
+        "Buka pengaturan Bluetooth di Android, hapus pasangan printer yang sudah ada (jika ada).",
       ]
     },
     {
@@ -54,6 +64,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
         "Coba hapus pairing yang ada di pengaturan Bluetooth Android.",
         "Restart perangkat Android Anda dan coba lagi.",
         "Pastikan Android Anda versi 6.0 atau lebih tinggi.",
+        "Periksa kertas printer dan pastikan sudah terpasang dengan benar.",
       ]
     },
     {
@@ -62,7 +73,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
         "Izin Lokasi (diperlukan untuk memindai Bluetooth pada Android)",
         "Izin Bluetooth",
         "Izin Bluetooth Admin",
-        "Pastikan semua izin diberikan di Pengaturan aplikasi.",
+        "Buka pengaturan aplikasi > Izin dan pastikan semua izin diberikan.",
       ]
     }
   ];
@@ -102,7 +113,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing.
+                Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing. Untuk printer EcoPrint, tekan tombol power selama 3-5 detik hingga lampu indikator berkedip.
               </AlertDescription>
             </Alert>
           )}

@@ -30,6 +30,15 @@ class BluetoothPrinterServiceClass {
   private lastScanTime: number = 0;
   private scanInProgress: boolean = false;
   private scanTimeoutId: any = null;
+  private printerModels: Record<string, string> = {
+    'EcoPrint': 'ESC/POS',
+    'MTP-': 'ESC/POS',
+    'MPT-': 'ESC/POS',
+    'HM-': 'ESC/POS',
+    'PTP-': 'ESC/POS',
+    'ZJ-': 'CPCL',
+    'CPCL': 'CPCL',
+  };
 
   constructor() {
     console.info('BluetoothPrinterService initialized:', {
@@ -77,6 +86,51 @@ class BluetoothPrinterServiceClass {
     }
   }
 
+  // Get already paired printers - essential for EcoPrint and other stable connections
+  async getPairedPrinters(): Promise<PrinterDevice[]> {
+    try {
+      if (!BluetoothPrinter.getPairedDevices) {
+        console.log("getPairedDevices method not available");
+        return [];
+      }
+      
+      await this.init();
+      
+      const result = await BluetoothPrinter.getPairedDevices();
+      
+      if (!result.value || !result.devices) {
+        console.log("No paired devices found or failed to retrieve them");
+        return [];
+      }
+      
+      // Filter devices that are likely printers based on common naming patterns
+      const likelyPrinters = result.devices.filter(device => {
+        const name = (device.name || "").toUpperCase();
+        
+        // Known printer prefixes and keywords
+        const printerKeywords = [
+          'PRINT', 'POS', 'THERMAL', 'RECEIPT', 'BT', 'PT-', 'TSC', 'ZJ', 
+          'MTP', 'MPT', 'ELO', 'STAR', 'EPSON', 'BIXOLON', 'ECOPRINT', 'ECO',
+          'PRINTER', 'HM-', 'TP-', 'PTP-', 'SPRT', 'CPCL'
+        ];
+        
+        return printerKeywords.some(keyword => name.includes(keyword));
+      });
+      
+      const devices: PrinterDevice[] = likelyPrinters.map(device => ({
+        id: device.address,
+        name: device.name || 'Unknown Device',
+        address: device.address
+      }));
+      
+      console.log('Found paired printers:', devices);
+      return devices;
+    } catch (error) {
+      console.error('Failed to get paired devices:', error);
+      return [];
+    }
+  }
+
   async scanForPrinters(scanDuration: number = 20000): Promise<PrinterDevice[]> {
     try {
       // Cancel any existing scan
@@ -90,21 +144,9 @@ class BluetoothPrinterServiceClass {
       if (currentTime - this.lastScanTime < 2000 && !this.scanInProgress) {
         console.log('Scan requested too soon after previous scan, trying to get paired devices instead');
         // Try to get paired devices instead of scanning again
-        if (BluetoothPrinter.getPairedDevices) {
-          try {
-            const pairedResult = await BluetoothPrinter.getPairedDevices();
-            if (pairedResult.value && Array.isArray(pairedResult.devices) && pairedResult.devices.length > 0) {
-              const devices: PrinterDevice[] = pairedResult.devices.map(device => ({
-                id: device.address,
-                name: device.name || 'Unknown Device',
-                address: device.address
-              }));
-              console.log('Found paired devices:', devices);
-              return devices;
-            }
-          } catch (err) {
-            console.warn('Failed to get paired devices:', err);
-          }
+        const pairedDevices = await this.getPairedPrinters();
+        if (pairedDevices.length > 0) {
+          return pairedDevices;
         }
       }
       
@@ -130,11 +172,29 @@ class BluetoothPrinterServiceClass {
             return;
           }
           
-          const devices: PrinterDevice[] = Array.isArray(result.devices) ? result.devices.map(device => ({
+          const allDevices: PrinterDevice[] = Array.isArray(result.devices) ? result.devices.map(device => ({
             id: device.address,
             name: device.name || 'Unknown Device',
             address: device.address
           })) : [];
+          
+          // Filter devices that are likely printers
+          const likelyPrinters = allDevices.filter(device => {
+            const name = (device.name || "").toUpperCase();
+            
+            // Known printer prefixes and keywords 
+            const printerKeywords = [
+              'PRINT', 'POS', 'THERMAL', 'RECEIPT', 'BT', 'PT-', 'TSC', 'ZJ', 
+              'MTP', 'MPT', 'ELO', 'STAR', 'EPSON', 'BIXOLON', 'ECOPRINT', 'ECO',
+              'PRINTER', 'HM-', 'TP-', 'PTP-', 'SPRT', 'CPCL'
+            ];
+            
+            // Check if device name contains any printer keywords
+            return printerKeywords.some(keyword => name.includes(keyword));
+          });
+          
+          // If we don't find any likely printers, just return all devices
+          const devices = likelyPrinters.length > 0 ? likelyPrinters : allDevices;
           
           console.log('Found printers:', devices);
           
@@ -189,19 +249,41 @@ class BluetoothPrinterServiceClass {
       console.log('Connecting to printer:', printer);
       toast.loading(`Menghubungkan ke printer: ${printer.name}...`, { id: "connecting-printer" });
       
-      const result = await BluetoothPrinter.connect({
-        address: printer.address
-      });
+      // Try multiple times to connect (up to 3 attempts)
+      let connected = false;
+      let attempts = 0;
+      const maxAttempts = 3;
+      
+      while (!connected && attempts < maxAttempts) {
+        attempts++;
+        try {
+          const result = await BluetoothPrinter.connect({
+            address: printer.address
+          });
+          
+          if (result.value) {
+            connected = true;
+            break;
+          } else {
+            console.log(`Connection attempt ${attempts} failed`);
+            // Small delay between attempts
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (err) {
+          console.error(`Connection attempt ${attempts} error:`, err);
+          // Continue to next attempt
+        }
+      }
       
       toast.dismiss("connecting-printer");
       
-      if (result.value) {
+      if (connected) {
         this.connectedDevice = printer;
         console.log('Successfully connected to printer');
         toast.success(`Terhubung ke printer: ${printer.name}`);
         return true;
       } else {
-        console.log('Failed to connect to printer');
+        console.log('Failed to connect to printer after multiple attempts');
         toast.error(`Gagal terhubung ke printer: ${printer.name}. Pastikan printer dinyalakan dan dekat dengan perangkat Anda.`);
         return false;
       }
@@ -211,6 +293,51 @@ class BluetoothPrinterServiceClass {
       toast.error(`Gagal terhubung ke printer: ${error instanceof Error ? error.message : 'Unknown error'}`);
       throw error;
     }
+  }
+
+  // Format text for specific printer models (especially EcoPrint)
+  formatForPrinter(text: string): string {
+    if (!this.connectedDevice) return text;
+    
+    const printerName = this.connectedDevice.name.toUpperCase();
+    
+    // Check if it's EcoPrint or similar printer
+    if (printerName.includes('ECO') || printerName.includes('POS') || printerName.includes('THERMAL')) {
+      // Format for ESC/POS
+      return this.formatForESCPOS(text);
+    }
+    
+    // For generic printers, just return the text
+    return text;
+  }
+  
+  // Format specifically for ESC/POS printers like EcoPrint
+  formatForESCPOS(text: string): string {
+    // Initialize the printer
+    let formatted = '\x1B@';
+    
+    // Set text alignment to center
+    formatted += '\x1B\x61\x01';
+    
+    // Add the text
+    formatted += text;
+    
+    // Cut paper (if supported)
+    formatted += '\x1D\x56\x42\x00';
+    
+    // Feed paper and reset to default
+    formatted += '\n\n\n\x1B@';
+    
+    return formatted;
+  }
+  
+  // Alternative format for different printer models
+  formatAlternative(text: string): string {
+    // Format with simpler commands, focusing on just the text
+    let formatted = '\x1B@'; // Initialize
+    formatted += text;
+    formatted += '\n\n\n\n'; // Feed paper
+    return formatted;
   }
 
   async printText(text: string): Promise<boolean> {
@@ -225,24 +352,46 @@ class BluetoothPrinterServiceClass {
       console.log('Printing text:', text.substring(0, 50) + '...');
       toast.loading("Mencetak...", { id: "printing" });
       
-      const result = await BluetoothPrinter.print({
-        text: text
-      });
+      // Try to print with multiple attempts
+      let success = false;
+      let attempts = 0;
+      const maxAttempts = 2;
+      
+      while (!success && attempts < maxAttempts) {
+        attempts++;
+        try {
+          const result = await BluetoothPrinter.print({
+            text: text
+          });
+          
+          if (result.value) {
+            success = true;
+            break;
+          } else {
+            console.log(`Print attempt ${attempts} failed`);
+            // Small delay between attempts
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        } catch (err) {
+          console.error(`Print attempt ${attempts} error:`, err);
+          // Continue to next attempt
+        }
+      }
       
       toast.dismiss("printing");
       
-      if (result.value) {
+      if (success) {
         toast.success("Berhasil mencetak!");
+        return true;
       } else {
         toast.error("Gagal mencetak. Pastikan printer masih terhubung dan dinyalakan.");
+        return false;
       }
-      
-      return result.value;
     } catch (error) {
       console.error('Failed to print:', error);
       toast.dismiss("printing");
       toast.error(`Gagal mencetak: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      throw error;
+      return false;
     }
   }
 
@@ -272,12 +421,13 @@ class BluetoothPrinterServiceClass {
   // Helper method to provide troubleshooting information
   getTroubleshootingInfo(): string[] {
     return [
-      "1. Pastikan printer thermal Bluetooth Anda kompatibel dengan ESC/POS commands.",
-      "2. Printer harus dalam mode pairing (biasanya dengan menekan tombol pada printer).",
-      "3. Pastikan printer cukup dekat dengan perangkat Android Anda (dalam jarak 10 meter).",
-      "4. Pastikan Anda telah memberikan izin lokasi pada aplikasi (diperlukan untuk memindai Bluetooth).",
-      "5. Coba matikan dan nyalakan kembali printer dan Bluetooth pada perangkat Anda.",
-      "6. Jika pernah terhubung sebelumnya, coba hapus pairing yang ada di pengaturan Bluetooth Android.",
+      "1. Pastikan printer EcoPrint Anda dalam mode pairing (biasanya dengan menekan tombol power selama 3-5 detik sampai LED berkedip).",
+      "2. Pastikan Bluetooth dan lokasi pada Android Anda diaktifkan (izin lokasi diperlukan untuk pemindaian Bluetooth).",
+      "3. Jika printer sudah terpasang sebelumnya di pengaturan Bluetooth Android, coba hapus dan pasangkan ulang.",
+      "4. Pastikan printer cukup dekat (dalam jangkauan 5-10 meter) dan baterai printer penuh.",
+      "5. Restart printer dengan mematikan dan menghidupkan kembali.",
+      "6. Pastikan printer dalam keadaan siap (LED berwarna hijau atau biru).",
+      "7. Jika semua langkah gagal, coba restart aplikasi dan perangkat Android Anda."
     ];
   }
 }
