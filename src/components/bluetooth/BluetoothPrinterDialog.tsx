@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bluetooth, Loader2, AlertCircle, X, Check, HelpCircle, RefreshCcw, WifiOff } from 'lucide-react';
+import { Bluetooth, Loader2, AlertCircle, X, Check, HelpCircle, RefreshCcw, WifiOff, Smartphone } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,75 +40,71 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
   onToggleTroubleshooting,
   connectedPrinter,
 }) => {
-  // Enhanced troubleshooting tips with more detailed EcoPrint instructions and pairing mode guidance
+  // Panduan pemecahan masalah yang diperluas dengan fokus khusus pada printer EcoPrint
   const troubleshootingTips = [
     {
-      title: "EcoPrint & Printer Thermal Lainnya",
+      title: "Panduan Khusus EcoPrint",
       tips: [
-        "Tekan dan tahan tombol power pada EcoPrint selama 3-5 detik hingga lampu indikator berkedip BIRU untuk mode pairing.",
-        "Jika lampu masih menyala merah, berarti printer belum dalam mode pairing. Coba tekan tombol power lebih lama.",
-        "Pastikan printer sudah terisi daya atau baterai penuh (lampu indikator harus biru atau hijau, bukan merah).",
-        "Pastikan printer sudah memiliki kertas thermal yang terpasang dengan benar.",
-        "Jika printer tidak terdeteksi, reset printer dengan menekan tombol reset (biasanya di bagian bawah) atau power selama 8-10 detik.",
-        "Untuk model EcoPrint terbaru, pastikan lampu indikator berkedip cepat (mode pairing) sebelum menghubungkan."
+        "Tekan dan tahan tombol POWER pada EcoPrint selama 3-5 detik sampai lampu indikator BERKEDIP BIRU (ini adalah mode pairing yang WAJIB).",
+        "Jika lampu menyala HIJAU/BIRU TETAP (tidak berkedip), printer BUKAN dalam mode pairing. Tekan power lebih lama.",
+        "Jika lampu menyala MERAH, baterai lemah. Isi daya printer terlebih dahulu.",
+        "Pastikan printer memiliki kertas thermal yang terpasang dengan benar.",
+        "Untuk model EcoPrint terbaru, nyalakan printer dan tekan tombol power 2x berturut-turut untuk masuk mode pairing.",
+        "Jika tidak berhasil, matikan printer, tunggu 10 detik, lalu nyalakan dan coba lagi."
       ]
     },
     {
       title: "Mode Pairing Printer",
       tips: [
-        "Pastikan printer dalam mode pairing sebelum memindai (biasanya lampu indikator berkedip cepat).",
-        "Pada sebagian besar printer thermal, tombol power ditekan 3-5 detik sampai lampu berkedip.",
-        "Jangan melakukan pairing di pengaturan Bluetooth Android terlebih dahulu, biarkan aplikasi yang melakukannya.",
-        "Untuk beberapa printer, jika lampu berkedip lambat, itu bukan mode pairing. Coba tekan tombol lebih lama.",
+        "Mode pairing ditandai dengan lampu indikator yang BERKEDIP CEPAT (bukan menyala tetap).",
+        "Pada printer thermal, tombol power biasanya ditekan 3-5 detik sampai lampu berkedip.",
+        "JANGAN memasangkan printer melalui pengaturan Bluetooth Android terlebih dahulu, biarkan aplikasi melakukannya.",
+        "Jika lampu berkedip lambat, itu bukan mode pairing. Coba tekan tombol lebih lama.",
         "Jika printer sudah terpasang sebelumnya, hapus dari pengaturan Bluetooth Android dan ulangi mode pairing.",
-        "Pastikan tidak ada perangkat lain yang sedang terhubung ke printer saat melakukan pairing."
+        "Pastikan tidak ada perangkat lain yang terhubung ke printer saat melakukan pairing."
       ]
     },
     {
       title: "Printer Tidak Terdeteksi",
       tips: [
-        "Pastikan printer dalam mode pairing (lampu indikator berkedip).",
-        "Pastikan printer dinyalakan dan baterai dalam kondisi baik.",
-        "Pastikan printer berada dalam jangkauan Bluetooth (biasanya 5-10 meter).",
-        "Matikan dan nyalakan kembali Bluetooth di perangkat Android.",
-        "Coba matikan dan nyalakan kembali printer.",
+        "Pastikan printer berada maksimal 1 meter dari HP saat proses pairing pertama kali.",
+        "Pastikan printer dinyalakan dan baterai dalam kondisi baik (tidak menyala merah).",
+        "Matikan dan nyalakan Bluetooth di perangkat Android.",
+        "Restart printer dengan mematikan dan menyalakan kembali.",
         "Buka pengaturan Bluetooth di Android, hapus pasangan printer yang sudah ada (jika ada).",
+        "Hapus data dan cache aplikasi, lalu buka kembali aplikasi.",
         "Jika semua gagal, restart perangkat Android Anda dan coba lagi."
       ]
     },
     {
-      title: "Masalah Koneksi",
+      title: "Masalah Koneksi Khusus",
       tips: [
-        "Pastikan tidak ada perangkat lain yang terhubung dengan printer.",
-        "Coba hapus pairing yang ada di pengaturan Bluetooth Android.",
-        "Restart perangkat Android Anda dan coba lagi.",
-        "Pastikan Android Anda versi 6.0 atau lebih tinggi.",
-        "Periksa kertas printer dan pastikan sudah terpasang dengan benar.",
-        "Untuk printer EcoPrint, tunggu sampai lampu indikator biru berhenti berkedip setelah terhubung.",
-        "Jika koneksi berulang kali gagal, buka pengaturan Bluetooth Android, aktifkan visibilitas perangkat Anda selama 2 menit."
+        "Untuk printer EcoPrint: saat berhasil terpasang, lampu biru akan berhenti berkedip. Tunggu prosesnya selesai.",
+        "Coba sambungkan ke HP lain untuk memastikan printer berfungsi dengan normal.",
+        "Untuk printer yang sulit terdeteksi, coba gunakan aplikasi 'Bluetooth Scanner' untuk melihat apakah perangkat terlihat.",
+        "Periksa apakah printer mendukung protokol ESC/POS atau CPCL (untuk printer thermal).",
+        "Matikan mode hemat baterai di HP Anda karena dapat membatasi koneksi Bluetooth.",
+        "Jika printer terdeteksi tapi gagal mencetak, cek apakah kertas dipasang dengan benar dan tidak macet."
       ]
     },
     {
       title: "Izin yang Dibutuhkan",
       tips: [
-        "Izin Lokasi (diperlukan untuk memindai Bluetooth pada Android)",
-        "Izin Bluetooth",
-        "Izin Bluetooth Admin",
-        "Izin Bluetooth Scan",
-        "Izin Bluetooth Connect",
-        "Buka pengaturan aplikasi > Izin dan pastikan semua izin diberikan.",
+        "Izin Lokasi (WAJIB untuk memindai Bluetooth pada Android)",
+        "Izin Bluetooth dan Bluetooth Admin",
+        "Izin Bluetooth Scan dan Bluetooth Connect",
+        "Buka pengaturan aplikasi > Izin dan pastikan SEMUA izin diberikan.",
+        "Aktifkan semua izin Lokasi (Latar Belakang dan Saat Aplikasi Digunakan)",
         "Jika diminta, izinkan aplikasi untuk mengaktifkan Bluetooth secara otomatis."
       ]
     },
     {
-      title: "Jika Terus Gagal",
+      title: "Langkah Terakhir",
       tips: [
-        "Cobalah menghubungkan printer dengan aplikasi Bluetooth printer scanner lain terlebih dahulu, lalu kembali ke aplikasi ini.",
-        "Matikan fitur hemat daya atau mode baterai pada perangkat Android Anda.",
-        "Jika printer sudah terhubung ke sistem Android (terlihat di menu Bluetooth), coba lepaskan pasangan dan hubungkan ulang.",
-        "Reset semua pengaturan Bluetooth dengan mematikan Bluetooth, restart perangkat, lalu hidupkan kembali Bluetooth.",
-        "Pastikan printer kompatibel dengan ESC/POS commands (untuk printer thermal).",
-        "Coba sambungkan ke HP lain untuk memastikan printer berfungsi dengan normal."
+        "Jika semua langkah gagal, coba sambungkan printer ke aplikasi lain (misalnya: Bluetooth Print Service)",
+        "Setelah berhasil tersambung di aplikasi lain, tutup aplikasi tersebut dan buka aplikasi ini kembali.",
+        "Factory reset printer dengan menekan tombol power dan feed bersamaan selama 10 detik (jika ada).",
+        "Jika printer sama sekali tidak terdeteksi oleh perangkat manapun, printer mungkin rusak atau tidak kompatibel."
       ]
     }
   ];
@@ -119,11 +115,11 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Perangkat Printer Bluetooth</DialogTitle>
           <DialogDescription>
-            Pilih printer yang ingin dihubungkan
+            Pilih printer thermal yang ingin dihubungkan
           </DialogDescription>
         </DialogHeader>
         
-        {/* Show connected printer status if any */}
+        {/* Status printer yang terhubung */}
         {connectedPrinter && (
           <Alert className="mb-4 bg-green-50 border-green-500">
             <Check className="h-4 w-4 text-green-500" />
@@ -134,13 +130,26 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
           </Alert>
         )}
         
-        {/* Enhanced scan information with pairing mode instructions */}
-        {isScanning && (
+        {/* Instruksi mode pairing yang ditingkatkan */}
+        {isScanning ? (
           <Alert className="mb-4 bg-blue-50 border-blue-300">
             <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-            <AlertTitle className="text-blue-700">Memindai...</AlertTitle>
+            <AlertTitle className="text-blue-700">Memindai Printer...</AlertTitle>
             <AlertDescription className="text-blue-600">
-              Pastikan printer dalam mode pairing (tombol power ditekan 3-5 detik hingga lampu berkedip)
+              <div className="space-y-2">
+                <p><strong>Pastikan printer dalam mode PAIRING:</strong></p>
+                <p>1. Tekan tombol POWER selama 3-5 detik sampai lampu BERKEDIP BIRU</p>
+                <p>2. Dekatkan printer dengan HP (jarak &lt;1 meter)</p>
+                <p>3. Tunggu hingga pemindaian selesai</p>
+              </div>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="mb-4 bg-blue-50 border-blue-300">
+            <Smartphone className="h-4 w-4 text-blue-500" />
+            <AlertTitle className="text-blue-700">Pindai Printer</AlertTitle>
+            <AlertDescription className="text-blue-600">
+              Klik tombol "Pindai Ulang" di bawah untuk mencari printer Bluetooth
             </AlertDescription>
           </Alert>
         )}
@@ -161,7 +170,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
                   <Bluetooth className="mr-2 h-4 w-4" />
                 )}
                 <div className="flex flex-col items-start">
-                  <span className="font-medium">{printer.name}</span>
+                  <span className="font-medium">{printer.name || "Printer Tanpa Nama"}</span>
                   <span className="text-xs text-gray-500">{printer.address}</span>
                 </div>
                 {connectedPrinter?.id === printer.id && (
@@ -176,8 +185,13 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
               <WifiOff className="h-4 w-4" />
               <AlertTitle>Printer tidak ditemukan</AlertTitle>
               <AlertDescription>
-                Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing. 
-                Untuk printer EcoPrint, tekan tombol power selama 3-5 detik hingga lampu indikator berkedip BIRU.
+                <p>Tidak ada printer terdeteksi. Pastikan langkah-langkah berikut:</p>
+                <ul className="list-disc pl-5 mt-2 space-y-1 text-sm">
+                  <li>Printer dinyalakan dan dalam MODE PAIRING (lampu BERKEDIP BIRU)</li>
+                  <li>Bluetooth perangkat Anda aktif</li>
+                  <li>Printer berada dekat dengan perangkat (&lt;1 meter)</li>
+                  <li>Baterai printer tidak lemah (lampu bukan merah)</li>
+                </ul>
               </AlertDescription>
             </Alert>
           )}
@@ -187,7 +201,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
           <div className="mt-4 border rounded-lg p-3 bg-muted/50">
             <h3 className="text-sm font-medium mb-2 flex items-center">
               <HelpCircle className="h-4 w-4 mr-1" />
-              Panduan Pemecahan Masalah
+              Panduan Pemecahan Masalah Printer
             </h3>
             <Accordion type="single" collapsible className="w-full">
               {troubleshootingTips.map((section, index) => (

@@ -15,13 +15,15 @@ const config: CapacitorConfig = {
       enabled: true
     },
     BluetoothPrinter: {
-      // Enhanced printer configurations for better device detection with pairing mode
-      scanDuration: 25000, // 25 seconds for thorough scanning (especially for pairing mode)
-      reconnectAttempts: 7,  // Try reconnecting up to 7 times for persistent connection
-      autoEnableBluetooth: true, // Automatically try to enable Bluetooth
-      requestPermissionsOnInit: true, // Request all needed permissions on init
-      acceptAllDevices: true, // Accept all Bluetooth devices when scanning (crucial for pairing mode)
+      // Konfigurasi khusus untuk printer thermal termasuk EcoPrint
+      scanDuration: 30000, // 30 detik untuk pemindaian menyeluruh
+      reconnectAttempts: 10,  // Peningkatan jumlah percobaan koneksi
+      autoEnableBluetooth: true,
+      requestPermissionsOnInit: true,
+      acceptAllDevices: true, // Menerima semua perangkat untuk meningkatkan deteksi
+      discoveryMode: "forced", // Mode pemindaian paksa untuk mendeteksi semua perangkat
       printerCommands: {
+        // Dukungan perintah ESC/POS yang diperluas untuk printer thermal
         initialize: '\x1B@', // ESC @ - Initialize printer
         alignCenter: '\x1B\x61\x01', // ESC a 1 - Center alignment
         alignLeft: '\x1B\x61\x00', // ESC a 0 - Left alignment
@@ -31,14 +33,21 @@ const config: CapacitorConfig = {
         boldOff: '\x1B\x45\x00', // ESC E 0 - Bold off
         doubleHeightOn: '\x1B\x21\x10', // ESC ! 16 - Double height on
         doubleHeightOff: '\x1B\x21\x00', // ESC ! 0 - Double height off
-        // Enhanced formatting commands for various printer models
-        ecoInitialize: '\x1B@\x1B!\x00', // Special init for EcoPrint
-        genericThermal: '\x1B@\x1B\x61\x01', // Generic thermal printer init
-        feedAndCut: '\n\n\n\n\x1D\x56\x01' // Feed paper and cut
+        // Perintah khusus untuk EcoPrint
+        ecoInitialize: '\x1B@\x1D\x21\x00', // Inisialisasi khusus EcoPrint
+        ecoCommand: '\x1B\x40\x1B\x61\x01', // Perintah khusus EcoPrint
+        genericThermal: '\x1B@\x1B\x61\x01\x1D\x21\x00', // Perintah generic thermal
+        feedAndCut: '\n\n\n\n\x1D\x56\x01', // Feed paper and cut
+        // Format khusus untuk tipe printer berbeda
+        fullReset: '\x1B\x40\x1D\x49\x01' // Reset penuh printer
       },
-      connectionTimeout: 10000, // 10 seconds connection timeout
-      operationTimeout: 8000,  // 8 seconds operation timeout
-      discoveryTimeout: 25000, // 25 seconds device discovery timeout
+      connectionTimeout: 15000, // 15 detik timeout koneksi
+      operationTimeout: 10000,  // 10 detik timeout operasi
+      discoveryTimeout: 30000, // 30 detik timeout pemindaian perangkat
+      // Opsi tambahan untuk mendukung printer standar ESC/POS
+      defaultPrinterType: "GENERIC",
+      escposMode: true,
+      forcePairing: true // Memaksa mode pairing untuk perangkat sulit
     }
   },
   android: {
@@ -49,7 +58,7 @@ const config: CapacitorConfig = {
       keystoreAliasPassword: undefined,
     },
     minSdkVersion: 23,
-    // Enhanced permissions for Bluetooth with full feature support
+    // Izin lengkap untuk Bluetooth dengan dukungan fitur penuh
     permissions: [
       "android.permission.BLUETOOTH",
       "android.permission.BLUETOOTH_ADMIN",
