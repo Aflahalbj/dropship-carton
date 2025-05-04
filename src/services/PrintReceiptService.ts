@@ -40,7 +40,7 @@ export const printReceipt = async (
       toast.loading("Mencari printer Bluetooth...", { id: "finding-printer" });
       
       try {
-        // Initialize printer system first
+        // Initialize printer system first with proper error handling
         await BluetoothPrinterService.init();
         
         // Try to get previously paired printers first before scanning
@@ -65,12 +65,17 @@ export const printReceipt = async (
             toast.loading("Memindai printer Bluetooth baru...", { id: "scanning-printers", duration: 5000 });
             
             // If connecting to paired printer fails, scan for new printers
-            const printers = await BluetoothPrinterService.scanForPrinters(20000); // Longer scan duration
+            // Use longer scan duration for printers in pairing mode
+            const printers = await BluetoothPrinterService.scanForPrinters(25000); // Extended scan duration
             toast.dismiss("scanning-printers");
             
             if (printers.length === 0) {
               toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing.", {
-                duration: 5000
+                duration: 5000,
+                action: {
+                  label: "Coba Lagi",
+                  onClick: () => printReceipt(items, total, paymentMethod, customerName, cashAmount, changeAmount, transactionId, date)
+                }
               });
               return false;
             }
@@ -93,7 +98,11 @@ export const printReceipt = async (
             
             if (!newConnected) {
               toast.error("Gagal terhubung ke printer. Pastikan printer dalam mode pairing.", {
-                duration: 5000
+                duration: 5000,
+                action: {
+                  label: "Coba Lagi",
+                  onClick: () => printReceipt(items, total, paymentMethod, customerName, cashAmount, changeAmount, transactionId, date)
+                }
               });
               return false;
             }
@@ -104,26 +113,21 @@ export const printReceipt = async (
           console.log("No paired printers found, scanning for new ones");
           toast.loading("Memindai printer Bluetooth...", { id: "scanning-printers" });
           
-          // If no paired printers, scan for new printers with longer duration
-          const printers = await BluetoothPrinterService.scanForPrinters(20000);
+          // If no paired printers, scan for new printers with longer duration for pairing mode
+          const printers = await BluetoothPrinterService.scanForPrinters(25000);
           toast.dismiss("scanning-printers");
           
           console.log("Found printers:", printers);
           
           if (printers.length === 0) {
             toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing.", {
-              duration: 5000
+              duration: 5000,
+              action: {
+                label: "Coba Lagi",
+                onClick: () => printReceipt(items, total, paymentMethod, customerName, cashAmount, changeAmount, transactionId, date)
+              }
             });
             return false;
-          }
-          
-          // Show printer selection if multiple printers found
-          if (printers.length > 1) {
-            // Use the first printer for now, the selection dialog is handled by BluetoothPrinterButton component
-            console.log("Multiple printers found, using the first one:", printers[0]);
-            toast.info(`Ditemukan ${printers.length} printer. Gunakan tombol Bluetooth untuk memilih printer.`, {
-              duration: 5000
-            });
           }
           
           // Try to connect to the first printer
@@ -135,7 +139,11 @@ export const printReceipt = async (
           
           if (!connected) {
             toast.error("Gagal terhubung ke printer. Pastikan printer dalam mode pairing.", {
-              duration: 5000
+              duration: 5000,
+              action: {
+                label: "Coba Lagi",
+                onClick: () => printReceipt(items, total, paymentMethod, customerName, cashAmount, changeAmount, transactionId, date)
+              }
             });
             return false;
           }
@@ -148,7 +156,11 @@ export const printReceipt = async (
         toast.dismiss("scanning-printers");
         toast.dismiss("connecting-printer");
         toast.error("Periksa apakah printer Bluetooth Anda kompatibel dan dalam mode pairing", {
-          duration: 5000
+          duration: 5000,
+          action: {
+            label: "Coba Lagi",
+            onClick: () => printReceipt(items, total, paymentMethod, customerName, cashAmount, changeAmount, transactionId, date)
+          }
         });
         return false;
       }
@@ -157,22 +169,47 @@ export const printReceipt = async (
       const isReady = await BluetoothPrinterService.isPrinterReady();
       if (!isReady) {
         console.log("Printer connection lost, attempting to reconnect");
+        
+        toast.loading("Koneksi printer terputus. Menyambungkan ulang...", {
+          id: "reconnecting"
+        });
+        
         const reconnected = await BluetoothPrinterService.connectToPrinter(connectedDevice);
+        toast.dismiss("reconnecting");
+        
         if (!reconnected) {
-          toast.error("Koneksi ke printer terputus. Menghubungkan ulang...");
+          toast.error("Gagal menghubungkan ulang ke printer. Memindai ulang...");
           
           // Try to scan for printers as fallback
-          const printers = await BluetoothPrinterService.scanForPrinters(15000);
+          toast.loading("Memindai printer...", { id: "scanning" });
+          const printers = await BluetoothPrinterService.scanForPrinters(20000);
+          toast.dismiss("scanning");
+          
           if (printers.length === 0) {
-            toast.error("Gagal menghubungkan ulang ke printer. Pastikan printer masih aktif.");
+            toast.error("Gagal menemukan printer. Pastikan printer masih aktif dan dalam mode pairing.", {
+              action: {
+                label: "Coba Lagi",
+                onClick: () => printReceipt(items, total, paymentMethod, customerName, cashAmount, changeAmount, transactionId, date)
+              }
+            });
             return false;
           }
           
+          toast.loading("Menyambungkan ke printer...", { id: "connecting" });
           const connected = await BluetoothPrinterService.connectToPrinter(printers[0]);
+          toast.dismiss("connecting");
+          
           if (!connected) {
-            toast.error("Gagal menghubungkan ulang ke printer.");
+            toast.error("Gagal menghubungkan ke printer.", {
+              action: {
+                label: "Coba Lagi",
+                onClick: () => printReceipt(items, total, paymentMethod, customerName, cashAmount, changeAmount, transactionId, date)
+              }
+            });
             return false;
           }
+          
+          toast.success(`Terhubung ke printer: ${printers[0].name}`);
         }
       }
     }
@@ -184,7 +221,7 @@ export const printReceipt = async (
     
     toast.loading("Mencetak struk...", {
       id: "printing-receipt",
-      duration: 10000
+      duration: 15000 // Extended timeout for printing
     });
     console.log("Sending print command to printer");
     
@@ -212,36 +249,52 @@ export const printReceipt = async (
     } else {
       toast.dismiss("printing-receipt");
       
-      // If print fails, offer a retry option
-      toast.error("Gagal mencetak struk. Coba sambungkan ulang printer.", {
+      // If print fails, offer a retry option with better explanation
+      toast.error("Gagal mencetak struk. Coba sambungkan ulang printer atau pastikan printer dalam mode siap cetak.", {
         action: {
           label: "Coba Lagi",
           onClick: async () => {
             // Try to reconnect and print again
             const device = BluetoothPrinterService.getConnectedDevice();
             if (device) {
+              toast.loading("Mencoba ulang koneksi printer...", { id: "retry-connect" });
               const reconnected = await BluetoothPrinterService.connectToPrinter(device);
+              toast.dismiss("retry-connect");
+              
               if (reconnected) {
                 // Try printing again with a simple message first to test the connection
+                toast.loading("Testing printer...", { id: "test-print" });
                 const testSuccess = await BluetoothPrinterService.printText("Tes Printer");
+                toast.dismiss("test-print");
+                
                 if (testSuccess) {
                   // If test print works, try the full receipt again
+                  toast.loading("Mencetak struk...", { id: "retry-printing" });
                   await BluetoothPrinterService.printText(receiptText);
+                  toast.dismiss("retry-printing");
                 }
               }
             } else {
               // No device available, need to scan and connect first
+              toast.loading("Memindai printer...", { id: "retry-scan" });
               const printers = await BluetoothPrinterService.scanForPrinters(15000);
+              toast.dismiss("retry-scan");
+              
               if (printers.length > 0) {
+                toast.loading("Menghubungkan ke printer...", { id: "retry-connect" });
                 const connected = await BluetoothPrinterService.connectToPrinter(printers[0]);
+                toast.dismiss("retry-connect");
+                
                 if (connected) {
+                  toast.loading("Mencetak struk...", { id: "retry-printing" });
                   await BluetoothPrinterService.printText(receiptText);
+                  toast.dismiss("retry-printing");
                 }
               }
             }
           }
         },
-        duration: 10000
+        duration: 15000
       });
       
       return false;
@@ -250,7 +303,12 @@ export const printReceipt = async (
   } catch (error) {
     console.error("Error printing receipt:", error);
     toast.dismiss("printing-receipt");
-    toast.error(`Gagal mencetak struk: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    toast.error(`Gagal mencetak struk: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+      action: {
+        label: "Coba Lagi",
+        onClick: () => printReceipt(items, total, paymentMethod, customerName, cashAmount, changeAmount, transactionId, date)
+      }
+    });
     return false;
   }
 };

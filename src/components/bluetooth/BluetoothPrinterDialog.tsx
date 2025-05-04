@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bluetooth, Loader2, AlertCircle, X, Check, HelpCircle, RefreshCcw } from 'lucide-react';
+import { Bluetooth, Loader2, AlertCircle, X, Check, HelpCircle, RefreshCcw, WifiOff } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,26 +40,40 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
   onToggleTroubleshooting,
   connectedPrinter,
 }) => {
+  // Enhanced troubleshooting tips with more detailed EcoPrint instructions and pairing mode guidance
   const troubleshootingTips = [
     {
       title: "EcoPrint & Printer Thermal Lainnya",
       tips: [
-        "Tekan dan tahan tombol power pada EcoPrint selama 3-5 detik hingga lampu indikator berkedip untuk mode pairing.",
-        "Pastikan printer sudah terisi daya atau baterai penuh.",
+        "Tekan dan tahan tombol power pada EcoPrint selama 3-5 detik hingga lampu indikator berkedip BIRU untuk mode pairing.",
+        "Jika lampu masih menyala merah, berarti printer belum dalam mode pairing. Coba tekan tombol power lebih lama.",
+        "Pastikan printer sudah terisi daya atau baterai penuh (lampu indikator harus biru atau hijau, bukan merah).",
         "Pastikan printer sudah memiliki kertas thermal yang terpasang dengan benar.",
-        "Jika printer tidak terdeteksi, reset printer dengan menekan tombol reset atau power selama 8-10 detik.",
-        "Untuk EcoPrint, pastikan lampu indikator berkedip biru (mode pairing)."
+        "Jika printer tidak terdeteksi, reset printer dengan menekan tombol reset (biasanya di bagian bawah) atau power selama 8-10 detik.",
+        "Untuk model EcoPrint terbaru, pastikan lampu indikator berkedip cepat (mode pairing) sebelum menghubungkan."
+      ]
+    },
+    {
+      title: "Mode Pairing Printer",
+      tips: [
+        "Pastikan printer dalam mode pairing sebelum memindai (biasanya lampu indikator berkedip cepat).",
+        "Pada sebagian besar printer thermal, tombol power ditekan 3-5 detik sampai lampu berkedip.",
+        "Jangan melakukan pairing di pengaturan Bluetooth Android terlebih dahulu, biarkan aplikasi yang melakukannya.",
+        "Untuk beberapa printer, jika lampu berkedip lambat, itu bukan mode pairing. Coba tekan tombol lebih lama.",
+        "Jika printer sudah terpasang sebelumnya, hapus dari pengaturan Bluetooth Android dan ulangi mode pairing.",
+        "Pastikan tidak ada perangkat lain yang sedang terhubung ke printer saat melakukan pairing."
       ]
     },
     {
       title: "Printer Tidak Terdeteksi",
       tips: [
-        "Pastikan printer dalam mode pairing (biasanya dengan menekan tombol pada printer).",
+        "Pastikan printer dalam mode pairing (lampu indikator berkedip).",
         "Pastikan printer dinyalakan dan baterai dalam kondisi baik.",
         "Pastikan printer berada dalam jangkauan Bluetooth (biasanya 5-10 meter).",
+        "Matikan dan nyalakan kembali Bluetooth di perangkat Android.",
         "Coba matikan dan nyalakan kembali printer.",
         "Buka pengaturan Bluetooth di Android, hapus pasangan printer yang sudah ada (jika ada).",
-        "Matikan dan hidupkan kembali Bluetooth di perangkat Android Anda."
+        "Jika semua gagal, restart perangkat Android Anda dan coba lagi."
       ]
     },
     {
@@ -70,7 +84,8 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
         "Restart perangkat Android Anda dan coba lagi.",
         "Pastikan Android Anda versi 6.0 atau lebih tinggi.",
         "Periksa kertas printer dan pastikan sudah terpasang dengan benar.",
-        "Untuk printer EcoPrint, tunggu sampai lampu indikator biru berhenti berkedip setelah terhubung."
+        "Untuk printer EcoPrint, tunggu sampai lampu indikator biru berhenti berkedip setelah terhubung.",
+        "Jika koneksi berulang kali gagal, buka pengaturan Bluetooth Android, aktifkan visibilitas perangkat Anda selama 2 menit."
       ]
     },
     {
@@ -88,11 +103,12 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
     {
       title: "Jika Terus Gagal",
       tips: [
-        "Pastikan printer kompatibel dengan ESC/POS commands (untuk printer thermal).",
-        "Coba hubungkan printer dengan aplikasi lain terlebih dahulu, lalu kembali ke aplikasi ini.",
+        "Cobalah menghubungkan printer dengan aplikasi Bluetooth printer scanner lain terlebih dahulu, lalu kembali ke aplikasi ini.",
         "Matikan fitur hemat daya atau mode baterai pada perangkat Android Anda.",
         "Jika printer sudah terhubung ke sistem Android (terlihat di menu Bluetooth), coba lepaskan pasangan dan hubungkan ulang.",
-        "Reset semua pengaturan Bluetooth dengan mematikan Bluetooth, restart perangkat, lalu hidupkan kembali Bluetooth."
+        "Reset semua pengaturan Bluetooth dengan mematikan Bluetooth, restart perangkat, lalu hidupkan kembali Bluetooth.",
+        "Pastikan printer kompatibel dengan ESC/POS commands (untuk printer thermal).",
+        "Coba sambungkan ke HP lain untuk memastikan printer berfungsi dengan normal."
       ]
     }
   ];
@@ -114,6 +130,17 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
             <AlertTitle className="text-green-700">Printer Terhubung</AlertTitle>
             <AlertDescription className="text-green-600">
               {connectedPrinter.name} sudah terhubung dan siap digunakan
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Enhanced scan information with pairing mode instructions */}
+        {isScanning && (
+          <Alert className="mb-4 bg-blue-50 border-blue-300">
+            <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+            <AlertTitle className="text-blue-700">Memindai...</AlertTitle>
+            <AlertDescription className="text-blue-600">
+              Pastikan printer dalam mode pairing (tombol power ditekan 3-5 detik hingga lampu berkedip)
             </AlertDescription>
           </Alert>
         )}
@@ -146,11 +173,11 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
             ))
           ) : (
             <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
+              <WifiOff className="h-4 w-4" />
               <AlertTitle>Printer tidak ditemukan</AlertTitle>
               <AlertDescription>
                 Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing. 
-                Untuk printer EcoPrint, tekan tombol power selama 3-5 detik hingga lampu indikator berkedip.
+                Untuk printer EcoPrint, tekan tombol power selama 3-5 detik hingga lampu indikator berkedip BIRU.
               </AlertDescription>
             </Alert>
           )}
