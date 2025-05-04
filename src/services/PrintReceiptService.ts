@@ -36,7 +36,8 @@ export const printReceipt = async (
     console.log("Currently connected device:", connectedDevice);
     
     if (!connectedDevice) {
-      console.log("No printer connected, checking paired devices first");
+      console.log("No printer connected, attempting auto-connection");
+      toast.loading("Mencari printer Bluetooth...", { id: "finding-printer" });
       
       try {
         // Initialize printer system first
@@ -45,12 +46,13 @@ export const printReceipt = async (
         // Try to get previously paired printers first before scanning
         const pairedPrinters = await BluetoothPrinterService.getPairedPrinters();
         console.log("Found paired printers:", pairedPrinters);
+        toast.dismiss("finding-printer");
         
         if (pairedPrinters.length > 0) {
           // Try to connect to the first paired printer
           const printer = pairedPrinters[0];
           console.log("Attempting to connect to paired printer:", printer);
-          toast.loading(`Mencoba menghubungkan ke printer yang dipasangkan: ${printer.name}...`, { id: "connecting-printer" });
+          toast.loading(`Mencoba menghubungkan ke printer: ${printer.name}...`, { id: "connecting-printer" });
           
           const connected = await BluetoothPrinterService.connectToPrinter(printer);
           toast.dismiss("connecting-printer");
@@ -60,17 +62,26 @@ export const printReceipt = async (
             toast.success(`Terhubung ke printer: ${printer.name}`);
           } else {
             console.log("Failed to connect to paired printer, scanning for new printers");
-            toast.error("Gagal terhubung ke printer yang dipasangkan. Memindai printer baru...");
+            toast.loading("Memindai printer Bluetooth baru...", { id: "scanning-printers", duration: 5000 });
             
             // If connecting to paired printer fails, scan for new printers
-            toast.info("Memindai printer Bluetooth baru...", { duration: 3000 });
-            const printers = await BluetoothPrinterService.scanForPrinters(10000);
+            const printers = await BluetoothPrinterService.scanForPrinters(20000); // Longer scan duration
+            toast.dismiss("scanning-printers");
             
             if (printers.length === 0) {
               toast.error("Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing.", {
                 duration: 5000
               });
               return false;
+            }
+            
+            // Show printer selection dialog if multiple printers found
+            if (printers.length > 1) {
+              // Use the first printer for now, the selection dialog is handled by BluetoothPrinterButton component
+              console.log("Multiple printers found, using the first one:", printers[0]);
+              toast.info(`Ditemukan ${printers.length} printer. Gunakan tombol Bluetooth untuk memilih printer.`, {
+                duration: 5000
+              });
             }
             
             // Try to connect to the first printer
@@ -81,7 +92,7 @@ export const printReceipt = async (
             toast.dismiss("connecting-printer");
             
             if (!newConnected) {
-              toast.error("Gagal terhubung ke printer. Coba cek panduan pemecahan masalah.", {
+              toast.error("Gagal terhubung ke printer. Pastikan printer dalam mode pairing.", {
                 duration: 5000
               });
               return false;
@@ -91,10 +102,11 @@ export const printReceipt = async (
           }
         } else {
           console.log("No paired printers found, scanning for new ones");
-          toast.info("Tidak ada printer yang terhubung. Memindai printer...", { duration: 3000 });
+          toast.loading("Memindai printer Bluetooth...", { id: "scanning-printers" });
           
-          // If no paired printers, scan for new printers
-          const printers = await BluetoothPrinterService.scanForPrinters(15000); // Use longer scan duration
+          // If no paired printers, scan for new printers with longer duration
+          const printers = await BluetoothPrinterService.scanForPrinters(20000);
+          toast.dismiss("scanning-printers");
           
           console.log("Found printers:", printers);
           
@@ -105,6 +117,15 @@ export const printReceipt = async (
             return false;
           }
           
+          // Show printer selection if multiple printers found
+          if (printers.length > 1) {
+            // Use the first printer for now, the selection dialog is handled by BluetoothPrinterButton component
+            console.log("Multiple printers found, using the first one:", printers[0]);
+            toast.info(`Ditemukan ${printers.length} printer. Gunakan tombol Bluetooth untuk memilih printer.`, {
+              duration: 5000
+            });
+          }
+          
           // Try to connect to the first printer
           console.log("Attempting to connect to printer:", printers[0]);
           toast.loading(`Mencoba menghubungkan ke printer: ${printers[0].name}...`, { id: "connecting-printer" });
@@ -113,7 +134,7 @@ export const printReceipt = async (
           toast.dismiss("connecting-printer");
           
           if (!connected) {
-            toast.error("Gagal terhubung ke printer. Coba cek panduan pemecahan masalah.", {
+            toast.error("Gagal terhubung ke printer. Pastikan printer dalam mode pairing.", {
               duration: 5000
             });
             return false;
@@ -123,10 +144,36 @@ export const printReceipt = async (
         }
       } catch (error) {
         console.error("Error scanning/connecting to printer:", error);
+        toast.dismiss("finding-printer");
+        toast.dismiss("scanning-printers");
+        toast.dismiss("connecting-printer");
         toast.error("Periksa apakah printer Bluetooth Anda kompatibel dan dalam mode pairing", {
           duration: 5000
         });
         return false;
+      }
+    } else {
+      // Verify the printer is still connected and ready
+      const isReady = await BluetoothPrinterService.isPrinterReady();
+      if (!isReady) {
+        console.log("Printer connection lost, attempting to reconnect");
+        const reconnected = await BluetoothPrinterService.connectToPrinter(connectedDevice);
+        if (!reconnected) {
+          toast.error("Koneksi ke printer terputus. Menghubungkan ulang...");
+          
+          // Try to scan for printers as fallback
+          const printers = await BluetoothPrinterService.scanForPrinters(15000);
+          if (printers.length === 0) {
+            toast.error("Gagal menghubungkan ulang ke printer. Pastikan printer masih aktif.");
+            return false;
+          }
+          
+          const connected = await BluetoothPrinterService.connectToPrinter(printers[0]);
+          if (!connected) {
+            toast.error("Gagal menghubungkan ulang ke printer.");
+            return false;
+          }
+        }
       }
     }
     
@@ -155,29 +202,50 @@ export const printReceipt = async (
     
     console.log("Receipt to be printed:", receiptText);
     
-    // Try to print with extra formatting for EcoPrint compatibility
-    const formattedReceipt = BluetoothPrinterService.formatForPrinter(receiptText);
+    // Send the receipt to the printer (will try multiple formats internally)
+    const success = await BluetoothPrinterService.printText(receiptText);
     
-    // Send the receipt to the printer using the plugin
-    const success = await BluetoothPrinterService.printText(formattedReceipt);
-    
-    // If first attempt fails, try with different formatting
-    if (!success) {
-      console.log("First print attempt failed, trying alternative format");
-      // Try with alternative formatting (for different printer models)
-      const alternativeFormat = BluetoothPrinterService.formatAlternative(receiptText);
-      const secondAttempt = await BluetoothPrinterService.printText(alternativeFormat);
+    if (success) {
+      toast.dismiss("printing-receipt");
+      toast.success("Struk berhasil dicetak!");
+      return true;
+    } else {
+      toast.dismiss("printing-receipt");
       
-      if (!secondAttempt) {
-        toast.dismiss("printing-receipt");
-        toast.error("Gagal mencetak struk. Coba sambungkan ulang printer.");
-        return false;
-      }
+      // If print fails, offer a retry option
+      toast.error("Gagal mencetak struk. Coba sambungkan ulang printer.", {
+        action: {
+          label: "Coba Lagi",
+          onClick: async () => {
+            // Try to reconnect and print again
+            const device = BluetoothPrinterService.getConnectedDevice();
+            if (device) {
+              const reconnected = await BluetoothPrinterService.connectToPrinter(device);
+              if (reconnected) {
+                // Try printing again with a simple message first to test the connection
+                const testSuccess = await BluetoothPrinterService.printText("Tes Printer");
+                if (testSuccess) {
+                  // If test print works, try the full receipt again
+                  await BluetoothPrinterService.printText(receiptText);
+                }
+              }
+            } else {
+              // No device available, need to scan and connect first
+              const printers = await BluetoothPrinterService.scanForPrinters(15000);
+              if (printers.length > 0) {
+                const connected = await BluetoothPrinterService.connectToPrinter(printers[0]);
+                if (connected) {
+                  await BluetoothPrinterService.printText(receiptText);
+                }
+              }
+            }
+          }
+        },
+        duration: 10000
+      });
+      
+      return false;
     }
-    
-    toast.dismiss("printing-receipt");
-    toast.success("Struk berhasil dicetak!");
-    return true;
     
   } catch (error) {
     console.error("Error printing receipt:", error);

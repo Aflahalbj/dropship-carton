@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Bluetooth, Loader2, Info } from 'lucide-react';
+import { Bluetooth, Loader2, Info, AlertCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import BluetoothPrinterDialog from './BluetoothPrinterDialog';
 import { toast } from "sonner";
@@ -23,6 +23,7 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
   const [printers, setPrinters] = useState<PrinterDevice[]>([]);
   const [connecting, setConnecting] = useState<string | null>(null);
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
+  const [connectedPrinter, setConnectedPrinter] = useState<PrinterDevice | null>(null);
   const isNative = Capacitor.isNativePlatform();
 
   // Check for connected printer on component mount
@@ -34,8 +35,9 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
           const device = BluetoothPrinterService.getConnectedDevice();
           if (device) {
             console.log("Already connected to printer:", device);
+            setConnectedPrinter(device);
           } else {
-            // Try to find paired printers and connect to first one
+            // Try to find paired printers and connect to first one silently
             const pairedPrinters = await BluetoothPrinterService.getPairedPrinters();
             if (pairedPrinters.length > 0) {
               console.log("Found paired printers:", pairedPrinters);
@@ -44,6 +46,7 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
                 const connected = await BluetoothPrinterService.connectToPrinter(pairedPrinters[0]);
                 if (connected) {
                   console.log("Auto-connected to paired printer:", pairedPrinters[0]);
+                  setConnectedPrinter(pairedPrinters[0]);
                   toast.success(`Terhubung otomatis ke printer: ${pairedPrinters[0].name}`, {
                     duration: 3000
                   });
@@ -56,6 +59,8 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
         } catch (error) {
           console.error("Error initializing printer service:", error);
         }
+      } else {
+        console.log("Not running on native platform, Bluetooth functionality disabled");
       }
     };
     
@@ -81,7 +86,10 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
       console.log('Found paired printers:', pairedPrinters);
       
       // Use longer scan duration to find more devices
-      const scannedPrinters = await BluetoothPrinterService.scanForPrinters(15000);
+      toast.loading("Memindai printer Bluetooth...", { id: "scanning", duration: 20000 });
+      const scannedPrinters = await BluetoothPrinterService.scanForPrinters(20000);
+      toast.dismiss("scanning");
+      
       console.log('Found new printers from scan:', scannedPrinters);
       
       // Combine paired and scanned printers, avoiding duplicates
@@ -97,6 +105,11 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
       
       if (allPrinters.length === 0) {
         setShowTroubleshooting(true);
+        toast.error("Tidak ada printer yang ditemukan. Pastikan printer dalam mode pairing dan Bluetooth aktif.", {
+          duration: 5000
+        });
+      } else {
+        toast.success(`${allPrinters.length} printer ditemukan`);
       }
       
       setPrinters(allPrinters);
@@ -119,6 +132,7 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
       
       if (connected) {
         console.log('Successfully connected to printer');
+        setConnectedPrinter(printer);
         toast.success(`Terhubung ke printer: ${printer.name}`, {
           duration: 3000
         });
@@ -147,6 +161,31 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
       toast.info("Pemindaian dibatalkan", { duration: 2000 });
     }
   };
+  
+  // Button color changes based on connection status
+  const getButtonVariant = () => {
+    if (!isNative) return "outline";
+    if (connectedPrinter) return "default"; // Green button when connected
+    return "outline";
+  };
+  
+  // Button icon based on state
+  const getButtonIcon = () => {
+    if (isScanning) {
+      return <Loader2 className="h-4 w-4 animate-spin" />;
+    } else if (connectedPrinter) {
+      return <Bluetooth className="h-4 w-4 text-white" />;
+    } else {
+      return <Bluetooth className="h-4 w-4" />;
+    }
+  };
+  
+  // Tooltip text based on connection status
+  const getTooltipText = () => {
+    if (!isNative) return "Bluetooth printer hanya tersedia di aplikasi Android/iOS";
+    if (connectedPrinter) return `Terhubung ke printer: ${connectedPrinter.name}`;
+    return "Hubungkan ke printer Bluetooth";
+  };
 
   return (
     <>
@@ -154,21 +193,17 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
-              variant="outline" 
+              variant={getButtonVariant()} 
               size="icon" 
-              className={`aspect-square w-12 h-12 rounded-lg bg-slate-50 border border-gray-300 ${className}`}
+              className={`aspect-square w-12 h-12 rounded-lg ${connectedPrinter ? 'bg-green-500 hover:bg-green-600' : 'bg-slate-50 border border-gray-300'} ${className}`}
               onClick={handleScanForPrinters}
               disabled={isScanning}
             >
-              {isScanning ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Bluetooth className="h-4 w-4" />
-              )}
+              {getButtonIcon()}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Hubungkan ke printer Bluetooth</p>
+            <p>{getTooltipText()}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -188,6 +223,7 @@ const BluetoothPrinterButton: React.FC<BluetoothPrinterButtonProps> = ({ classNa
         isScanning={isScanning}
         showTroubleshooting={showTroubleshooting}
         onToggleTroubleshooting={() => setShowTroubleshooting(!showTroubleshooting)}
+        connectedPrinter={connectedPrinter}
       />
     </>
   );

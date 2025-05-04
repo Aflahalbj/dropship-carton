@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bluetooth, Loader2, AlertCircle, X } from 'lucide-react';
+import { Bluetooth, Loader2, AlertCircle, X, Check, HelpCircle, RefreshCcw } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,9 +10,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PrinterDevice } from "@/services/BluetoothPrinterService";
+import { Badge } from "@/components/ui/badge";
 
 interface BluetoothPrinterDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ interface BluetoothPrinterDialogProps {
   isScanning: boolean;
   showTroubleshooting?: boolean;
   onToggleTroubleshooting?: () => void;
+  connectedPrinter: PrinterDevice | null;
 }
 
 const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
@@ -36,6 +38,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
   isScanning,
   showTroubleshooting = false,
   onToggleTroubleshooting,
+  connectedPrinter,
 }) => {
   const troubleshootingTips = [
     {
@@ -44,7 +47,8 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
         "Tekan dan tahan tombol power pada EcoPrint selama 3-5 detik hingga lampu indikator berkedip untuk mode pairing.",
         "Pastikan printer sudah terisi daya atau baterai penuh.",
         "Pastikan printer sudah memiliki kertas thermal yang terpasang dengan benar.",
-        "Jika printer tidak terdeteksi, reset printer dengan menekan tombol reset atau power selama 8-10 detik."
+        "Jika printer tidak terdeteksi, reset printer dengan menekan tombol reset atau power selama 8-10 detik.",
+        "Untuk EcoPrint, pastikan lampu indikator berkedip biru (mode pairing)."
       ]
     },
     {
@@ -55,6 +59,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
         "Pastikan printer berada dalam jangkauan Bluetooth (biasanya 5-10 meter).",
         "Coba matikan dan nyalakan kembali printer.",
         "Buka pengaturan Bluetooth di Android, hapus pasangan printer yang sudah ada (jika ada).",
+        "Matikan dan hidupkan kembali Bluetooth di perangkat Android Anda."
       ]
     },
     {
@@ -65,6 +70,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
         "Restart perangkat Android Anda dan coba lagi.",
         "Pastikan Android Anda versi 6.0 atau lebih tinggi.",
         "Periksa kertas printer dan pastikan sudah terpasang dengan benar.",
+        "Untuk printer EcoPrint, tunggu sampai lampu indikator biru berhenti berkedip setelah terhubung."
       ]
     },
     {
@@ -73,7 +79,20 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
         "Izin Lokasi (diperlukan untuk memindai Bluetooth pada Android)",
         "Izin Bluetooth",
         "Izin Bluetooth Admin",
+        "Izin Bluetooth Scan",
+        "Izin Bluetooth Connect",
         "Buka pengaturan aplikasi > Izin dan pastikan semua izin diberikan.",
+        "Jika diminta, izinkan aplikasi untuk mengaktifkan Bluetooth secara otomatis."
+      ]
+    },
+    {
+      title: "Jika Terus Gagal",
+      tips: [
+        "Pastikan printer kompatibel dengan ESC/POS commands (untuk printer thermal).",
+        "Coba hubungkan printer dengan aplikasi lain terlebih dahulu, lalu kembali ke aplikasi ini.",
+        "Matikan fitur hemat daya atau mode baterai pada perangkat Android Anda.",
+        "Jika printer sudah terhubung ke sistem Android (terlihat di menu Bluetooth), coba lepaskan pasangan dan hubungkan ulang.",
+        "Reset semua pengaturan Bluetooth dengan mematikan Bluetooth, restart perangkat, lalu hidupkan kembali Bluetooth."
       ]
     }
   ];
@@ -88,13 +107,24 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         
+        {/* Show connected printer status if any */}
+        {connectedPrinter && (
+          <Alert className="mb-4 bg-green-50 border-green-500">
+            <Check className="h-4 w-4 text-green-500" />
+            <AlertTitle className="text-green-700">Printer Terhubung</AlertTitle>
+            <AlertDescription className="text-green-600">
+              {connectedPrinter.name} sudah terhubung dan siap digunakan
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="space-y-2 max-h-[300px] overflow-y-auto">
           {printers.length > 0 ? (
             printers.map((printer) => (
               <Button
                 key={printer.id}
-                variant="outline"
-                className="w-full justify-start text-left h-auto py-3"
+                variant={connectedPrinter?.id === printer.id ? "default" : "outline"}
+                className={`w-full justify-start text-left h-auto py-3 relative ${connectedPrinter?.id === printer.id ? 'bg-green-500 hover:bg-green-600 text-white' : ''}`}
                 onClick={() => onConnectPrinter(printer)}
                 disabled={connecting === printer.id}
               >
@@ -107,13 +137,20 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
                   <span className="font-medium">{printer.name}</span>
                   <span className="text-xs text-gray-500">{printer.address}</span>
                 </div>
+                {connectedPrinter?.id === printer.id && (
+                  <Badge className="absolute right-2 bg-white text-green-600 border-green-600">
+                    <Check className="mr-1 h-3 w-3" /> Terhubung
+                  </Badge>
+                )}
               </Button>
             ))
           ) : (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Printer tidak ditemukan</AlertTitle>
               <AlertDescription>
-                Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing. Untuk printer EcoPrint, tekan tombol power selama 3-5 detik hingga lampu indikator berkedip.
+                Tidak ada printer yang ditemukan. Pastikan printer Bluetooth dinyalakan dan dalam mode pairing. 
+                Untuk printer EcoPrint, tekan tombol power selama 3-5 detik hingga lampu indikator berkedip.
               </AlertDescription>
             </Alert>
           )}
@@ -121,6 +158,10 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
         
         {showTroubleshooting && (
           <div className="mt-4 border rounded-lg p-3 bg-muted/50">
+            <h3 className="text-sm font-medium mb-2 flex items-center">
+              <HelpCircle className="h-4 w-4 mr-1" />
+              Panduan Pemecahan Masalah
+            </h3>
             <Accordion type="single" collapsible className="w-full">
               {troubleshootingTips.map((section, index) => (
                 <AccordionItem key={index} value={`item-${index}`}>
@@ -138,11 +179,12 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
           </div>
         )}
         
-        <DialogFooter className="flex sm:justify-between">
+        <DialogFooter className="flex sm:justify-between mt-4 flex-col sm:flex-row gap-2">
           <Button 
-            className="w-full mt-2" 
+            className="w-full" 
             onClick={onRescan}
             disabled={isScanning}
+            variant="default"
           >
             {isScanning ? (
               <>
@@ -151,7 +193,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
               </>
             ) : (
               <>
-                <Bluetooth className="mr-2 h-4 w-4" />
+                <RefreshCcw className="mr-2 h-4 w-4" />
                 Pindai Ulang
               </>
             )}
@@ -159,7 +201,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
           
           <Button 
             variant="outline" 
-            className="w-full mt-2" 
+            className="w-full" 
             onClick={onToggleTroubleshooting}
           >
             {showTroubleshooting ? (
@@ -169,7 +211,7 @@ const BluetoothPrinterDialog: React.FC<BluetoothPrinterDialogProps> = ({
               </>
             ) : (
               <>
-                <AlertCircle className="mr-2 h-4 w-4" />
+                <HelpCircle className="mr-2 h-4 w-4" />
                 Lihat Bantuan
               </>
             )}
